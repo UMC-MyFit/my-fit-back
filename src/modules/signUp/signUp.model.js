@@ -35,7 +35,6 @@ const signUpModel = {
         sector,
     }) => {
         try {
-            console.log('Model 진입')
             // 1. User 생성
             const newUser = await prisma.user.create({
                 data: {
@@ -48,8 +47,6 @@ const signUpModel = {
                     grade_status,
                 },
             })
-
-            console.log('Model - User 생성 완료')
 
             // 2. Service 생성
             const newService = await prisma.service.create({
@@ -76,20 +73,6 @@ const signUpModel = {
                     high_area_id,
                     low_area_id,
                 },
-            })
-
-            console.log('🧪 create() 입력 값 확인:', {
-                email,
-                password,
-                name,
-                one_line_profile,
-                birth_date,
-                division,
-                grade_status,
-                high_area_id,
-                low_area_id,
-                recruiting_status,
-                sector,
             })
 
             return convertBigIntsToNumbers({
