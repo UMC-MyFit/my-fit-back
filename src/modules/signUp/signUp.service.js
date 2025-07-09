@@ -24,8 +24,44 @@ const usersService = {
         sector,
     }) => {
         console.log('service 진입')
+
+        // 0. 이전에 is_profile_completed: false로 가입한 유저가 있다면 삭제
+        try {
+            const incompleteUser = await prisma.user.findFirst({
+                where: { email, is_profile_completed: false },
+            })
+
+            if (incompleteUser) {
+                console.log(
+                    `기존 is_completed: false 유저(id: ${incompleteUser.id}) 삭제 중`
+                )
+                // 관련된 UserDB와 Service도 삭제
+                await prisma.userDB.deleteMany({
+                    where: { user_id: incompleteUser.id },
+                })
+
+                const relatedServices = await prisma.userDB.findMany({
+                    where: { user_id: incompleteUser.id },
+                    select: { service_id: true },
+                })
+
+                const serviceIds = relatedServices.map((s) => s.service_id)
+                await prisma.userArea.deleteMany({
+                    where: { service_id: { in: serviceIds } },
+                })
+                await prisma.service.deleteMany({
+                    where: { id: { in: serviceIds } },
+                })
+                await prisma.user.delete({ where: { id: incompleteUser.id } })
+            }
+        } catch (error) {
+            console.error('에러:', error.message)
+        }
+
         // 1. 이메일 중복 검사
-        const existingUser = await UserModel.findByEmail(email)
+        const existingUser = await prisma.user.findFirst({
+            where: { email, is_profile_completed: true },
+        })
         if (existingUser)
             throw new ConflictError({ message: '이미 존재하는 이메일입니다.' })
 
