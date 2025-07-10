@@ -35,27 +35,31 @@ const usersService = {
                 console.log(
                     `기존 is_completed: false 유저(id: ${incompleteUser.id}) 삭제 중`
                 )
-                // 관련된 UserDB와 Service도 삭제
-                await prisma.userDB.deleteMany({
-                    where: { user_id: incompleteUser.id },
-                })
 
                 const relatedServices = await prisma.userDB.findMany({
                     where: { user_id: incompleteUser.id },
                     select: { service_id: true },
                 })
-
                 const serviceIds = relatedServices.map((s) => s.service_id)
+
                 await prisma.userArea.deleteMany({
                     where: { service_id: { in: serviceIds } },
                 })
+
+                await prisma.userDB.deleteMany({
+                    where: { user_id: incompleteUser.id },
+                })
+
                 await prisma.service.deleteMany({
                     where: { id: { in: serviceIds } },
                 })
-                await prisma.user.delete({ where: { id: incompleteUser.id } })
+
+                await prisma.user.delete({
+                    where: { id: incompleteUser.id },
+                })
             }
         } catch (error) {
-            console.error('에러:', error.message)
+            console.error('이전 미완료 유저 삭제 중 오류 발생:', error.message)
         }
 
         // 1. 이메일 중복 검사
