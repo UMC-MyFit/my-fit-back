@@ -8,7 +8,7 @@ import {
     NotFoundError,
 } from '../../middlewares/error.js'
 
-const cardsController = {
+const cardsService = {
     createCard: async (
         serviceId,
         {
@@ -76,6 +76,42 @@ const cardsController = {
             })
         }
     },
+
+    getCardById: async (cardId) => {
+        console.log('service 진입')
+        const card = await prisma.activityCard.findUnique({
+            where: { id: cardId },
+            include: {
+                keywords: true,
+                service: true,
+            },
+        })
+
+        console.log(card)
+
+        if (!card) {
+            throw new NotFoundError({
+                message: '해당 이력/활동 카드가 존재하지 않습니다.',
+            })
+        }
+
+        const result = {
+            id: card.id,
+            card_img: card.card_img,
+            card_one_line_profile: card.one_line_profile,
+            detailed_profile: card.detailed_profile,
+            link: card.link,
+            keyword_text: card.keywords.map((k) => k.keyword_text),
+            writer: {
+                id: card.service.id,
+                name: card.service.name,
+                sector: card.service.sector,
+                profile_img_url: card.service.profile_img,
+            },
+        }
+
+        return convertBigIntsToNumbers(result)
+    },
 }
 
-export default cardsController
+export default cardsService
