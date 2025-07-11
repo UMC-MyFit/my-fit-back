@@ -155,14 +155,18 @@ const cardsService = {
 
             // 3. 키워드
             if (keywords?.length > 0) {
-                whereClause.keywords = {
-                    some: {
-                        keyword_text: {
-                            in: keywords,
+                whereClause.AND = whereClause.AND || []
+                keywords.forEach((keyword) => {
+                    whereClause.AND.push({
+                        keywords: {
+                            some: {
+                                keyword_text: keyword,
+                            },
                         },
-                    },
-                }
+                    })
+                })
             }
+
             console.log('키워드 필터링 완료')
 
             // 4. 정렬
