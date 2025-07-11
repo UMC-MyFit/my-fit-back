@@ -3,6 +3,7 @@ import express from 'express'
 import signUpRouter from '../modules/signUp/signUp.routes.js'
 import cardsRouter from '../modules/cards/cards.routes.js'
 import userRouter from '../modules/user/user.routes.js'
+import recruitmentRouter from '../modules/recruitments/recruitments.routes.js'
 const router = express.Router()
 
 // 회원가입
@@ -14,4 +15,6 @@ router.use('/cards', cardsRouter)
 // 유저 정보
 router.use('/users', userRouter)
 
+// 구인 공고
+router.use('/recruitments', recruitmentRouter)
 export default router
