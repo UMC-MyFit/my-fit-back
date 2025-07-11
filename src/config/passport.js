@@ -6,31 +6,33 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 passport.use(
-    new LocalStrategy({
-        usernameField: 'email',
-        passwordField: 'password',
-    }),
-    async (email, password, done) => {
-        try {
-            const user = await prisma.user.findUnique({ where: { email } })
-            if (!user) {
-                return done(null, false, {
-                    message: '존재하지 않는 사용자입니다.',
-                })
-            }
+    new LocalStrategy(
+        {
+            usernameField: 'email',
+            passwordField: 'password',
+        },
+        async (email, password, done) => {
+            try {
+                const user = await prisma.user.findUnique({ where: { email } })
+                if (!user) {
+                    return done(null, false, {
+                        message: '존재하지 않는 사용자입니다.',
+                    })
+                }
 
-            // 비밀번호 평문으로 저장할 때만 사용
-            if (user.password !== password) {
-                return done(null, false, {
-                    message: '비밀번호가 일치하지 않습니다.',
-                })
-            }
+                // 나중에 bcrypt로 바꿀 부분
+                if (user.password !== password) {
+                    return done(null, false, {
+                        message: '비밀번호가 일치하지 않습니다.',
+                    })
+                }
 
-            return done(null, user)
-        } catch (error) {
-            return done(error)
+                return done(null, user)
+            } catch (error) {
+                return done(error)
+            }
         }
-    }
+    )
 )
 
 // 세션에 사용자 id 저장(로그인 성공 시)

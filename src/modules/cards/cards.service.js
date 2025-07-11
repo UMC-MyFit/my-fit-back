@@ -112,6 +112,153 @@ const cardsService = {
 
         return convertBigIntsToNumbers(result)
     },
+
+    getFilteredCards: async ({
+        cursor,
+        area,
+        status,
+        hope_job,
+        keywords,
+        sort,
+        isFiltered = false,
+    }) => {
+        try {
+            console.log('service 진입')
+
+            const whereClause = {}
+            const TAKE_LIMIT = 10
+
+            // 1. 활동 지역
+            if (area) {
+                whereClause.service = {
+                    userAreas: {
+                        some: {
+                            high_area_id: parseInt(area),
+                        },
+                    },
+                }
+            }
+            console.log('활동 지역 필터링 완료')
+
+            // 2. 상태 필터링
+            if (status) {
+                whereClause.AND = whereClause.AND || []
+                whereClause.AND.push({
+                    service: {
+                        recruiting_status: {
+                            contains: status,
+                        },
+                    },
+                })
+            }
+            console.log('상태 필터링 완료')
+
+            // 3. 키워드
+            if (keywords?.length > 0) {
+                whereClause.keywords = {
+                    some: {
+                        keyword_text: {
+                            in: keywords,
+                        },
+                    },
+                }
+            }
+            console.log('키워드 필터링 완료')
+
+            // 4. 정렬
+            // 정렬 조건
+            let orderBy
+            if (sort === 'oldest') {
+                orderBy = { id: 'asc' }
+            } else {
+                orderBy = { id: 'desc' }
+            }
+
+            console.log('정렬 필터링 완료')
+
+            // 5. 카드 가져오기
+            const cards = await prisma.activityCard.findMany({
+                where: whereClause,
+                include: {
+                    keywords: true,
+                },
+                take: TAKE_LIMIT,
+                ...(cursor && {
+                    skip: 1,
+                    cursor: { id: cursor },
+                }),
+                orderBy,
+            })
+
+            console.log('카드 가져오기 완료')
+
+            const total_count = await prisma.activityCard.count({
+                where: whereClause,
+            })
+
+            const next_cursor =
+                cards.length === TAKE_LIMIT ? cards[cards.length - 1].id : null
+
+            // 6. 작성자 직업(sector) 조회
+            const serviceIds = cards.map((card) => card.service_id)
+            const userDBs = await prisma.userDB.findMany({
+                where: {
+                    service_id: { in: serviceIds },
+                    ...(hope_job && {
+                        service: {
+                            sector: {
+                                contains: hope_job,
+                            },
+                        },
+                    }),
+                },
+                include: {
+                    service: true,
+                },
+            })
+
+            console.log('작성자 직업 조회 완료')
+
+            // 필터링된 서비스 ID만 추출
+            const validServiceIds = new Set(
+                userDBs.map((udb) => udb.service_id)
+            )
+
+            // service_id → sector 매핑
+            const serviceIdToSector = {}
+            userDBs.forEach((udb) => {
+                serviceIdToSector[udb.service_id] =
+                    udb.service?.sector || '직무 미입력'
+            })
+
+            // 7. 최종 필터링 + 포맷팅
+            const filteredCards = cards.filter((card) =>
+                validServiceIds.has(card.service_id)
+            )
+
+            const formatted = filteredCards.map((card) => ({
+                card_id: card.id,
+                title: serviceIdToSector[card.service_id], // 작성자의 직무
+                image_url: `https://myfit.com/cards/${card.id}.jpg`,
+                one_line_profile: card.one_line_profile, // 카드 소개글
+                tags: card.keywords.map((kw) => kw.keyword_text),
+            }))
+
+            console.log('최종 필터링 완료')
+
+            return convertBigIntsToNumbers({
+                cards: formatted,
+                total_count: formatted.length,
+                next_cursor,
+                has_next: !!next_cursor,
+            })
+        } catch (error) {
+            console.error('카드 필터링 오류:', error)
+            throw new BadRequestError({
+                message: '필터링에 오류가 발생하였습니다.',
+            })
+        }
+    },
 }
 
 export default cardsService
