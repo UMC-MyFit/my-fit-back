@@ -110,13 +110,14 @@ router.post('/', cardsController.createCard)
  *         description: "작성자의 희망 직무 (예: 백엔드 개발)"
  *       - in: query
  *         name: keywords
+ *         style: form
+ *         explode: true
+ *         required: false
+ *         collectionFormat: multi
  *         schema:
  *           type: array
  *           items:
  *             type: string
- *         required: false
- *         style: form
- *         explode: true
  *         description: "키워드 목록"
  *       - in: query
  *         name: sort
