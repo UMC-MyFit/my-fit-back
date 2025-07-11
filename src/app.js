@@ -1,4 +1,7 @@
 import express, { response } from 'express'
+import session from 'express-session'
+import passport from 'passport'
+import '../src/config/passport.js'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './docs/swagger.js'
 import cors from 'cors'
@@ -17,6 +20,17 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 app.use(cors())
 app.use(morgan('dev'))
 app.use(express.json())
+
+// 세션 및 Passport 초기화
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+    })
+)
+app.use(passport.initialize())
+app.use(passport.session()) // 세션 연결
 
 // 응답 헬퍼 등록
 app.use(responseHandler)
