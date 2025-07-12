@@ -263,6 +263,111 @@ const cardsService = {
             })
         }
     },
+
+    getCardgrid: async ({ cursor, area, status, hope_job, keywords }) => {
+        try {
+            const TAKE_LIMIT = 10
+            const whereClause = {}
+
+            // 1. 활동 지역
+            if (area) {
+                whereClause.service = {
+                    userAreas: {
+                        some: { high_area_id: parseInt(area) },
+                    },
+                }
+            }
+
+            // 2. 상태
+            if (status) {
+                whereClause.AND = whereClause.AND || []
+                whereClause.AND.push({
+                    service: {
+                        recruiting_status: {
+                            contains: status,
+                        },
+                    },
+                })
+            }
+
+            // 키워드 (모두 포함)
+            if (keywords?.length > 0) {
+                whereClause.AND = whereClause.AND || []
+                keywords.forEach((kw) => {
+                    whereClause.AND.push({
+                        keywords: {
+                            some: {
+                                keyword_text: {
+                                    equals: kw,
+                                },
+                            },
+                        },
+                    })
+                })
+            }
+
+            // 최신순 정렬
+            const orderBy = { id: 'desc' }
+
+            const cards = await prisma.activityCard.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    service_id: true,
+                },
+                take: TAKE_LIMIT,
+                ...(cursor && {
+                    skip: 1,
+                    cursor: { id: cursor },
+                }),
+                orderBy,
+            })
+
+            // 작성자 직무 필터
+            const serviceIds = cards.map((card) => card.service_id)
+            const userDBs = await prisma.userDB.findMany({
+                where: {
+                    service_id: { in: serviceIds },
+                    ...(hope_job && {
+                        service: {
+                            sector: {
+                                contains: hope_job,
+                            },
+                        },
+                    }),
+                },
+                include: {
+                    service: true,
+                },
+            })
+
+            const validServiceIds = new Set(
+                userDBs.map((udb) => udb.service_id)
+            )
+
+            const filteredCards = cards.filter((card) =>
+                validServiceIds.has(card.service_id)
+            )
+
+            const formatted = filteredCards.map((card) => ({
+                card_id: card.id,
+                image_url: `https://myfit.com/cards/${card.id}.jpg`,
+            }))
+
+            const next_cursor =
+                cards.length === TAKE_LIMIT ? cards[cards.length - 1].id : null
+
+            return convertBigIntsToNumbers({
+                cards: formatted,
+                total_count: formatted.length,
+                next_cursor,
+                has_next: !!next_cursor,
+            })
+        } catch (error) {
+            console.log('service, 카드 전체 조회 실패:', error)
+            throw new BadRequestError({ message: '카드 전체 조회 실패' })
+        }
+    },
 }
 
 export default cardsService

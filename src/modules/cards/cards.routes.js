@@ -187,6 +187,95 @@ router.get('/swipe', cardsController.getFilteredCards)
 
 /**
  * @swagger
+ * /api/cards/grid:
+ *   get:
+ *     summary: 전체보기 카드 리스트 조회 (무한 스크롤)
+ *     description: 최신순으로 전체 이력/활동 카드 이미지를 조회합니다. 한 번에 최대 10개씩 불러오며, next_cursor를 기반으로 다음 데이터를 요청할 수 있습니다.
+ *     tags:
+ *       - Cards
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: 이전 요청에서 받은 next_cursor 값
+ *       - in: query
+ *         name: area
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: "활동 지역 ID (예시: 1)"
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: "활동 상태 (예시: 이직 준비 중)"
+ *       - in: query
+ *         name: hope_job
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: "희망 직무 (예시: 프론트엔드 개발)"
+ *       - in: query
+ *         name: keywords
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         required: false
+ *         style: form
+ *         explode: true
+ *         description: 키워드 목록 예시 keywords=사이드프로젝트&keywords=인턴경험
+ *     responses:
+ *       200:
+ *         description: 카드 전체 보기 조회 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: true
+ *               code: 200
+ *               message: 카드 전체 보기 조회 성공
+ *               result:
+ *                 cards:
+ *                   - card_id: 23
+ *                     image_url: https://myfit.com/cards/23.jpg
+ *                   - card_id: 3
+ *                     image_url: https://myfit.com/cards/3.jpg
+ *                 total_count: 2
+ *                 next_cursor: null
+ *                 has_next: false
+ *       400:
+ *         description: 잘못된 요청입니다. 입력값을 확인해주세요.
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 400
+ *               message: 잘못된 요청입니다. 입력값을 확인해주세요.
+ *               result:
+ *                 errorCode: C001
+ *                 data:
+ *                   message: 잘못된 쿼리 파라미터가 포함되어 있습니다
+ *       500:
+ *         description: 서버에 오류가 발생하였습니다.
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 500
+ *               message: 서버에 오류가 발생하였습니다.
+ *               result:
+ *                 errorCode: S001
+ *                 data:
+ *                   message: 서버에 오류가 발생하였습니다.
+ */
+
+router.get('/grid', cardsController.getCardgrid)
+
+/**
+ * @swagger
  * /api/cards/{card_id}:
  *   get:
  *     summary: 이력/활동 카드 상세 조회
