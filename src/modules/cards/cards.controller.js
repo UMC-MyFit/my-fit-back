@@ -92,6 +92,34 @@ const cardsController = {
             next(error)
         }
     },
+
+    getCardgrid: async (req, res, next) => {
+        try {
+            const { cursor, area, status, hope_job, keywords } = req.query
+
+            const result = await cardsService.getCardgrid({
+                cursor: cursor ? parseInt(cursor) : undefined,
+                area,
+                status,
+                hope_job,
+                // 키워드는 무조건 배열 형태로 변환
+                keywords: Array.isArray(keywords)
+                    ? keywords
+                    : keywords
+                      ? [keywords]
+                      : [],
+            })
+
+            res.success({
+                code: 200,
+                message: '카드 전체 보기 조회 성공',
+                result,
+            })
+        } catch (error) {
+            console.log('카드 전체 보기 중 에러 발생')
+            next(error)
+        }
+    },
 }
 
 export default cardsController
