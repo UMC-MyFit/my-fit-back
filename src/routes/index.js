@@ -6,6 +6,7 @@ import cardsRouter from '../modules/cards/cards.routes.js'
 import userRouter from '../modules/user/user.routes.js'
 import recruitmentRouter from '../modules/recruitments/recruitments.routes.js'
 import feedsRouter from '../modules/feed/feed.routes.js'
+import mypageRouter from '../modules/mypage/mypage.routes.js'
 const router = express.Router()
 
 // 회원가입
@@ -25,4 +26,9 @@ router.use('/users', userRouter)
 
 // 구인 공고
 router.use('/recruitments', recruitmentRouter)
+
+// 마이페이지
+router.use('/mypage', mypageRouter)
+
 export default router
+
