@@ -16,7 +16,8 @@ model User {
   birth_date           DateTime // 생년월일
   Highest_grade        String?  @db.VarChar(100) // 최종학력 (nullable)
   link                 String?  @db.VarChar(100) // 개인 링크 / 포트폴리오 링크 (nullable)
-  email                String   @unique @db.VarChar(100) // 이메일 (중복 방지)
+  email                String   @db.VarChar(100) // 이메일
+  platform             String   @default("local") // local, kakao, google, naver 중 하나
   is_email_AuthN       Boolean  @default(false) // 이메일 인증 여부
   inc_AuthN_file       String?  @db.VarChar(100) // 사업자 등록 파일 (nullable)
   password             String   @db.VarChar(50) // 비밀번호
@@ -28,6 +29,8 @@ model User {
 
   // 관계
   userDBs UserDB[] // 유저가 등록한 서비스들과의 연결
+
+  @@unique([email, platform]) // 이메일 + 플랫폼 조합으로 중복 금지
 }
 
 model Service {

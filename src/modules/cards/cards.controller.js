@@ -5,8 +5,7 @@ const cardsController = {
     createCard: async (req, res, next) => {
         try {
             console.log('controller 접근')
-            // 나중에 serviceId = req.session.user.service_id; 로 교체 예정
-            const serviceId = req.body.service_id
+            const serviceId = req.user.service_id
             const cardData = req.body
 
             const result = await cardsService.createCard(serviceId, cardData)
