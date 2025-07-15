@@ -1,10 +1,10 @@
 // services/feedService.js
 
-import Feed from '../models/Feed.js';
-import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../middlewares/error.js';
+import Feed from './feed.model.js';
+import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../middlewares/error.js';
 
 class FeedService {
-    async createFeed(feedData) {
+    async createFeed(feedData, serviceId) {
         try {
             const processedHashtag = feedData.hashtag && Array.isArray(feedData.hashtag) && feedData.hashtag.length > 0
                 ? feedData.hashtag.join(',')
@@ -13,7 +13,7 @@ class FeedService {
             const newFeedData = {
                 feed_text: feedData.feed_text,
                 hashtag: processedHashtag,
-                service_id: feedData.service_id,
+                service_id: serviceId,
                 images: feedData.images || [],
                 created_at: new Date(),
                 updated_at: new Date()
@@ -57,7 +57,7 @@ class FeedService {
 
     async deleteFeed(feedId) {
         try {
-            const deletedFeed = await Feed.delete(feedId);
+            const deletedFeed = await Feed.hide(feedId);
 
             return {
                 feed_id: deletedFeed.id,

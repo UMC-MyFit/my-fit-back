@@ -1,10 +1,12 @@
 // controllers/feedController.js
-import feedService from '../services/feedService.js';
-import { BadRequestError, NotFoundError } from '../middlewares/error.js';
+import feedService from './feed.service.js';
+import { BadRequestError, NotFoundError } from '../../middlewares/error.js';
 
 class FeedController {
     async createFeed(req, res, next) {
         try {
+            // 나중에 serviceId = req.session.user.service_id; 로 교체 예정
+            const serviceId = req.body.service_id
             const feedData = req.body;
 
             if (!feedData.images || !Array.isArray(feedData.images) || feedData.images.length === 0) {
@@ -15,7 +17,7 @@ class FeedController {
                 throw new BadRequestError({ field: 'feed_text', message: '피드 텍스트는 필수입니다.' });
             }
 
-            if (!feedData.service_id || typeof feedData.service_id !== 'number') {
+            if (!serviceId || typeof serviceId !== 'number') {
                 throw new BadRequestError({ field: 'service_id', message: '서비스 ID는 필수입니다.' });
             }
 
@@ -23,7 +25,7 @@ class FeedController {
                 throw new BadRequestError({ field: 'hashtag', message: '해시태그는 배열 형태여야 합니다.' });
             }
 
-            const result = await feedService.createFeed(feedData);
+            const result = await feedService.createFeed(feedData, serviceId);
 
             return res.success({
                 code: 201,
@@ -40,7 +42,7 @@ class FeedController {
 
     async getAllFeeds(req, res, next) {
         try {
-            const limit = parseInt(req.query.limit) || 10;
+            const limit = 10;
             const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
             const feeds = await feedService.getAllFeeds(limit, lastFeedId);
 
@@ -53,7 +55,6 @@ class FeedController {
                 result: {
                     feeds,
                     pagination: {
-                        limit,
                         hasMore,
                         nextCursorId
                     }

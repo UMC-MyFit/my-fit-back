@@ -3,13 +3,13 @@
 /*
 TODO
 1. 하드 삭제 구현하기 -> FeedImage, FeedComment, FeedHeart에 외래키 제약 조건 걸기, onDelete: Cascade
+2. feed 좋아요 누른 여부 is_liked 처리
 */
 
 import { PrismaClient } from '@prisma/client';
-import { convertBigIntsToNumbers } from '../utils/dataTransformer.js';
+import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js';
 
 const prisma = new PrismaClient();
-
 
 class Feed {
     // 피드 생성
@@ -55,29 +55,29 @@ class Feed {
                 where: {
                     is_visible: true,
                 },
-                include: {
+                select: {
+                    id: true,
+                    created_at: true,
+                    feed_text: true,
+                    hashtag: true,
+
                     FeedImage: {
                         select: {
-                            id: true,
-                            image_url: true,
-                            created_at: true
+                            image_url: true
                         }
                     },
                     service: {
                         select: {
                             id: true,
                             name: true,
+                            sector: true,
                             profile_img: true
-                        }
-                    },
-                    feedHearts: {
-                        select: {
-                            service_id: true
                         }
                     },
                     _count: {
                         select: {
-                            FeedComment: true
+                            FeedComment: true,
+                            feedHearts: true
                         }
                     }
                 },
@@ -89,29 +89,34 @@ class Feed {
 
             // 커서 기반 페이지네이션
             if (lastFeedId !== null) {
-                queryOptions.cursor = {
-                    id: BigInt(lastFeedId)
-                };
-                queryOptions.skip = 1; // 커서 자신은 결과에서 제외
-
-                queryOptions.where = {
-                    AND: [
-                        queryOptions.where, // 기존 is_visible: true 조건 유지
-                        {
-                            id: { lt: BigInt(lastFeedId) } // lastFeedId보다 작은 ID의 피드들을 조회 (더 과거의 피드)
-                        }
-                    ]
-                };
+                queryOptions.cursor = { id: BigInt(lastFeedId) };
+                queryOptions.skip = 1;
             }
+
 
             const feeds = await prisma.feed.findMany(queryOptions);
 
-            const feedsWithCommentCount = feeds.map(feed => ({
-                ...feed,
-                commentCount: feed._count.FeedComment
-            }));
+            const processedFeeds = feeds.map(feed => {
+                const imageUrls = feed.FeedImage.map(image => image.image_url);
+                return {
+                    "feed_id": feed.id,
+                    "user": {
+                        "id": feed.service.id,
+                        "name": feed.service.name,
+                        "sector": feed.service.sector,
+                        "profile_img": feed.service.profile_img
+                    },
+                    "created_at": feed.created_at,
+                    "images": imageUrls,
+                    "feed_text": feed.feed_text,
+                    "hashtags": feed.hashtag,
+                    "heart": feed._count.feedHearts,
+                    // "is_liked": is_liked,
+                    "comment_count": feed._count.FeedComment
+                };
+            });
 
-            return convertBigIntsToNumbers(feedsWithCommentCount);
+            return convertBigIntsToNumbers(processedFeeds);
         } catch (error) {
             console.error('전체 피드 목록 조회 중 오류:', error);
             throw error;
