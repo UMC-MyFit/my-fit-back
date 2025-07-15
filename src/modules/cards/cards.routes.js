@@ -1,6 +1,6 @@
 import express from 'express'
 import cardsController from './cards.controller.js'
-
+import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router()
 
 /**
@@ -10,7 +10,7 @@ const router = express.Router()
  *     tags:
  *        - Cards
  *     summary: 이력/활동 카드 등록
- *     description: 활동 카드 정보를 등록하고 키워드와 연결합니다. (임시로 body에 service_id 들어감. 원래는 세션 사용해서 안들어감)
+ *     description: 활동 카드 정보를 등록하고 키워드와 연결합니다.
  *     requestBody:
  *       required: true
  *       content:
@@ -18,9 +18,6 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               service_id:
- *                 type: integer
- *                 example: 12
  *               card_img:
  *                 type: string
  *                 example: "https://cdn.example.com/cards/card_img01.png"
@@ -74,7 +71,7 @@ const router = express.Router()
  */
 
 // 이력/활동 카드 등록
-router.post('/', cardsController.createCard)
+router.post('/', isAuthenticated, cardsController.createCard)
 
 /**
  * @swagger

@@ -1,8 +1,8 @@
 import loginModel from './login.model.js'
 import { NotFoundError } from '../../middlewares/error.js'
 const loginService = {
-    login: async (email, password) => {
-        const user = await loginModel.findByEmail(email)
+    login: async (email, password, platform) => {
+        const user = await loginModel.findByEmailAndPlatform(email, platform)
         if (!user) {
             throw new NotFoundError('존재하지 않는 사용자입니다.')
         }

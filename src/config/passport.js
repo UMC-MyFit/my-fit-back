@@ -15,7 +15,7 @@ passport.use(
         },
         async (email, password, done) => {
             try {
-                const user = await loginService.login(email, password)
+                const user = await loginService.login(email, password, 'local')
                 return done(null, user)
             } catch (error) {
                 return done(null, false, { message: error.message })
@@ -33,8 +33,15 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await prisma.user.findUnique({ where: { id: BigInt(id) } })
-        const convertedUser = convertBigIntsToNumbers(user)
-        done(null, convertedUser)
+        const safeUser = convertBigIntsToNumbers(user)
+        // 세션에 저장되는 사용자 서비스 id, 이메일, 이름
+        const userForSession = {
+            service_id: safeUser.id,
+            email: safeUser.email,
+            name: safeUser.name,
+        }
+
+        done(null, userForSession)
     } catch (error) {
         done(error)
     }
