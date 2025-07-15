@@ -30,7 +30,7 @@ model User {
   // 관계
   userDBs UserDB[] // 유저가 등록한 서비스들과의 연결
 
-  @@unique([email, platform]) // 이메일 + 플랫폼 조합으로 중복 금지
+  @@unique([email, platform], name: "email_platform") // 이메일 + 플랫폼 조합으로 중복 금지
 }
 
 model Service {
