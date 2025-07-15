@@ -6,8 +6,8 @@ class FeedController {
     async createFeed(req, res, next) {
         try {
             // 나중에 serviceId = req.session.user.service_id; 로 교체 예정
-            const serviceId = req.body.service_id
-            const feedData = req.body;
+            const serviceId = req.user.service_id
+            const feedData = req.body
 
             if (!feedData.images || !Array.isArray(feedData.images) || feedData.images.length === 0) {
                 throw new BadRequestError({ field: 'images', message: '이미지는 필수입니다.' });
@@ -42,10 +42,10 @@ class FeedController {
 
     async getAllFeeds(req, res, next) {
         try {
-            const limit = 10;
+            const limit = 10
+            const serviceId = req.user.service_id
             const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
-            const feeds = await feedService.getAllFeeds(limit, lastFeedId);
-
+            const feeds = await feedService.getAllFeeds(serviceId, lastFeedId, limit);
             const hasMore = feeds.length === limit;
             const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].id : null;
 

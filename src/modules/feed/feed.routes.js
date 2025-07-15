@@ -1,5 +1,6 @@
 import express from 'express';
 import feedController from './feed.controller.js';
+import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router();
 
 // POST /api/feeds - 피드 생성
@@ -71,7 +72,7 @@ const router = express.Router();
  *                   example: "서버에 오류가 발생했습니다."
  */
 
-router.post('/', feedController.createFeed);
+router.post('/', isAuthenticated, feedController.createFeed);
 
 /**
  * @swagger
@@ -174,7 +175,7 @@ router.post('/', feedController.createFeed);
  *                   type: string
  *                   example: "서버에 오류가 발생했습니다."
  */
-router.get('/', feedController.getAllFeeds);
+router.get('/', isAuthenticated, feedController.getAllFeeds);
 
 // DELETE /api/feeds/:feedId - 피드 삭제
 /**
@@ -237,6 +238,6 @@ router.get('/', feedController.getAllFeeds);
  *                   type: string
  *                   example: "서버에 오류가 발생했습니다."
  */
-router.delete('/:feedId', feedController.deleteFeed);
+router.delete('/:feedId', isAuthenticated, feedController.deleteFeed);
 
 export default router;

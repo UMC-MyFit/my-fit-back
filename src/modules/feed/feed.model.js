@@ -49,7 +49,7 @@ class Feed {
     }
 
     // 전체 피드 목록 조회
-    static async findAll(limit = 10, lastFeedId = null) {
+    static async findAll(serviceId, lastFeedId = null, limit = 10) {
         try {
             const queryOptions = {
                 where: {
@@ -74,6 +74,11 @@ class Feed {
                             profile_img: true
                         }
                     },
+                    feedHearts: {
+                        select: {
+                            service_id: true
+                        }
+                    },
                     _count: {
                         select: {
                             FeedComment: true,
@@ -95,9 +100,11 @@ class Feed {
 
 
             const feeds = await prisma.feed.findMany(queryOptions);
-
             const processedFeeds = feeds.map(feed => {
-                const imageUrls = feed.FeedImage.map(image => image.image_url);
+                const imageUrls = feed.FeedImage.map(image => image.image_url)
+                const is_liked = feed.feedHearts.some(
+                    (heart) => heart.service_id === BigInt(serviceId)
+                );
                 return {
                     "feed_id": feed.id,
                     "user": {
@@ -111,7 +118,7 @@ class Feed {
                     "feed_text": feed.feed_text,
                     "hashtags": feed.hashtag,
                     "heart": feed._count.feedHearts,
-                    // "is_liked": is_liked,
+                    "is_liked": is_liked,
                     "comment_count": feed._count.FeedComment
                 };
             });

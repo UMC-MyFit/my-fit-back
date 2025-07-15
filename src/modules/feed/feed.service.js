@@ -42,9 +42,9 @@ class FeedService {
         }
     }
 
-    async getAllFeeds(limit = 10, lastFeedId = null) { // lastFeedCreatedAt 제거
+    async getAllFeeds(serviceId, lastFeedId = null, limit = 10) {
         try {
-            const feeds = await Feed.findAll(limit, lastFeedId);
+            const feeds = await Feed.findAll(serviceId, lastFeedId, limit);
             return feeds;
         } catch (error) {
             console.error('전체 피드 목록 조회 서비스 오류:', error);

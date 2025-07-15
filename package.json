@@ -11,7 +11,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@prisma/client": "^6.11.1",
+        "@prisma/client": "^6.12.0",
         "bcrypt": "^6.0.0",
         "cors": "^2.8.5",
         "dotenv": "^17.0.1",
@@ -28,6 +28,6 @@
     "devDependencies": {
         "eslint": "^9.30.1",
         "prettier": "^3.6.2",
-        "prisma": "^6.11.1"
+        "prisma": "^6.12.0"
     }
 }
