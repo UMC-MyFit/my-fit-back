@@ -3,8 +3,7 @@ import { UnauthorizedError } from '../../middlewares/error.js'
 const usersController = {
     updateBusinessLicense: async (req, res, next) => {
         try {
-            // const userId = req.session.user?.service_id; 이렇게 수정 예정
-            const userId = req.body.service_id
+            const userId = req.user.service_id
             if (!userId) {
                 throw new UnauthorizedError()
             }

@@ -1,6 +1,6 @@
 import express from 'express'
 import recruitmentController from './recruitments.controller.js'
-
+import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router()
 
 /**
@@ -10,7 +10,7 @@ const router = express.Router()
  *     tags:
  *       - Recruitments
  *     summary: 구인 공고 등록
- *     description: 구인 공고를 등록하는 API입니다. (body에 원래 service_id 없음)
+ *     description: 구인 공고를 등록하는 API입니다.
  *     requestBody:
  *       required: true
  *       content:
@@ -18,9 +18,6 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               service_id:
- *                 type: integer
- *                 example: 22
  *               title:
  *                 type: string
  *                 example: 프론트엔드 신입 개발자 모집
@@ -113,6 +110,6 @@ const router = express.Router()
  *                   message: 서버에 오류가 발생하였습니다.
  */
 
-router.post('/', recruitmentController.createRecruitment)
+router.post('/', isAuthenticated, recruitmentController.createRecruitment)
 
 export default router

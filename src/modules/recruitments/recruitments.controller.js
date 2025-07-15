@@ -2,8 +2,7 @@ import recruitmentService from './recruitments.service.js'
 const recruitmentController = {
     createRecruitment: async (req, res, next) => {
         try {
-            // const serviceId = req.body.service_id <- 나중에 이걸로 변경
-            const serviceId = req.body.service_id
+            const serviceId = req.user.service_id
             const recruitmentData = req.body
 
             const result = await recruitmentService.createRecruitment(

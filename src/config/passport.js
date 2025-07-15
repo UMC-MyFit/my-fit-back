@@ -2,6 +2,8 @@ import passport from 'passport'
 import { Strategy as LocalStrategy } from 'passport-local'
 import bcrypt from 'bcrypt' // 비밀번호 암호화 시 사용 예정
 import { PrismaClient } from '@prisma/client'
+import loginService from '../modules/login/login.service.js'
+import { convertBigIntsToNumbers } from '../libs/dataTransformer.js'
 
 const prisma = new PrismaClient()
 
@@ -13,23 +15,10 @@ passport.use(
         },
         async (email, password, done) => {
             try {
-                const user = await prisma.user.findUnique({ where: { email } })
-                if (!user) {
-                    return done(null, false, {
-                        message: '존재하지 않는 사용자입니다.',
-                    })
-                }
-
-                // 나중에 bcrypt로 바꿀 부분
-                if (user.password !== password) {
-                    return done(null, false, {
-                        message: '비밀번호가 일치하지 않습니다.',
-                    })
-                }
-
+                const user = await loginService.login(email, password, 'local')
                 return done(null, user)
             } catch (error) {
-                return done(error)
+                return done(null, false, { message: error.message })
             }
         }
     )
@@ -43,8 +32,16 @@ passport.serializeUser((user, done) => {
 // 로그인 상태 확인 (매 요청마다 올바르게 로그인 되어있나 확인하고, 해당 사용자의 정보를 req.user에 넣어줌)
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await prisma.user.findUnique({ where: { id } })
-        done(null, user)
+        const user = await prisma.user.findUnique({ where: { id: BigInt(id) } })
+        const safeUser = convertBigIntsToNumbers(user)
+        // 세션에 저장되는 사용자 서비스 id, 이메일, 이름
+        const userForSession = {
+            service_id: safeUser.id,
+            email: safeUser.email,
+            name: safeUser.name,
+        }
+
+        done(null, userForSession)
     } catch (error) {
         done(error)
     }

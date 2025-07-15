@@ -1,6 +1,6 @@
 import express from 'express'
 import usersController from './user.controller.js'
-
+import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router()
 
 /**
@@ -18,11 +18,6 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               service_id:
- *                 type: bigint
- *                 description: 사용자의 서비스 ID
- *                 example:
- *                  22
  *
  *               inc_AuthN_file:
  *                 type: string
@@ -67,6 +62,10 @@ const router = express.Router()
  *                   message: 유저를 찾을 수 없습니다.
  */
 
-router.patch('/business-license', usersController.updateBusinessLicense)
+router.patch(
+    '/business-license',
+    isAuthenticated,
+    usersController.updateBusinessLicense
+)
 
 export default router

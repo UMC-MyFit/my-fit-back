@@ -1,4 +1,4 @@
-import { UnauthorizedError } from './error'
+import { UnauthorizedError } from './error.js'
 
 export const isAuthenticated = (req, res, next) => {
     // 로그인 인증 성공
