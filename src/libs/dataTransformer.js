@@ -9,6 +9,11 @@ export const convertBigIntsToNumbers = (data) => {
         return data
     }
 
+    // 날짜 객체는 그대로 반환
+    if (data instanceof Date) {
+        return data
+    }
+
     // 배열인 경우, 각 요소를 재귀적으로 변환
     if (Array.isArray(data)) {
         return data.map((item) => convertBigIntsToNumbers(item))
