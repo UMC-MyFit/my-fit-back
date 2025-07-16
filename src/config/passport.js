@@ -1,5 +1,8 @@
 import passport from 'passport'
+import pkg from 'passport-kakao'
 import { Strategy as LocalStrategy } from 'passport-local'
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+import { Strategy as NaverStrategy } from 'passport-naver'
 import bcrypt from 'bcrypt' // 비밀번호 암호화 시 사용 예정
 import { PrismaClient } from '@prisma/client'
 import loginService from '../modules/login/login.service.js'
@@ -46,3 +49,94 @@ passport.deserializeUser(async (id, done) => {
         done(error)
     }
 })
+
+export const googleStrategy = new GoogleStrategy(
+    {
+        clientID: process.env.PASSPORT_GOOGLE_CLIENT_ID,
+        clientSecret: process.env.PASSPORT_GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        scope: ['email'],
+        state: true,
+    },
+    async (accessToken, refreshToken, profile, done) => {
+        const email = profile.emails?.[0]?.value
+        const platform = 'google'
+        if (!email) return done(new Error('이메일 정보 없음'))
+
+        const user = await prisma.user.findUnique({
+            where: {
+                email_platform: { email, platform },
+            },
+        })
+
+        if (user) {
+            return done(null, user) // 로그인
+        } else {
+            // 회원가입 아직 안 된 상태
+            return done(null, false, {
+                email,
+                platform,
+            })
+        }
+    }
+)
+
+passport.use(googleStrategy)
+
+const KakaoStrategy = pkg.Strategy
+
+passport.use(
+    new KakaoStrategy(
+        {
+            clientID: process.env.PASSPORT_KAKAO_CLIENT_ID,
+            clientSecret: process.env.PASSPORT_KAKAO_CLIENT_SECRET,
+            callbackURL: process.env.KAKAO_CALLBACK_URL,
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                const email = profile._json?.kakao_account?.email
+                const platform = 'kakao'
+
+                if (!email)
+                    return done(new Error('이메일 정보를 가져올 수 없습니다.'))
+
+                const user = await prisma.user.findUnique({
+                    where: { email_platform: { email, platform } },
+                })
+
+                if (user) return done(null, user)
+                else return done(null, false, { email, platform })
+            } catch (err) {
+                return done(err)
+            }
+        }
+    )
+)
+
+passport.use(
+    new NaverStrategy(
+        {
+            clientID: process.env.PASSPORT_NAVER_CLIENT_ID,
+            clientSecret: process.env.PASSPORT_NAVER_CLIENT_SECRET,
+            callbackURL: process.env.NAVER_CALLBACK_URL,
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                const email = profile.email || profile._json?.email
+                const platform = 'naver'
+
+                if (!email)
+                    return done(new Error('이메일 정보를 가져올 수 없습니다.'))
+
+                const user = await prisma.user.findUnique({
+                    where: { email_platform: { email, platform } },
+                })
+
+                if (user) return done(null, user)
+                else return done(null, false, { email, platform }) // 회원가입 아직 안 된 상태
+            } catch (err) {
+                return done(err)
+            }
+        }
+    )
+)
