@@ -34,6 +34,23 @@ class CommentService {
             throw new InternalServerError({ originalError: error.message });
         }
     }
+    async deleteComment(commentId, feedId, serviceId) {
+        try {
+            await Comment.delete(commentId, feedId, serviceId);
+            return;
+        }
+        catch (error) {
+            console.error('댓글 삭제 중 오류:', error);
+
+            if (error.code === 'P2025') {
+                throw new NotFoundError({ message: '삭제할 피드를 찾을 수 없습니다.' });
+            }
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new InternalServerError({ originalError: error.message });
+        }
+    }
 
 }
 

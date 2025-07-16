@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js';
+import { ForbiddenError, NotFoundError } from '../../middlewares/error.js'
 
 const prisma = new PrismaClient();
 
@@ -88,6 +89,37 @@ class Comment {
         }
         catch (error) {
             console.error('전체 댓글 목록 조회 중 오류:', error);
+            throw error;
+        }
+    }
+    static async delete(commentId, feedId, serviceId) {
+        try {
+            const comment = await prisma.feedComment.findUnique({
+                where: {
+                    id: BigInt(commentId)
+                }
+            });
+            const feed = await prisma.feed.findUnique({
+                where: {
+                    id: BigInt(feedId)
+                }
+            });
+            if (comment.feed_id !== BigInt(feedId)) {
+                throw new NotFoundError({ message: "피드 또는 댓글이 존재하지 않습니다." })
+            }
+            if (comment.service_id !== BigInt(serviceId) && feed.service_id !== BigInt(serviceId)) {
+                throw new ForbiddenError({ message: "삭제할 권한이 없습니다." })
+            }
+
+            await prisma.feedComment.delete({
+                where: {
+                    id: BigInt(commentId)
+                }
+            });
+            return;
+        }
+        catch (error) {
+            console.error('댓글 삭제 중 오류:', error);
             throw error;
         }
     }

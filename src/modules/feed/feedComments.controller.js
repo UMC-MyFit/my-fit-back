@@ -63,6 +63,22 @@ class CommentController {
             next(error);
         }
     }
+    async deleteComment(req, res, next) {
+        try {
+            const commentId = req.params.commentId;
+            const feedId = req.params.feedId;
+            const serviceId = req.user.service_id
+            await CommentService.deleteComment(commentId, feedId, serviceId)
+            return res.success({
+                code: 200,
+                message: '댓글이 삭제되었습니다.'
+            });
+        }
+        catch (error) {
+            console.error('댓글 삭제 중 오류:', error);
+            next(error);
+        }
+    }
 }
 
 export default new CommentController();

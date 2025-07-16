@@ -448,4 +448,98 @@ router.post('/:feedId/comments', isAuthenticated, commentController.createCommen
  */
 router.get('/:feedId/comments', commentController.getAllcomment);
 
+// DELETE /api/feeds/:feedId/comments/:commentId - 피드 삭제
+/**
+ * @swagger
+ * /api/feeds/{feedId}/comments/{commentId}:
+ *   delete:
+ *     summary: 피드 댓글 삭제
+ *     description: 특정 피드의 댓글을 삭제합니다.
+ *     tags:
+ *       - Comments
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 피드 ID
+ *         example: 13
+ *       - in: path
+ *         name: commentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 삭제할 댓글 ID
+ *         example: 51
+ *     responses:
+ *       200:
+ *         description: 댓글이 성공적으로 삭제되었습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "댓글이 삭제되었습니다."
+ *       403:
+ *         description: 사용자가 작성한 댓글이 아닌 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 403
+ *                 message:
+ *                   type: string
+ *                   example: "삭제할 권한이 없습니다."
+ *       404:
+ *         description: 피드 또는 댓글이 존재하지 않는 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 404
+ *                 message:
+ *                   type: string
+ *                   example: "피드 또는 댓글이 존재하지 않습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 500
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:feedId/comments/:commentId', isAuthenticated, commentController.deleteComment);
+
 export default router;
