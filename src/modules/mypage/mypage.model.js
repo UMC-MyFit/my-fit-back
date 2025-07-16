@@ -23,7 +23,6 @@ class MypageModel {
                     birth_date: true,
                     Highest_grade: true,
                     link: true,
-
                     division: true,
                     grade_status: true,
                     created_at: true,
@@ -35,6 +34,34 @@ class MypageModel {
             return userProfile ? convertBigIntsToNumbers(userProfile) : null;
         } catch (error) {
             console.error('MypageModel - 사용자 프로필 조회 중 오류:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 프로필 사진을 업데이트합니다.
+     * @param {BigInt} userId - 프로필 사진을 수정할 사용자의 ID
+     * @param {string} profileImgUrl - 새로운 프로필 사진 URL
+     * @returns {Promise<Object>} 업데이트된 사용자 프로필 정보
+     */
+    static async updateProfilePicture(userId, profileImgUrl) {
+        try {
+            const updateUser = await prisma.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    profile_img: profileImgUrl,
+                    updated_at: new Date()
+                },
+                select: {
+                    id: true,
+                    profile_img: true
+                }
+            });
+            return convertBigIntsToNumbers(updateUser);
+        } catch (error) {
+            console.error(`MypageModel - 사용자 ID ${userId}의 프로필 사진 업데이트 중 오류:`, error);
             throw error;
         }
     }
