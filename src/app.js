@@ -1,6 +1,7 @@
 import express, { response } from 'express'
 import session from 'express-session'
 import passport from 'passport'
+import './config/passport.js'
 import '../src/config/passport.js'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './docs/swagger.js'
@@ -10,8 +11,6 @@ import router from './routes/index.js'
 import { responseHandler } from './middlewares/responseHandler.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 const app = express()
-
-// 작업 시 미들웨어 등록 순서 임의 변경 금지🎇
 
 // swagger 설정
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))

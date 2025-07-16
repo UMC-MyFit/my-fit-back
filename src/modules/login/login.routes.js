@@ -164,4 +164,64 @@ router.post('/logout', logout)
  */
 router.get('/check', checkLoginStatus)
 
+//구글 로그인 요청
+router.get(
+    '/oauth/google',
+    passport.authenticate('google', {
+        scope: ['email'],
+    })
+)
+
+// TODO 프론트랑 연결하고 리다이렉션 진행
+// Google 콜백
+router.get(
+    '/oauth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+        if (!req.user) {
+            const { email, platform } = req.authInfo
+            req.session.tempOAuthUser = { email, platform }
+            return res.redirect('/signup/detail') // 프론트한테 route 물어봐야 함
+        }
+        // 로그인 성공
+        return res.redirect('/')
+    }
+)
+
+// 카카오 로그인 요청
+router.get('/oauth/kakao', passport.authenticate('kakao'))
+
+// TODO 프론트랑 연결하고 리다이렉션 진행
+// 카카오 콜백 처리
+router.get(
+    '/oauth/kakao/callback',
+    passport.authenticate('kakao', { failureRedirect: '/login' }),
+    (req, res) => {
+        if (!req.user) {
+            const { email, platform } = req.authInfo
+            req.session.tempOAuthUser = { email, platform }
+            return res.redirect('/signup/detail')
+        }
+        return res.redirect('/')
+    }
+)
+
+// 네이버 로그인 요청
+router.get('/oauth/naver', passport.authenticate('naver', { scope: ['email'] }))
+
+// TODO 프론트랑 연결하고 리다이렉션 진행
+// 네이버 콜백 처리
+router.get(
+    '/oauth/naver/callback',
+    passport.authenticate('naver', { failureRedirect: '/login' }),
+    (req, res) => {
+        if (!req.user) {
+            const { email, platform } = req.authInfo
+            req.session.tempOAuthUser = { email, platform }
+            return res.redirect('/signup/detail')
+        }
+        return res.redirect('/')
+    }
+)
+
 export default router

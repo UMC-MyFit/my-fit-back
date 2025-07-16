@@ -1,5 +1,7 @@
 // 라우터 통합
 import express from 'express'
+import passport from 'passport'
+
 import signUpRouter from '../modules/signUp/signUp.routes.js'
 import loginRouter from '../modules/login/login.routes.js'
 import cardsRouter from '../modules/cards/cards.routes.js'
@@ -31,4 +33,3 @@ router.use('/recruitments', recruitmentRouter)
 router.use('/mypage', mypageRouter)
 
 export default router
-
