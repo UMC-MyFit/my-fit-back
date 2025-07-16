@@ -185,12 +185,13 @@ model FeedHeart {
 }
 
 model FeedComment {
-  id         BigInt   @id @default(autoincrement()) // 피드 댓글 번호 (PK)
-  content    String   @db.Text // 댓글 내용
-  service_id BigInt // 서비스 번호 (FK)
-  feed_id    BigInt // 피드 번호 (FK)
-  created_at DateTime @default(now()) // 생성일자
-  updated_at DateTime @updatedAt // 수정일자
+  id              BigInt   @id @default(autoincrement()) // 피드 댓글 번호 (PK)
+  content         String   @db.Text // 댓글 내용
+  high_comment_id BigInt?   // 상위 댓글
+  service_id      BigInt   // 서비스 번호 (FK)
+  feed_id         BigInt   // 피드 번호 (FK)
+  created_at      DateTime @default(now()) // 생성일자
+  updated_at      DateTime @updatedAt // 수정일자
 
   // 관계
   service Service @relation(fields: [service_id], references: [id]) // 서비스와 연결
