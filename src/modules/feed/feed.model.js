@@ -3,7 +3,6 @@
 /*
 TODO
 1. 하드 삭제 구현하기 -> FeedImage, FeedComment, FeedHeart에 외래키 제약 조건 걸기, onDelete: Cascade
-2. feed 좋아요 누른 여부 is_liked 처리
 */
 
 import { PrismaClient } from '@prisma/client';

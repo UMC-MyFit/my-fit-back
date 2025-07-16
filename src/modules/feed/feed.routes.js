@@ -315,4 +315,137 @@ router.delete('/:feedId', isAuthenticated, feedController.deleteFeed);
  */
 router.post('/:feedId/comments', isAuthenticated, commentController.createComment);
 
+/**
+ * @swagger
+ * /api/feeds/{feedId}/comments:
+ *   get:
+ *     summary: 댓글 목록 조회
+ *     description: 특정 피드의 댓글 목록을 조회합니다 (답글 포함)
+ *     tags:
+ *       - Comments
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         description: 피드 ID
+ *         schema:
+ *           type: integer
+ *           example: 13
+ *       - in: query
+ *         name: last_comment_id
+ *         required: false
+ *         description: 마지막 댓글 ID (커서 기반 페이지네이션)
+ *         schema:
+ *           type: integer
+ *           example: 100
+ *     responses:
+ *       200:
+ *         description: 댓글 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 comments:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 100
+ *                       comment_text:
+ *                         type: string
+ *                         example: "좋은 글 감사합니다."
+ *                       high_comment_id:
+ *                         type: integer
+ *                         nullable: true
+ *                         example: null
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-07-04T08:10:00Z"
+ *                       writer:
+ *                         type: object
+ *                         properties:
+ *                           user_id:
+ *                             type: integer
+ *                             example: 9
+ *                           name:
+ *                             type: string
+ *                             example: "김민수"
+ *                           job:
+ *                             type: string
+ *                             example: "개발자"
+ *                           profile_image_url:
+ *                             type: string
+ *                             example: "https://myfit.com/images/users/7.jpg"
+ *                       replies:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 281
+ *                             comment_text:
+ *                               type: string
+ *                               example: "저도 좋은 글이라 생각합니다."
+ *                             high_comment_id:
+ *                               type: integer
+ *                               example: 100
+ *                             created_at:
+ *                               type: string
+ *                               format: date-time
+ *                               example: "2025-07-04T08:26:00Z"
+ *                             writer:
+ *                               type: object
+ *                               properties:
+ *                                 user_id:
+ *                                   type: integer
+ *                                   example: 9
+ *                                 name:
+ *                                   type: string
+ *                                   example: "박서준"
+ *                                 job:
+ *                                   type: string
+ *                                   example: "백엔드 개발자"
+ *                                 profile_image_url:
+ *                                   type: string
+ *                                   example: "https://myfit.com/images/users/4.jpg"
+ *       400:
+ *         description: 잘못된 요청
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효하지 않은 피드 ID입니다."
+ *       404:
+ *         description: 피드를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 피드가 존재하지 않습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/:feedId/comments', commentController.getAllcomment);
+
 export default router;

@@ -21,6 +21,20 @@ class CommentService {
             })
         }
     }
+    async getAllComment(feedId, lastCommentId = null, limit = 10) {
+        try {
+            const comments = Comment.findAll(feedId, lastCommentId, limit)
+            return comments
+        }
+        catch (error) {
+            console.error('전체 댓글 목록 조회 서비스 오류:', error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new InternalServerError({ originalError: error.message });
+        }
+    }
+
 }
 
 export default new CommentService();
