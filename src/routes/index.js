@@ -17,7 +17,7 @@ router.use('/users', signUpRouter)
 // 로그인
 router.use('/users', loginRouter)
 
-// 피드
+// 피드, 댓글
 router.use('/feeds', feedsRouter)
 
 // 이력/활동 카드

@@ -1,5 +1,6 @@
 import express from 'express';
 import feedController from './feed.controller.js';
+import commentController from './feedComments.controller.js'
 import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router();
 
@@ -239,5 +240,79 @@ router.get('/', isAuthenticated, feedController.getAllFeeds);
  *                   example: "서버에 오류가 발생했습니다."
  */
 router.delete('/:feedId', isAuthenticated, feedController.deleteFeed);
+
+// POST /api/feeds/:feedId/comment - 댓글 생성
+/**
+ * @swagger
+ * /api/feeds/{feedId}/comments:
+ *   post:
+ *     summary: 댓글 등록
+ *     description: 27번 피드에 대한 댓글을 작성
+ *     tags:
+ *       - Comments
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         description: 피드 ID
+ *         schema:
+ *           type: integer
+ *           example: 27
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - comment_text
+ *             properties:
+ *               comment_text:
+ *                 type: string
+ *                 description: 댓글 텍스트
+ *                 example: "좋은 글 감사합니다."
+ *               high_comment_id:
+ *                 type: integer
+ *                 description: 대댓글일 경우, 상위 댓글의 id. 일반 댓글일 경우 null
+ *                 nullable: true
+ *                 example: null
+ *     responses:
+ *       201:
+ *         description: 댓글 등록 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "댓글 등록이 완료되었습니다."
+ *                 comment_id:
+ *                   type: integer
+ *                   example: 137
+ *       404:
+ *         description: 해당 피드가 존재하지 않음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "피드가 존재하지 않습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/:feedId/comments', isAuthenticated, commentController.createComment);
 
 export default router;
