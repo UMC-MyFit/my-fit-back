@@ -8,6 +8,7 @@ import {
     ConflictError,
     InternalServerError,
 } from '../../middlewares/error.js'
+import { generateAuthCode, sendAuthCodeEmail } from '../../libs/auth.utils.js'
 
 const usersService = {
     signup: async ({
@@ -122,6 +123,15 @@ const usersService = {
             service_id: newService.id,
             email: newUser.email,
         })
+    },
+
+    sendAuthCodeEmail: async ({ email }) => {
+        const authCode = generateAuthCode()
+        console.log(authCode)
+        console.log(email)
+        await sendAuthCodeEmail(email, authCode)
+        console.log('보내기 성공')
+        return authCode
     },
 }
 
