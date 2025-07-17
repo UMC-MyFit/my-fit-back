@@ -11,7 +11,7 @@ const router = express.Router()
  *     summary: 사용자 로그인
  *     description: 이메일과 비밀번호로 사용자를 로그인합니다.
  *     tags:
- *       - Users
+ *       - Login
  *     requestBody:
  *       required: true
  *       content:
@@ -100,7 +100,7 @@ router.post('/login', (req, res, next) => {
  *     summary: 사용자 로그아웃
  *     description: 현재 로그인된 사용자를 로그아웃합니다.
  *     tags:
- *       - Users
+ *       - Login
  *     responses:
  *       200:
  *         description: 로그아웃 성공
@@ -130,7 +130,7 @@ router.post('/logout', logout)
  *     summary: 로그인 상태 확인
  *     description: 현재 로그인된 사용자인지 확인합니다.
  *     tags:
- *       - Users
+ *       - Login
  *     responses:
  *       200:
  *         description: 로그인 상태임

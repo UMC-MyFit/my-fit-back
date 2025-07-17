@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
+import redisClient from '../../libs/redisClient.js'
+
 const prisma = new PrismaClient()
 
 import UserModel from './signUp.model.js'
@@ -127,10 +129,17 @@ const usersService = {
 
     sendAuthCodeEmail: async ({ email }) => {
         const authCode = generateAuthCode()
-        console.log(authCode)
-        console.log(email)
+        console.log('인증코드:', authCode)
+
+        // 이메일로 인증코드 전송
         await sendAuthCodeEmail(email, authCode)
         console.log('보내기 성공')
+
+        // Redis에 인증코드 저장
+        await redisClient.set(`authCode:${email}`, authCode, {
+            EX: 180, // 유효시간 3분(180초)
+        })
+
         return authCode
     },
 }

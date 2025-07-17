@@ -68,4 +68,114 @@ router.patch(
     usersController.updateBusinessLicense
 )
 
+/**
+ * @swagger
+ * /api/users/password-reset:
+ *   patch:
+ *     tags:
+ *       - Users
+ *     summary: 비밀번호 재설정
+ *     description: 인증번호를 기반으로 비밀번호를 재설정합니다. (아직 로컬 Redis여서 정상작동하려면 로컬 Redis 설정 필요)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - authCode
+ *               - newPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               authCode:
+ *                 type: string
+ *                 example: "123456"
+ *               newPassword:
+ *                 type: string
+ *                 example: newStrongPassword123!
+ *     responses:
+ *       200:
+ *         description: 비밀번호 재설정 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 비밀번호가 성공적으로 변경되었습니다.
+ *                 result:
+ *                   type: "null"
+ *                   example: null
+ *       400:
+ *         description: 인증코드 불일치 또는 비밀번호 조건 미달
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 400
+ *                 message:
+ *                   type: string
+ *                   example: 인증코드가 유효하지 않습니다.
+ *                 result:
+ *                   type: "null"
+ *                   example: null
+ *       404:
+ *         description: 이메일이 가입되지 않은 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 404
+ *                 message:
+ *                   type: string
+ *                   example: 가입되지 않은 이메일입니다.
+ *                 result:
+ *                   type: "null"
+ *                   example: null
+ *       500:
+ *         description: 서버 내부 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 500
+ *                 message:
+ *                   type: string
+ *                   example: 서버 오류 발생
+ *                 result:
+ *                   type: "null"
+ *                   example: null
+ */
+
+// 비밀번호 재설정
+router.patch('/password-reset', usersController.resetPassword)
+
 export default router
