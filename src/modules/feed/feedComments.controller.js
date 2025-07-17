@@ -37,6 +37,48 @@ class CommentController {
             next(error);
         }
     }
+    async getAllcomment(req, res, next) {
+        try {
+            const feedId = req.params.feedId;
+            const limit = 10
+            const lastCommentId = req.query.last_comment_id ? parseInt(req.query.last_feed_id) : null;
+            const feeds = await CommentService.getAllComment(feedId, lastCommentId, limit);
+            const hasMore = feeds.length === limit;
+            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].id : null;
+
+            return res.success({
+                code: 200,
+                message: '전체 댓글 목록을 성공적으로 조회했습니다.',
+                result: {
+                    feeds,
+                    pagination: {
+                        hasMore,
+                        nextCursorId
+                    }
+                }
+            });
+        }
+        catch (error) {
+            console.error('전체 피드 목록 조회 중 오류:', error);
+            next(error);
+        }
+    }
+    async deleteComment(req, res, next) {
+        try {
+            const commentId = req.params.commentId;
+            const feedId = req.params.feedId;
+            const serviceId = req.user.service_id
+            await CommentService.deleteComment(commentId, feedId, serviceId)
+            return res.success({
+                code: 200,
+                message: '댓글이 삭제되었습니다.'
+            });
+        }
+        catch (error) {
+            console.error('댓글 삭제 중 오류:', error);
+            next(error);
+        }
+    }
 }
 
 export default new CommentController();

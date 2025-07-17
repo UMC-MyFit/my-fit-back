@@ -1,5 +1,9 @@
 import usersService from './signUp.service.js'
-
+import {
+    InternalServerError,
+    BadRequestError,
+} from '../../middlewares/error.js'
+import { sendAuthCodeEmail } from '../../libs/auth.utils.js'
 const userController = {
     // 회원가입
     signup: async (req, res, next) => {
@@ -16,6 +20,24 @@ const userController = {
         } catch (err) {
             console.log('여기서 에러')
             next(err) // 에러 미들웨어로 전달
+        }
+    },
+    sendAuthCode: async (req, res, next) => {
+        try {
+            const { email } = req.body
+
+            if (!email) {
+                throw new BadRequestError('이메일이 필요합니다.')
+            }
+            const authCode = await usersService.sendAuthCodeEmail({ email })
+
+            res.success({
+                code: 200,
+                message: '인증코드 전송 완료',
+                result: { authCode },
+            })
+        } catch (error) {
+            throw new InternalServerError('인증코드 전송 중 오류 발생')
         }
     },
 }

@@ -1,13 +1,12 @@
 import express from 'express'
 import userController from './signUp.controller.js'
-
 const router = express.Router()
 /**
  * @swagger
  * /api/users:
  *   post:
  *     tags:
- *         - Users
+ *         - SignUp
  *     summary: 회원가입
  *     description: 회원 정보를 입력하여 회원가입을 진행합니다.
  *     requestBody:
@@ -97,5 +96,50 @@ const router = express.Router()
 
 // 회원가입
 router.post('/', userController.signup)
+
+/**
+ * @swagger
+ * /api/users/send-auth-code:
+ *   post:
+ *     summary: 이메일 인증 코드 전송
+ *     description: 입력한 이메일로 6자리 인증 코드를 전송합니다. (진짜로 가니까 자신의 이메일을 넣어주세요) 하루에 500개 제한이니까 너무 많이 호출하지 말아주세요 ㅠㅠ
+ *     tags:
+ *       - SignUp
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: example@naver.com
+ *     responses:
+ *       200:
+ *         description: 인증코드 전송 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: true
+ *               code: 200
+ *               message: 인증코드 전송 완료
+ *               result:
+ *                 authCode: "324106"
+ *       500:
+ *         description: 서버 오류 발생
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 500
+ *               message: 서버 오류 발생
+ *               result: null
+ */
+
+// 이메일 인증 코드 전송
+router.post('/send-auth-code', userController.sendAuthCode)
 
 export default router
