@@ -88,6 +88,14 @@ const usersService = {
         // 5. Redis에서 인증번호 삭제
         await redisClient.del(`authCode:${email}`)
     },
+
+    verifyCode: async (email, authCode) => {
+        const storedCode = await redisClient.get(`authCode:${email}`)
+        console.log(`storedCode: ${storedCode}, inputCode: ${authCode}`)
+        if (!storedCode || storedCode !== authCode) {
+            throw new BadRequestError('인증코드가 유효하지 않습니다.')
+        }
+    },
 }
 
 export default usersService

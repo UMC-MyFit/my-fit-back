@@ -1,5 +1,10 @@
 import usersService from './user.service.js'
-import { BadRequestError, UnauthorizedError } from '../../middlewares/error.js'
+import {
+    BadRequestError,
+    UnauthorizedError,
+    InternalServerError,
+} from '../../middlewares/error.js'
+import redisClient from '../../libs/redisClient.js'
 const usersController = {
     updateBusinessLicense: async (req, res, next) => {
         try {
@@ -25,6 +30,15 @@ const usersController = {
     },
     resetPassword: async (req, res, next) => {
         try {
+            // Redis 연결
+            if (!redisClient.isOpen) {
+                try {
+                    await redisClient.connect()
+                } catch (error) {
+                    console.error('Redis 연결 실패:', error)
+                    throw new InternalServerError('Redis 연결 실패')
+                }
+            }
             const { email, authCode, newPassword } = req.body
 
             if (!email || !authCode || !newPassword) {
@@ -38,6 +52,35 @@ const usersController = {
             res.success({
                 code: 200,
                 message: '비밀번호가 성공적으로 변경되었습니다.',
+                result: null,
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    verifyCode: async (req, res, next) => {
+        try {
+            // Redis 연결
+            if (!redisClient.isOpen) {
+                try {
+                    await redisClient.connect()
+                } catch (error) {
+                    console.error('Redis 연결 실패:', error)
+                    throw new InternalServerError('Redis 연결 실패')
+                }
+            }
+            const { email, authCode } = req.body
+            if (!email || !authCode) {
+                throw new BadRequestError(
+                    '이메일과 인증코드를 모두 입력해주세요'
+                )
+            }
+
+            await usersService.verifyCode(email, authCode)
+
+            res.success({
+                code: 200,
+                message: '인증코드가 유효합니다.',
                 result: null,
             })
         } catch (error) {
