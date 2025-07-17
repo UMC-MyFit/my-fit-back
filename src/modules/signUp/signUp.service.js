@@ -128,6 +128,15 @@ const usersService = {
     },
 
     sendAuthCodeEmail: async ({ email }) => {
+        // Redis 연결
+        if (!redisClient.isOpen) {
+            try {
+                await redisClient.connect()
+            } catch (error) {
+                console.error('Redis 연결 실패:', error)
+                throw new InternalServerError('Redis 연결 실패')
+            }
+        }
         const authCode = generateAuthCode()
         console.log('인증코드:', authCode)
 

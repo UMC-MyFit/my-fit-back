@@ -178,4 +178,70 @@ router.patch(
 // 비밀번호 재설정
 router.patch('/password-reset', usersController.resetPassword)
 
+/**
+ * @swagger
+ * /api/users/verify-code:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: 이메일 인증코드 검증
+ *     description: 인증번호 입력창에 6자리를 입력할 때마다 호출되어 사용자가 입력한 인증번호가 맞는지 체크하는 API. (Redis 설정 필요)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - authCode
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               authCode:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: 인증코드 일치
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 인증코드가 유효합니다.
+ *                 result:
+ *                   type: "null"
+ *       400:
+ *         description: 인증코드 불일치 또는 만료
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 400
+ *                 message:
+ *                   type: string
+ *                   example: 인증코드가 유효하지 않습니다.
+ *                 result:
+ *                   type: "null"
+ */
+
+// 인증코드 유효성 검사
+router.post('/verify-code', usersController.verifyCode)
+
 export default router
