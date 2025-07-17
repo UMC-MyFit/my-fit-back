@@ -39,7 +39,6 @@ passport.deserializeUser(async (id, done) => {
         const safeUser = convertBigIntsToNumbers(user)
         // 세션에 저장되는 사용자 서비스 id, 이메일, 이름
         const userForSession = {
-            id: safeUser.id,
             service_id: safeUser.id,
             email: safeUser.email,
             name: safeUser.name,

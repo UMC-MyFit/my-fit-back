@@ -43,7 +43,7 @@ class MypageController {
         try {
             const { userId: paramUserId } = req.params;
             const { profile_img } = req.body;
-            const authenticatedUserId = req.user.id;
+            const authenticatedUserId = req.user.service_id;
 
             // 1. 유효성 검사
             if (!paramUserId || isNaN(paramUserId) || parseInt(paramUserId).toString() !== paramUserId.toString()) {
