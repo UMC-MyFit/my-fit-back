@@ -41,12 +41,12 @@ class MypageController {
      */
     static async updateProfilePicture(req, res, next) {
         try {
-            const { userId } = req.params;
+            const { userId: paramUserId } = req.params;
             const { profile_img } = req.body;
             const authenticatedUserId = req.user.id;
 
             // 1. 유효성 검사
-            if (!userId || isNaN(userId) || parseInt(userId).toString() !== userId.toString()) {
+            if (!paramUserId || isNaN(paramUserId) || parseInt(paramUserId).toString() !== paramUserId.toString()) {
                 throw new BadRequestError({ field: 'userId', message: '유효한 사용자 ID가 필요합니다.' });
             }
             if (!profile_img || typeof profile_img !== 'string') {
@@ -54,14 +54,14 @@ class MypageController {
             }
 
             // 2. 권한 확인: 요청된 userId와 인증된 ID 일치 여부
-            if (String(authenticatedUserId) !== String(userId)) {
+            if (String(authenticatedUserId) !== String(paramUserId)) {
                 throw new ForbiddenError({ message: '권한이 없습니다. 자신의 프로필 사진만 수정할 수 있습니다.' });
             }
 
             // 3. 서비스 호출
-            const result = await MypageService.updatedProfilePicture(userId, profile_img);
+            const result = await MypageService.updateProfilePicture(paramUserId, profile_img);
 
-            return res.sucess({
+            return res.success({
                 code: 200,
                 message: '프로필 사진이 성공적으로 수정되었습니다.',
                 result: {

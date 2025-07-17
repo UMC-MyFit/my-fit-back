@@ -162,7 +162,7 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo);
  *           type: integer
  *           format: int64
  *         description: 프로필 사진을 수정할 사용자의 ID
- *         example: 1
+ *         example: 2
  *     requestBody:
  *       required: true
  *       content:
@@ -199,7 +199,7 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo);
  *                   properties:
  *                     user_id:
  *                       type: string
- *                       example: "1"
+ *                       example: "2"
  *                     profile_img:
  *                       type: string
  *                       example: "https://example.com/new_profile_pic.png"
