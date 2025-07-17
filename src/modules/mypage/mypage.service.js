@@ -1,5 +1,5 @@
 import MypageModel from './mypage.model.js';
-import { NotFoundError, InternalServerError } from '../../middlewares/error.js';
+import { NotFoundError, InternalServerError, CustomError } from '../../middlewares/error.js';
 
 class MypageService {
     /**
@@ -54,7 +54,7 @@ class MypageService {
             }
 
             return {
-                user_id: updateUser.id.toString(),
+                user_id: updateUser.user_id,
                 profile_img: updateUser.profile_img,
             };
         } catch (error) {
