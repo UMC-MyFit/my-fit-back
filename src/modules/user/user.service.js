@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client'
+import redisClient from '../../libs/redisClient.js'
 import {
     BadRequestError,
     InternalServerError,
@@ -53,6 +54,39 @@ const usersService = {
             service_id: userId,
             inc_AuthN_file,
         })
+    },
+
+    resetPassword: async ({ email, authCode, newPassword }) => {
+        // 1. 이메일 존재 여부 확인
+        const user = await prisma.user.findFirst({
+            where: {
+                email,
+                platform: 'local',
+            },
+        })
+        if (!user) {
+            throw new NotFoundError('가입되지 않은 이메일입니다.')
+        }
+
+        // 2. Redis에서 이메일 인증 코드 확인
+        const storedCode = await redisClient.get(`authCode:${email}`)
+        if (!storedCode || storedCode !== authCode) {
+            throw new BadRequestError('인증코드가 유효하지 않습니다.')
+        }
+
+        // 3. 비밀번호 유효성 검사
+        if (newPassword.length < 6) {
+            throw new BadRequestError('비밀번호는 최소 6자 이상이어야 합니다.')
+        }
+
+        // 4. 비밀번호 재설정 (나중에 bcrpt 적용 예정)
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: newPassword },
+        })
+
+        // 5. Redis에서 인증번호 삭제
+        await redisClient.del(`authCode:${email}`)
     },
 }
 

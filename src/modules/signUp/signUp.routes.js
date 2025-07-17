@@ -102,7 +102,7 @@ router.post('/', userController.signup)
  * /api/users/send-auth-code:
  *   post:
  *     summary: 이메일 인증 코드 전송
- *     description: 입력한 이메일로 6자리 인증 코드를 전송합니다. (진짜로 가니까 자신의 이메일을 넣어주세요) 하루에 500개 제한이니까 너무 많이 호출하지 말아주세요 ㅠㅠ
+ *     description: 입력한 이메일로 6자리 인증 코드를 전송합니다. (진짜로 가니까 자신의 이메일을 넣어주세요) 하루에 500개 제한이니까 너무 많이 호출하지 말아주세요 ㅠㅠ Redis는 로컬로 사용 중이어서 정상 작동하려면 Redis 설정 필요
  *     tags:
  *       - SignUp
  *     requestBody:
