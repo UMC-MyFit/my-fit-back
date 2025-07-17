@@ -182,6 +182,8 @@ model FeedHeart {
   // 관계
   service Service @relation(fields: [service_id], references: [id]) // 서비스와 연결
   feed    Feed    @relation(fields: [feed_id], references: [id]) // 피드와 연결
+
+  @@unique([service_id, feed_id], name: "service_feed_id")
 }
 
 model FeedComment {

@@ -1,6 +1,7 @@
 import express from 'express';
 import feedController from './feed.controller.js';
 import commentController from './feedComments.controller.js'
+import heartsController from './feedHearts.controller.js';
 import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router();
 
@@ -448,7 +449,7 @@ router.post('/:feedId/comments', isAuthenticated, commentController.createCommen
  */
 router.get('/:feedId/comments', commentController.getAllcomment);
 
-// DELETE /api/feeds/:feedId/comments/:commentId - 피드 삭제
+// DELETE /api/feeds/:feedId/comments/:commentId - 피드 댓글 삭제
 /**
  * @swagger
  * /api/feeds/{feedId}/comments/{commentId}:
@@ -541,5 +542,97 @@ router.get('/:feedId/comments', commentController.getAllcomment);
  *       - bearerAuth: []
  */
 router.delete('/:feedId/comments/:commentId', isAuthenticated, commentController.deleteComment);
+
+// POST /api/feeds/:feedId/heart - 피드 하트 생성
+/**
+ * @swagger
+ * /api/feeds/{feedId}/heart:
+ *   post:
+ *     summary: 피드에 좋아요 추가
+ *     description: 특정 피드(13번 피드)에 하트(좋아요)를 추가합니다.
+ *     tags:
+ *       - Hearts
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 13
+ *         description: 피드 ID
+ *     responses:
+ *       200:
+ *         description: 좋아요 추가 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "하트가 등록되었습니다."
+ *       404:
+ *         description: 피드를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 피드를 찾을 수 없습니다."
+ */
+router.post('/:feedId/heart', isAuthenticated, heartsController.createHeart);
+
+// DELETE /api/feeds/:feedId/heart - 피드 하트 삭제
+/**
+ * @swagger
+ * /api/feeds/{feedId}/heart:
+ *   delete:
+ *     summary: 피드 좋아요 취소
+ *     description: 특정 피드(13번 피드)의 하트(좋아요)를 취소합니다.
+ *     tags:
+ *       - Hearts
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 13
+ *         description: 피드 ID
+ *     responses:
+ *       200:
+ *         description: 좋아요 취소 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "하트가 취소되었습니다."
+ *       404:
+ *         description: 해당 피드가 존재하지 않음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 피드를 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버 오류가 발생했습니다."
+ */
+router.delete('/:feedId/heart', isAuthenticated, heartsController.deleteHeart);
 
 export default router;
