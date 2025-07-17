@@ -246,6 +246,6 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo);
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
  */
-router.patch('/:userId/profile_pic', isAuthenticated, mypageController.updateProfilePicture);
+router.patch('/:userId/profile_pic', isAuthenticated, MypageController.updateProfilePicture);
 
 export default router;
