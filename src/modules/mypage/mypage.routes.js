@@ -1,5 +1,6 @@
 import express from 'express';
 import MypageController from './mypage.controller.js';
+import { isAuthenticated } from '../../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -141,5 +142,110 @@ const router = express.Router();
  *                   example: null
  */
 router.get('/:userId/profile_info', MypageController.getUserProfileInfo);
+
+// 사용자 프로필 사진 수정
+/**
+ * @swagger
+ * /api/mypage/{userId}/profile_pic:
+ *   patch:
+ *     summary: 사용자 프로필 사진 수정
+ *     description: 특정 사용자의 프로필 사진 URL을 수정합니다.
+ *     tags:
+ *       - Mypage
+ *     security:
+ *       - bearerAuth: [] # JWT 또는 세션 기반 인증이 필요함을 나타냅니다.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int64
+ *         description: 프로필 사진을 수정할 사용자의 ID
+ *         example: 2
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - profile_img
+ *             properties:
+ *               profile_img:
+ *                 type: string
+ *                 format: uri
+ *                 description: 새로운 프로필 사진 URL
+ *                 example: "https://example.com/new_profile_pic.png"
+ *     responses:
+ *       200:
+ *         description: 프로필 사진이 성공적으로 수정되었습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "프로필 사진이 성공적으로 수정되었습니다."
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                       example: "2"
+ *                     profile_img:
+ *                       type: string
+ *                       example: "https://example.com/new_profile_pic.png"
+ *       400:
+ *         description: 잘못된 요청 (유효하지 않은 프로필 사진 URL)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequestError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효한 프로필 사진 URL이 필요합니다."
+ *       401:
+ *         description: 인증되지 않은 요청 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: 권한 없음 (다른 사용자의 프로필 사진 수정 시도)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "다른 사용자의 프로필 사진을 수정할 권한이 없습니다."
+ *       404:
+ *         description: 사용자를 찾을 수 없습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "사용자를 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+router.patch('/:userId/profile_pic', isAuthenticated, MypageController.updateProfilePicture);
 
 export default router;
