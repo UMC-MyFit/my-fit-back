@@ -16,15 +16,17 @@ const usersService = {
     signup: async ({
         email,
         password,
+        division,
         name,
         one_line_profile,
         birth_date,
-        division,
-        grade_status,
         high_area_id,
         low_area_id,
         recruiting_status,
-        sector,
+        high_sector,
+        low_sector,
+        Highest_grade,
+        grade_status,
     }) => {
         console.log('service 진입')
 
@@ -83,6 +85,7 @@ const usersService = {
                 one_line_profile,
                 birth_date: new Date(birth_date),
                 division,
+                Highest_grade,
                 grade_status,
             },
         })
@@ -92,7 +95,8 @@ const usersService = {
         const newService = await prisma.service.create({
             data: {
                 name,
-                sector,
+                high_sector,
+                low_sector,
                 recruiting_status,
                 profile_img: '', // 일단 빈 문자열
             },
