@@ -73,7 +73,41 @@ class MypageController {
             console.error('사용자 프로필 사진 업데이트 중 오류:', error);
             next(error);
         }
-    } 
+    }
+    
+    // PUT /api/mypage/:userId/recruiting_status 요청을 처리하여 사용자 서비스의 recruiting_status를 업데이트
+    static async updateRecruitingStatus(req, res, next) {
+        try {
+            const { userId } = req.params;
+            const { recruiting_status } = req.body;
+            const authenticatedUserId = req.user.service_id; 
+
+            // 1. 입력값 유효성 검사
+            if (!userId || isNaN(userId) || String(BigInt(userId)) !== userId) {
+                throw new BadRequestError({ field: 'userId', message: '유효한 사용자 ID가 필요합니다.' });
+            }
+            if (!recruiting_status || typeof recruiting_status !== 'string' || recruiting_status.trim() === '') {
+                throw new BadRequestError({ field: 'recruiting_status', message: '유효한 모집 상태 값이 필요합니다.' });
+            }
+
+            // 2. 권한 확인: 요청된 userId와 인증된 ID 일치 여부
+            if (String(authenticatedUserId) !== String(userId)) {
+                throw new ForbiddenError({ message: '수정할 수 있는 권한이 없습니다.' });
+            }
+
+            // 3. 서비스 호출
+            const result = await MypageService.updateRecruitingStatus(userId, recruiting_status);
+
+            return res.success({
+                code: 200,
+                message: '서비스 모집 상태가 성공적으로 수정되었습니다.',
+                result: result, 
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+    
 }
 
 export default MypageController;
