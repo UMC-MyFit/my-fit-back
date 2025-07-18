@@ -73,7 +73,40 @@ class MypageController {
             console.error('사용자 프로필 사진 업데이트 중 오류:', error);
             next(error);
         }
-    } 
+    }
+    
+    // PUT /api/mypage/:userId/recruiting_status 요청을 처리하여 사용자 서비스의 recruiting_status를 업데이트
+    static async updateRecruitingStatus(req, res, next) {
+        try {
+            const { userId } = req.params;
+            const { recruiting_status } = req.body;
+            const authenticatedUserId = req.user.service_id; 
+
+            // 1. 입력값 유효성 검사
+            if (!userId || isNaN(userId) || String(BigInt(userId)) !== userId) {
+                throw new BadRequestError({ field: 'userId', message: '유효한 사용자 ID가 필요합니다.' });
+            }
+            if (!recruiting_status || typeof recruiting_status !== 'string' || recruiting_status.trim() === '') {
+                throw new BadRequestError({ field: 'recruiting_status', message: '유효한 모집 상태 값이 필요합니다.' });
+            }
+
+            // 2. 권한 확인: 요청된 userId와 인증된 ID 일치 여부
+            if (String(authenticatedUserId) !== String(userId)) {
+                throw new ForbiddenError({ message: '수정할 수 있는 권한이 없습니다.' });
+            }
+
+            // 3. 서비스 호출
+            const result = await MypageService.updateRecruitingStatus(userId, recruiting_status);
+
+            return res.success({
+                code: 200,
+                message: '서비스 모집 상태가 성공적으로 수정되었습니다.',
+                result: result, 
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 
     /**
      * PATCH /api/mypage/{target_service_id}/interests 요청을 처리하여 관심 관계를 토글합니다.
@@ -86,27 +119,33 @@ class MypageController {
             const { target_service_id } = req.params; // 경로 파라미터에서 상대방 Service ID
             const senderServiceId = req.user.service_id; // Passport에서 주입된 로그인 사용자 (나)의 Service ID
 
+
             // 1. 유효성 검사 및 타입 변환
+
 
             if (!target_service_id || isNaN(target_service_id) || !/^\d+$/.test(target_service_id)) {
                 throw new BadRequestError({ field: 'target_service_id', message: '유효한 상대방 서비스 ID (숫자 문자열)가 필요합니다.' });
             }
 
+
             const parsedTargetServiceId = BigInt(target_service_id);
             const parsedSenderServiceId = BigInt(senderServiceId);
+
 
             // 2. 서비스 로직 호출
             const message = await MypageService.toggleInterest(parsedSenderServiceId, parsedTargetServiceId);
 
+
             // 3. 성공 응답
             return res.success({
                 code: 200,
-                message: message, 
+                message: message,
             });
         } catch (error) {
             next(error);
         }
     }
+
 }
 
 export default MypageController;

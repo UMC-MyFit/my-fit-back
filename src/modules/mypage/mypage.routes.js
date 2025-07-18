@@ -250,6 +250,111 @@ router.patch('/:userId/profile_pic', isAuthenticated, MypageController.updatePro
 
 /**
  * @swagger
+ * /api/mypage/{user_id}/recruiting_status:
+ *   patch:
+ *     summary: 유저의 현재 구인/구직 상태 업데이트
+ *     description: 로그인된 사용자와 연결된 서비스의 recruiting_status 를 업데이트합니다.
+ *     tags:
+ *       - Mypage
+ *     security:
+ *       - cookieAuth: [] # 쿠키 기반 인증을 사용함을 나타냄
+ *     parameters:
+ *       - in: path
+ *         name: user_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: int64
+ *         description: recruiting_status를 업데이트할 사용자의 고유 ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - recruiting_status
+ *             properties:
+ *               recruiting_status:
+ *                 type: string
+ *                 enum: ['구직 중', '구인 중', '구인 협의 중', '네트워킹 환영', '해당 없음']
+ *                 example: "구직 중"
+ *     responses:
+ *       200:
+ *         description: 유저의 현재 구인/구직 상태 업데이트 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: number
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 유저의 현재 구인/구직 상태가 성공적으로 수정되었습니다.
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     user_id:
+ *                       type: string
+ *                       example: "1234567890123456789"
+ *                     service_id:
+ *                       type: string
+ *                       example: "9876543210987654321"
+ *                     recruiting_status:
+ *                       type: string
+ *                       example: "구직 중"
+ *       400:
+ *         description: 잘못된 요청 (유효하지 않은 입력값 또는 상태 값)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequestError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효한 모집 상태 값이 필요합니다."
+ *       401:
+ *         description: 인증되지 않은 요청 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: 권한 없음 (다른 사용자의 현재 구인/구직 상태 수정 시도)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "권한이 없습니다. 자신의 현재 상태만 수정할 수 있습니다."
+ *       404:
+ *         description: 사용자를 찾을 수 없거나 연결된 서비스를 찾을 수 없습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 사용자와 연결된 서비스를 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+router.patch('/:userId/recruiting_status', isAuthenticated, MypageController.updateRecruitingStatus);
+
+/**
+ * @swagger
  * /api/mypage/{target_service_id}/interests:
  *   patch:
  *     summary: 관심 요청/해제 (토글)
