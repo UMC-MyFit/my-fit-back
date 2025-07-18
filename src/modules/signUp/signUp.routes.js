@@ -25,7 +25,9 @@ const router = express.Router()
  *               - high_area_id
  *               - low_area_id
  *               - recruiting_status
- *               - sector
+ *               - high_sector
+ *               - low_sector
+ *               - Highest_grade
  *               - grade_status
  *             properties:
  *               email:
@@ -56,10 +58,16 @@ const router = express.Router()
  *                 example: 101
  *               recruiting_status:
  *                 type: string
- *                 example: 이직 준비 중
- *               sector:
+ *                 example: 구직중
+ *               high_sector:
  *                 type: string
- *                 example: 프론트엔드 개발
+ *                 example: 개발 / 엔지니어링
+ *               low_sector:
+ *                 type: string
+ *                 example: 프론트엔드 개발자
+ *               Highest_grade:
+ *                 type: string
+ *                 example: 마핏대학교
  *               grade_status:
  *                 type: string
  *                 example: 재학
