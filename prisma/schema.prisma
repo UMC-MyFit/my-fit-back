@@ -36,7 +36,8 @@ model User {
 model Service {
   id                BigInt   @id @default(autoincrement())
   name              String   @db.VarChar(50)
-  sector            String   @db.VarChar(100)
+  high_sector       String   @db.VarChar(100) @default("") // 상위 직무
+  low_sector       String   @db.VarChar(100) @default("") // 하위 직무
   is_inc_AuthN      Boolean  @default(false)
   recruiting_status String   @db.VarChar(100)
   profile_img       String   @db.VarChar(100)
@@ -130,6 +131,8 @@ model RecruitingNotice {
   id             BigInt   @id @default(autoincrement()) // 공고 번호 (PK)
   title          String   @db.VarChar(255) // 제목
   require        String   @db.VarChar(255) // 지원 조건
+  high_sector    String   @db.VarChar(100) @default("") // 상위 직무
+  low_sector     String   @db.VarChar(100) @default("") // 하위 직무
   salary         String   @db.VarChar(255) // 급여
   work_type      String   @db.VarChar(255) // 근무 형태
   dead_line      DateTime // 마감일자
