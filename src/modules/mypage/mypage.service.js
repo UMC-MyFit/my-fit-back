@@ -1,5 +1,5 @@
 import MypageModel from './mypage.model.js';
-import { NotFoundError, InternalServerError, CustomError } from '../../middlewares/error.js';
+import { NotFoundError, InternalServerError, BadRequestError, CustomError } from '../../middlewares/error.js';
 
 class MypageService {
     /**
@@ -66,6 +66,54 @@ class MypageService {
                 throw new NotFoundError('사용자를 찾을 수 없습니다.');
             }
             throw new InternalServerError({ message: '프로필 사진을 수정하는 중 서버 오류가 발생했습니다.', originalError: error.message });
+        }
+    }
+
+    /**
+     * 서비스의 recruiting_status를 업데이트
+     * @param {string} userId  
+     * @param {string} newStatus - 업데이트할 새로운 상태 값
+     * @returns {Promise<Object>} 업데이트된 서비스 정보
+     * @throws {NotFoundError} 
+     * @throws {BadRequestError} 
+     * @throws {InternalServerError} 
+     */
+    static async updateRecruitingStatus(userId, newStatus) {
+        // 허용되는 recruiting_status 값 목록 
+        const ALLOWED_STATUSES = ['구직 중', '구인 중', '구인 협의 중', '네트워킹 환영', '해당 없음']; 
+
+        try {
+            // 1. 유효성 검사: newStatus가 허용되는 값인지 확인
+            if (!ALLOWED_STATUSES.includes(newStatus)) { // 대소문자 구분 없이 처리
+                throw new BadRequestError({ message: `'${newStatus}'은(는) 유효하지 않은 모집 상태 값입니다. 허용되는 값: ${ALLOWED_STATUSES.join(', ')}` });
+            }
+
+            // 2. 사용자 존재 여부 확인
+            const existingUser = await MypageModel.findUserProfileById(BigInt(userId));
+            if (!existingUser) {
+                throw new NotFoundError('해당 사용자를 찾을 수 없습니다.');
+            }
+
+            // 3. 모델 계층 호출하여 recruiting_status 업데이트
+            const updatedServiceResult = await MypageModel.updateRecruitingStatus(BigInt(userId), newStatus);
+
+            // 연결된 서비스가 없어서 업데이트가 이루어지지 않은 경우
+            if (!updatedServiceResult) {
+                throw new NotFoundError('해당 사용자와 연결된 서비스를 찾을 수 없습니다.');
+            }
+
+            // 모델에서 반환된 값을 그대로 반환
+            return updatedServiceResult;
+
+        } catch (error) {
+            console.error('MypageService - 모집 상태 업데이트 서비스 오류:', error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            if (error.code === 'P2025') { 
+                throw new NotFoundError('서비스를 찾을 수 없습니다.'); 
+            }
+            throw new InternalServerError({ message: '유저 상태를 수정하는 중 서버 오류가 발생했습니다.', originalError: error.message });
         }
     }
 }

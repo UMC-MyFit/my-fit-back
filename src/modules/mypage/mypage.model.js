@@ -90,16 +90,12 @@ class MypageModel {
             // 연결된 service_id가 없으면 오류를 던지거나 빈 배열 반환
             if (userServices.length === 0) {
                 console.warn(`MypageModel - 사용자 ID ${userId}와 연결된 서비스가 없습니다.`);
-                // 클라이언트에게 특정 오류를 알리기 위해 NotFoundError 등을 던질 수 있습니다.
-                // 현재 호출 스택을 고려하여 에러를 상위로 던집니다.
-                // 예를 들어 throw new CustomError('S002', 404, '사용자와 연결된 서비스를 찾을 수 없습니다.');
                 return null;
             }
 
             const serviceIdsToUpdate = userServices.map(us => us.service_id);
 
             // 2. 조회된 service_id들을 사용하여 Service 모델의 profile_img를 업데이트
-            // updateMany를 사용하여 여러 서비스를 한 번에 업데이트
             const updateResult = await prisma.service.updateMany({
                 where: {
                     id: {
@@ -113,7 +109,6 @@ class MypageModel {
             });
 
             // 3. 업데이트된 Service 정보 조회 (필요한 경우)
-            // updateMany는 업데이트된 레코드의 수를 반환하므로, 업데이트된 데이터를 가져오려면 다시 조회해야 합니다.
             const updatedServices = await prisma.service.findMany({
                 where: {
                     id: {
@@ -130,9 +125,7 @@ class MypageModel {
             const transformedServices = updatedServices.map(service => convertBigIntsToNumbers(service));
 
             console.log(`MypageModel - ${updateResult.count}개의 서비스 프로필 사진이 업데이트되었습니다.`);
-            // 컨트롤러가 user_id와 profile_img를 기대하므로, 첫 번째 서비스의 ID를 user_id로 반환 (예시)
-            // 실제로는 업데이트된 서비스 목록을 반환하는 것이 더 정확할 수 있습니다.
-            // 여기서는 컨트롤러의 기대치에 맞춰 첫 번째 서비스의 정보를 반환합니다.
+            
             if (transformedServices.length > 0) {
                 return {
                     user_id: userId.toString(), // 사용자의 ID를 문자열로 반환
@@ -144,7 +137,60 @@ class MypageModel {
 
         } catch (error) {
             console.error(`MypageModel - 사용자 ID ${userId}의 프로필 사진 업데이트 중 오류:`, error);
-            throw error; // 에러를 상위 호출자로 다시 던집니다.
+            throw error; 
+        }
+    }
+
+    /**
+     * 서비스의 recruiting_status를 업데이트합니다.
+     * @param {BigInt} userId - 관련 서비스를 소유한 사용자의 ID
+     * @param {string} newStatus - 업데이트할 새로운 모집 상태 값
+     * @returns {Promise<Object | null>} 업데이트된 서비스 정보 또는 null
+     */
+    static async updateRecruitingStatus(userId, newStatus) {
+        try {
+            // 1. userId와 연결된 service_id를 가져옵니다
+            const userRelation = await prisma.userDB.findFirst({
+                where: {
+                    user_id: userId,
+                },
+                select: {
+                    service_id: true,
+                },
+            });
+
+            // 연결된 서비스가 없는 경우, null 반환
+            if (!userRelation || !userRelation.service_id) {
+                return null;
+            }
+
+            const serviceId = userRelation.service_id;
+
+            // 2. 해당 service_id를 가진 단일 Service 레코드의 recruiting_status를 업데이트
+            const updatedService = await prisma.service.update({
+                where: {
+                    id: serviceId,
+                },
+                data: {
+                    recruiting_status: newStatus,
+                    updated_at: new Date(), 
+                },
+                select: { 
+                    id: true,
+                    recruiting_status: true,
+                }
+            });
+
+            // 3. 업데이트된 서비스 정보를 반환합니다.
+            return convertBigIntsToNumbers({
+                user_id: userId, // 사용자 ID도 함께 반환하여 서비스 계층에서 활용할 수 있도록 함
+                service_id: updatedService.id,
+                recruiting_status: updatedService.recruiting_status,
+            });
+
+        } catch (error) {
+            console.error(`MypageModel - 사용자 ID ${userId}의 recruiting_status 업데이트 중 오류:`, error);
+            throw error;
         }
     }
 }
