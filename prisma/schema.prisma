@@ -256,6 +256,8 @@ model Interest {
   // 관계
   sender    Service @relation("InterestSender", fields: [sender_id], references: [id])
   recipient Service @relation("InterestRecipient", fields: [recipient_id], references: [id])
+
+  @@unique([sender_id, recipient_id], name: "unique_interest_pair")
 }
 
 model Network {
@@ -267,6 +269,8 @@ model Network {
   // 관계
   sender    Service @relation("NetworkSender", fields: [sender_id], references: [id])
   recipient Service @relation("NetworkRecipient", fields: [recipient_id], references: [id])
+
+  @@unique([sender_id, recipient_id], name: "unique_network_pair")
 }
 
 model ChattingRoom {
