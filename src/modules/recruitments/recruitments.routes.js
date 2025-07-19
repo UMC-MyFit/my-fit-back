@@ -233,7 +233,7 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
 router.get('/', recruitmentController.getAllRecruitment)
 
 
-//GET /api/recruiments/:recruitmentId : 리크루트 전체 조회
+//GET /api/recruiments/:recruitmentId : 리크루트 상세 조회
 /**
  * @swagger
  * /api/recruitments/{recruitmentId}:
@@ -244,7 +244,7 @@ router.get('/', recruitmentController.getAllRecruitment)
  *       - Recruitments
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: recruitmentId
  *         required: true
  *         schema:
  *           type: integer
@@ -334,12 +334,76 @@ router.get('/', recruitmentController.getAllRecruitment)
  *                   type: string
  *                   example: "서버 오류 발생"
  */
-router.get('/:recruimentId', recruitmentController.getOneRecruitment)
 
-// POST /api/recruitments/:recruimentId/subscribe : 리크루팅 구독하기
+router.get('/:recruitmentId', recruitmentController.getOneRecruitment)
+
+// DELETE /api/recruitments/:recruitmentId
 /**
  * @swagger
- * /api/recruitments/{recruimentId}/subscribe:
+ * /api/recruitments/{recruitmentId}:
+ *   delete:
+ *     summary: 채용 공고 삭제
+ *     description: 특정 채용 공고를 삭제합니다
+ *     tags:
+ *       - Recruitments
+ *     parameters:
+ *       - in: path
+ *         name: recruitmentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채용 공고 ID
+ *         example: 26
+ *     responses:
+ *       200:
+ *         description: 공고가 성공적으로 삭제되었습니다
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "공고 공고가 삭제되었습니다."
+ *       401:
+ *         description: 권한이 없음 (상태 코드 401)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "로그인이 필요한 요청입니다."
+ *       404:
+ *         description: 공고가 존재하지 않음 (상태코드 404)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 공고를 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 오류 (상태 코드 500)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:recruitmentId', isAuthenticated, recruitmentController.deleteRecruitment)
+
+// POST /api/recruitments/:recruitmentId/subscribe : 리크루팅 구독하기
+/**
+ * @swagger
+ * /api/recruitments/{recruitmentId}/subscribe:
  *   post:
  *     summary: 채용 공고 구독
  *     description: 특정 채용 공고를 구독합니다
@@ -347,7 +411,7 @@ router.get('/:recruimentId', recruitmentController.getOneRecruitment)
  *       - Recruitments
  *     parameters:
  *       - in: path
- *         name: recruimentId
+ *         name: recruitmentId
  *         required: true
  *         schema:
  *           type: integer
@@ -407,12 +471,12 @@ router.get('/:recruimentId', recruitmentController.getOneRecruitment)
  *     security:
  *       - bearerAuth: []
  */
-router.post('/:recruimentId/subscribe', isAuthenticated, subscriptionController.subscribeRecruitment)
+router.post('/:recruitmentId/subscribe', isAuthenticated, subscriptionController.subscribeRecruitment)
 
-// DELETE /api/recruitments/:recruimentId/subscribe : 리크루팅 구독 해제
+// DELETE /api/recruitments/:recruitmentId/subscribe : 리크루팅 구독 해제
 /**
  * @swagger
- * /api/recruitments/{recruimentId}/subscribe:
+ * /api/recruitments/{recruitmentId}/subscribe:
  *   delete:
  *     summary: 채용 공고 구독 취소
  *     description: 특정 채용 공고의 구독을 취소합니다
@@ -420,7 +484,7 @@ router.post('/:recruimentId/subscribe', isAuthenticated, subscriptionController.
  *       - Recruitments
  *     parameters:
  *       - in: path
- *         name: recruimentId
+ *         name: recruitmentId
  *         required: true
  *         schema:
  *           type: integer
@@ -480,6 +544,6 @@ router.post('/:recruimentId/subscribe', isAuthenticated, subscriptionController.
  *     security:
  *       - bearerAuth: []
  */
-router.delete('/:recruimentId/subscribe', isAuthenticated, subscriptionController.unSubscribeRecruitment)
+router.delete('/:recruitmentId/subscribe', isAuthenticated, subscriptionController.unSubscribeRecruitment)
 
 export default router

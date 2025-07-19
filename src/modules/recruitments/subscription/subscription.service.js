@@ -2,9 +2,9 @@ import Subscription from './subscription.model.js'
 import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../../middlewares/error.js';
 
 class SubscriptionService {
-    async subscribeRecruitment(serviceId, recruimentId) {
+    async subscribeRecruitment(serviceId, recruitmentId) {
         try {
-            await Subscription.subscribe(serviceId, recruimentId)
+            await Subscription.subscribe(serviceId, recruitmentId)
             return
         }
         catch (error) {
@@ -12,9 +12,9 @@ class SubscriptionService {
             throw error;
         }
     }
-    async unSubscribeRecruitment(serviceId, recruimentId) {
+    async unSubscribeRecruitment(serviceId, recruitmentId) {
         try {
-            await Subscription.unSubscribe(serviceId, recruimentId)
+            await Subscription.unSubscribe(serviceId, recruitmentId)
             return
         }
         catch (error) {

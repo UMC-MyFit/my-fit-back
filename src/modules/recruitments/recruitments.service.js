@@ -193,6 +193,28 @@ const recruitmentService = {
             console.error('특정 리크루팅 목록 조회 중 오류:', error);
             throw error;
         }
+    },
+    deleteRecruitment: async (recruitmentId) => {
+        try {
+            const recruiment = await prisma.RecruitingNotice.findUnique({
+                where: {
+                    id: BigInt(recruitmentId)
+                }
+            })
+            if (!recruiment) {
+                throw new NotFoundError({ message: "해당 공고를 찾을 수 없습니다." })
+            }
+            await prisma.RecruitingNotice.delete({
+                where: {
+                    id: BigInt(recruitmentId)
+                }
+            })
+            return
+        }
+        catch (error) {
+            console.error('구인 공고 삭제 중 오류', error);
+            throw error
+        }
     }
 }
 

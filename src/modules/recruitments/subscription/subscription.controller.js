@@ -3,10 +3,10 @@ import subscriptionService from "./subscription.service.js"
 class SubscriptionController {
     async subscribeRecruitment(req, res, next) {
         try {
-            const recruimentId = req.params.recruimentId
+            const recruitmentId = req.params.recruitmentId
             const serviceId = req.user.service_id
-            console.log(recruimentId)
-            await subscriptionService.subscribeRecruitment(serviceId, recruimentId)
+            console.log(recruitmentId)
+            await subscriptionService.subscribeRecruitment(serviceId, recruitmentId)
             res.success({
                 code: 201,
                 message: '구독이 완료되었습니다.',
@@ -19,9 +19,9 @@ class SubscriptionController {
     }
     async unSubscribeRecruitment(req, res, next) {
         try {
-            const recruimentId = req.params.recruimentId
+            const recruitmentId = req.params.recruitmentId
             const serviceId = req.user.service_id
-            await subscriptionService.unSubscribeRecruitment(serviceId, recruimentId)
+            await subscriptionService.unSubscribeRecruitment(serviceId, recruitmentId)
             res.success({
                 code: 200,
                 message: '구독이 취소되었습니다.',

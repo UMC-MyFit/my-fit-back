@@ -5,14 +5,14 @@ import { ConflictError, NotFoundError } from '../../../middlewares/error.js'
 const prisma = new PrismaClient();
 
 class Subscription {
-    static async subscribe(serviceId, recruimentId) {
+    static async subscribe(serviceId, recruitmentId) {
         try {
             // 오류 검사 및 처리
             console.log(serviceId)
-            console.log(recruimentId)
+            console.log(recruitmentId)
             const recruiment = await prisma.RecruitingNotice.findUnique({
                 where: {
-                    id: BigInt(recruimentId)
+                    id: BigInt(recruitmentId)
                 }
             })
             if (!recruiment) {
@@ -22,7 +22,7 @@ class Subscription {
                 where: {
                     service_recruiting_notice_id: {
                         service_id: BigInt(serviceId),
-                        recruiting_notice_id: BigInt(recruimentId),
+                        recruiting_notice_id: BigInt(recruitmentId),
                     },
                 }
             })
@@ -33,7 +33,7 @@ class Subscription {
             await prisma.SubscribedNotice.create({
                 data: {
                     service_id: BigInt(serviceId),
-                    recruiting_notice_id: BigInt(recruimentId)
+                    recruiting_notice_id: BigInt(recruitmentId)
                 }
             })
             return
@@ -43,12 +43,12 @@ class Subscription {
             throw error;
         }
     }
-    static async unSubscribe(serviceId, recruimentId) {
+    static async unSubscribe(serviceId, recruitmentId) {
         try {
             // 오류 검사 및 처리
             const recruiment = await prisma.RecruitingNotice.findUnique({
                 where: {
-                    id: BigInt(recruimentId)
+                    id: BigInt(recruitmentId)
                 }
             })
             if (!recruiment) {
@@ -58,7 +58,7 @@ class Subscription {
                 where: {
                     service_recruiting_notice_id: {
                         service_id: BigInt(serviceId),
-                        recruiting_notice_id: BigInt(recruimentId),
+                        recruiting_notice_id: BigInt(recruitmentId),
                     },
                 }
             })
@@ -70,7 +70,7 @@ class Subscription {
                 where: {
                     service_recruiting_notice_id: {
                         service_id: BigInt(serviceId),
-                        recruiting_notice_id: BigInt(recruimentId),
+                        recruiting_notice_id: BigInt(recruitmentId),
                     },
                 }
             });
