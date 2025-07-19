@@ -67,8 +67,8 @@ model Service {
   requestedChats CoffeeChat[] @relation("RequestedChats")
   receivedChats  CoffeeChat[] @relation("ReceivedChats")
 
-  blockedOthers          UserBlock[] @relation("BlockedBy")
-  blockedByOthers        UserBlock[] @relation("Blocked")
+  blockedOthers UserBlock[] @relation("BlockedBy")
+  blockedByOthers UserBlock[] @relation("Blocked")
 }
 
 model UserDB {
