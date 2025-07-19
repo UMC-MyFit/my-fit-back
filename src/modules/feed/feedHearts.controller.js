@@ -9,7 +9,7 @@ class HeartController {
             await HeartService.createHeart(serviceId, feedId)
 
             return res.success({
-                code: 200,
+                code: 201,
                 message: '하트가 등록되었습니다.'
             });
         }

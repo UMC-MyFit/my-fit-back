@@ -9,37 +9,37 @@ const recruitmentService = {
         serviceId,
         {
             title,
-            job,
+            high_sector,
+            low_sector,
             require,
             salary,
             work_type,
             dead_line,
             recruiting_img,
-            high_area_id,
-            low_area_id,
+            area
         }
     ) => {
         try {
             // 0. 해당 지역 ID들이 유효한지 확인
-            const highArea = await prisma.highArea.findUnique({
-                where: { id: high_area_id },
-            })
+            // const highArea = await prisma.highArea.findUnique({
+            //     where: { id: high_area_id },
+            // })
 
-            if (!highArea) {
-                throw new NotFoundError({
-                    message: '존재하지 않는 상위 지역입니다.',
-                })
-            }
+            // if (!highArea) {
+            //     throw new NotFoundError({
+            //         message: '존재하지 않는 상위 지역입니다.',
+            //     })
+            // }
 
-            const lowArea = await prisma.lowArea.findUnique({
-                where: { id: low_area_id },
-            })
+            // const lowArea = await prisma.lowArea.findUnique({
+            //     where: { id: low_area_id },
+            // })
 
-            if (!lowArea) {
-                throw new NotFoundError({
-                    message: '존재하지 않는 하위 지역입니다.',
-                })
-            }
+            // if (!lowArea) {
+            //     throw new NotFoundError({
+            //         message: '존재하지 않는 하위 지역입니다.',
+            //     })
+            // }
             // 1. 해당 serviceId가 존재하는지 확인
             const service = await prisma.service.findUnique({
                 where: { id: serviceId },
@@ -57,26 +57,29 @@ const recruitmentService = {
             const newRecruitment = await prisma.recruitingNotice.create({
                 data: {
                     title,
+                    high_sector,
+                    low_sector,
                     require,
                     salary,
                     work_type,
                     dead_line: new Date(dead_line),
                     recruiting_img,
                     service_id: serviceId,
+                    area: area
                 },
             })
             console.log('공고 생성 완료')
 
             // 3. 활동지역 생성
-            await prisma.recruitingArea.create({
-                data: {
-                    recruiting_id: newRecruitment.id,
-                    high_area_id,
-                    low_area_id,
-                },
-            })
+            // await prisma.recruitingArea.create({
+            //     data: {
+            //         recruiting_id: newRecruitment.id,
+            //         high_area_id,
+            //         low_area_id,
+            //     },
+            // })
 
-            console.log('활동 지역 생성 완료')
+            //console.log('활동 지역 생성 완료')
 
             return convertBigIntsToNumbers({
                 recruiting_id: newRecruitment.id,
@@ -97,6 +100,100 @@ const recruitmentService = {
             })
         }
     },
+    getAllRecruitment: async (highSector, lowSector = null, lastRecruimentId = null, limit = 10) => {
+        try {
+            const findAllRecruimentQueryOptions = {
+                where: {
+                    high_sector: String(highSector),
+                    low_sector: lowSector !== null ? String(lowSector) : undefined
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    require: true,
+                    low_sector: true,
+                    work_type: true,
+                    dead_line: true,
+                    service: {
+                        select: {
+                            id: true,
+                            name: true,
+                            profile_img: true
+                        }
+                    }
+                },
+                orderBy: [
+                    { id: 'desc' }
+                ],
+                take: limit,
+            }
+
+            // 페이지네이션
+            if (lastRecruimentId !== null) {
+                findAllRecruimentQueryOptions.cursor = { id: BigInt(lastRecruimentId) };
+                findAllRecruimentQueryOptions.skip = 1;
+            }
+
+            const recruitments = await prisma.RecruitingNotice.findMany(findAllRecruimentQueryOptions);
+            const processedRecruitments = recruitments.map(recruitment => {
+                return {
+                    "recruitment_id": recruitment.id,
+                    "title": recruitment.title,
+                    "require": recruitment.require,
+                    "low_sector": recruitment.low_sector,
+                    "work_type": recruitment.work_type,
+                    "dead_line": recruitment.dead_line,
+                    "writer": {
+                        "id": recruitment.service.id,
+                        "name": recruitment.service.name,
+                        "profile_img": recruitment.service.profile_img
+                    }
+                };
+            });
+            return convertBigIntsToNumbers(processedRecruitments);
+        }
+        catch (error) {
+            console.error('전체 리크루팅 목록 조회 중 오류:', error);
+            throw error;
+        }
+    },
+    getOneRecruitment: async (recruitmentId) => {
+        try {
+            const findOneRecruimentQueryOptions = {
+                where: {
+                    id: BigInt(recruitmentId)
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    low_sector: true,
+                    area: true,
+                    require: true,
+                    work_type: true,
+                    dead_line: true,
+                    recruiting_img: true,
+                    service: {
+                        select: {
+                            id: true,
+                            name: true,
+                            profile_img: true
+                        }
+                    }
+                }
+            }
+            const recruiment = await prisma.RecruitingNotice.findUnique(findOneRecruimentQueryOptions);
+            if (!recruiment) {
+                throw new NotFoundError({
+                    message: '존재하지 않는 상위 지역입니다.',
+                })
+            }
+            return convertBigIntsToNumbers(recruiment)
+        }
+        catch (error) {
+            console.error('특정 리크루팅 목록 조회 중 오류:', error);
+            throw error;
+        }
+    }
 }
 
 export default recruitmentService
