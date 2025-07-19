@@ -66,6 +66,9 @@ model Service {
 
   requestedChats CoffeeChat[] @relation("RequestedChats")
   receivedChats  CoffeeChat[] @relation("ReceivedChats")
+
+  blockedOthers          UserBlock[] @relation("BlockedBy")
+  blockedByOthers        UserBlock[] @relation("Blocked")
 }
 
 model UserDB {
@@ -262,15 +265,40 @@ model Interest {
 
 model Network {
   id           BigInt  @id @default(autoincrement()) // 네트워크 번호 (PK)
-  is_mutual    Boolean @default(false) // 맞팔로우 여부
   sender_id    BigInt // 송신자 서비스 ID (FK)
   recipient_id BigInt // 수신자 서비스 ID (FK)
+  status NetworkStatus @default(PENDING)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // 관계
   sender    Service @relation("NetworkSender", fields: [sender_id], references: [id])
   recipient Service @relation("NetworkRecipient", fields: [recipient_id], references: [id])
 
   @@unique([sender_id, recipient_id], name: "unique_network_pair")
+  // 조회 성능을 위한 인덱스 추가
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([senderId, recipientId])
+  @@index([recipientId, senderId])
+}
+
+model UserBlock {
+  id        BigInt   @id @default(autoincrement())
+  blockerId BigInt   @map("blocker_id") // 차단하는 사용자 ID
+  blockedId BigInt   @map("blocked_id") // 차단당한 사용자 ID
+
+  // 관계 정의
+  blocker   Service @relation("BlockedBy", fields: [blockerId], references: [id])
+  blocked   Service @relation("Blocked", fields: [blockedId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([blockerId, blockedId], name: "unique_user_block")
+  // 조회 성능을 위한 인덱스
+  @@index([blockerId])
+  @@index([blockedId])
 }
 
 model ChattingRoom {
