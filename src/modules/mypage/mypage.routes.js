@@ -81,7 +81,7 @@ const router = express.Router();
  *                       type: boolean
  *                       example: true
  *       400:
- *         description: 잘못된 요청 (유효하지 않은 사용자 ID)
+ *         description: "잘못된 요청 (유효하지 않은 사용자 ID)"
  *         content:
  *           application/json:
  *             schema:
@@ -204,7 +204,7 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo);
  *                       type: string
  *                       example: "https://example.com/new_profile_pic.png"
  *       400:
- *         description: 잘못된 요청 (유효하지 않은 프로필 사진 URL)
+ *         description: "잘못된 요청 (유효하지 않은 프로필 사진 URL)"
  *         content:
  *           application/json:
  *             schema:
@@ -220,7 +220,7 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo);
  *             schema:
  *               $ref: '#/components/schemas/UnauthorizedError'
  *       403:
- *         description: 권한 없음 (다른 사용자의 프로필 사진 수정 시도)
+ *         description: "권한 없음 (다른 사용자의 프로필 사진 수정 시도)"
  *         content:
  *           application/json:
  *             schema:
@@ -352,5 +352,90 @@ router.patch('/:userId/profile_pic', isAuthenticated, MypageController.updatePro
  *               $ref: '#/components/schemas/InternalServerError'
  */
 router.patch('/:userId/recruiting_status', isAuthenticated, MypageController.updateRecruitingStatus);
+
+/**
+ * @swagger
+ * /api/mypage/{target_service_id}/interests:
+ *   patch:
+ *     summary: 관심 요청/해제 (토글)
+ *     description: "로그인된 사용자가 다른 서비스에 관심을 표현하거나 취소합니다. 자기 자신에게는 신청할 수 없으며, 차단했거나 차단당한 사용자에게는 신청할 수 없습니다. (유튜브 구독과 같은 단방향 관계)"
+ *     tags:
+ *       - Mypage
+ *       - Interest
+ *     parameters:
+ *       - in: path
+ *         name: target_service_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: int64 # BigInt 타입에 맞춰 string으로 받음
+ *         description: 관심을 주고받을 상대방의 서비스 고유 ID
+ *     security:
+ *       - cookieAuth: [] # 쿠키 기반 인증을 사용함을 나타냄
+ *     responses:
+ *       200:
+ *         description: 관심 요청 또는 해제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: number
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *               examples:
+ *                 interestCreated:
+ *                   summary: 관심 요청 생성
+ *                   value: { isSuccess: true, code: 200, message: "관심이 성공적으로 추가되었습니다." }
+ *                 interestDeleted:
+ *                   summary: 관심 요청 해제
+ *                   value: { isSuccess: true, code: 200, message: "관심이 성공적으로 해제되었습니다." }
+ *       400:
+ *         description: "잘못된 요청 (유효하지 않은 ID 또는 자기 자신에게 신청)"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequestError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효한 상대방 서비스 ID가 필요합니다."
+ *       401:
+ *         description: 인증되지 않은 요청 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       403:
+ *         description: "금지된 요청 (차단 관계)"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ForbiddenError'
+ *             examples:
+ *               message:
+ *                 value: "차단한 사용자에게는 관심 요청을 할 수 없습니다."
+ *       404:
+ *         description: 상대방 서비스를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundError'
+ *             examples:
+ *               message:
+ *                 value: "상대방 서비스를 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+router.patch('/:target_service_id/interests', isAuthenticated, MypageController.toggleInterest);
 
 export default router;

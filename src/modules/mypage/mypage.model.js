@@ -193,6 +193,95 @@ class MypageModel {
             throw error;
         }
     }
+
+    /**
+     * 특정 Service가 존재하는지 확인합니다.
+     * @param {BigInt} serviceId - 확인할 Service의 BigInt ID
+     * @returns {Promise<Object | null>} - Service 객체 (id만 포함) 또는 null
+     */
+    static async findServiceById(serviceId) {
+        return await prisma.service.findUnique({
+            where: { id: serviceId },
+            select: { id: true }
+        });
+    }
+
+    /**
+     * 특정 sender와 recipient 간의 관심 관계를 조회합니다.
+     * @param {BigInt} senderId - 관심을 보낸 Service의 BigInt ID
+     * @param {BigInt} recipientId - 관심을 받은 Service의 BigInt ID
+     * @returns {Promise<Object | null>} - Interest 객체 또는 null
+     */
+    static async findInterest(senderId, recipientId) {
+        return await prisma.interest.findUnique({
+            where: {
+                unique_interest_pair: { // schema.prisma에 정의한 unique 인덱스 이름
+                    sender_id: senderId,
+                    recipient_id: recipientId,
+                },
+            },
+        });
+    }
+
+    /**
+     * 새로운 관심 관계를 생성합니다.
+     * @param {BigInt} senderId - 관심을 보낸 Service의 BigInt ID
+     * @param {BigInt} recipientId - 관심을 받은 Service의 BigInt ID
+     * @returns {Promise<Object>} - 생성된 Interest 객체
+     */
+    static async createInterest(senderId, recipientId) {
+        return await prisma.interest.create({
+            data: {
+                sender_id: senderId,
+                recipient_id: recipientId,
+                is_ban: false, // 기본값은 false로 설정
+            },
+        });
+    }
+
+    /**
+     * 기존 관심 관계를 삭제합니다.
+     * @param {BigInt} senderId - 관심을 보낸 Service의 BigInt ID
+     * @param {BigInt} recipientId - 관심을 받은 Service의 BigInt ID
+     * @returns {Promise<Object>} - 삭제된 Interest 객체
+     */
+    static async deleteInterest(senderId, recipientId) {
+        // deleteMany를 사용하지만, unique 제약 조건이 있으므로 최대 1개만 삭제됩니다.
+        // delete를 사용하려면 @unique에 추가로 @id를 붙여야 할 수도 있습니다.
+        // 여기서는 기존 unique_interest_pair를 활용하여 delete를 사용합니다.
+        return await prisma.interest.delete({
+            where: {
+                unique_interest_pair: {
+                    sender_id: senderId,
+                    recipient_id: recipientId,
+                },
+            },
+        });
+    }
+
+    /**
+     * 특정 사용자에게 차단 관계가 있는지 확인합니다.
+     * is_ban 필드의 의미가 '관심 관계가 차단됨'이라면 이 메서드는
+     * '일반적인 사용자 차단'을 확인하는 용도로 적합하지 않을 수 있습니다.
+     * 여기서는 제공된 스키마에 맞춰 '관심 관계에서 is_ban이 true인 경우'를 가정합니다.
+     * 일반적인 사용자 차단 기능이 필요하다면 별도 `Block` 모델을 고려해야 합니다.
+     *
+     * @param {BigInt} blockerId - 차단하는 사용자 (Service)의 BigInt ID
+     * @param {BigInt} blockedId - 차단당한 사용자 (Service)의 BigInt ID
+     * @returns {Promise<boolean>} - 차단 관계가 존재하고 is_ban이 true이면 true, 아니면 false
+     */
+    static async isBlocked(blockerId, blockedId) {
+        const blockedRelation = await prisma.interest.findUnique({
+            where: {
+                unique_interest_pair: {
+                    sender_id: blockerId,
+                    recipient_id: blockedId,
+                }
+            },
+            select: { is_ban: true }
+        });
+        return blockedRelation?.is_ban === true;
+    }
 }
 
 export default MypageModel;
