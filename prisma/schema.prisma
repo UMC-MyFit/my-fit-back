@@ -267,7 +267,7 @@ model Network {
   id           BigInt  @id @default(autoincrement()) // 네트워크 번호 (PK)
   sender_id    BigInt // 송신자 서비스 ID (FK)
   recipient_id BigInt // 수신자 서비스 ID (FK)
-  status NetworkStatus @default(PENDING)
+  status NetworkStatus @default(PENDING) // 현재 네트워크 관계의 상태 (PENDING, ACCEPTED, REJECTED)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -285,9 +285,9 @@ model Network {
 }
 
 enum NetworkStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
+  PENDING // 신청 대기 중
+  ACCEPTED // 신청 수락됨
+  REJECTED // 신청 거절됨
 }
 
 model UserBlock {
