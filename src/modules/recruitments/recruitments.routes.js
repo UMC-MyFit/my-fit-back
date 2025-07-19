@@ -1,5 +1,6 @@
 import express from 'express'
 import recruitmentController from './recruitments.controller.js'
+import subscriptionController from './subscription/subscription.controller.js'
 import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router()
 
@@ -333,6 +334,152 @@ router.get('/', recruitmentController.getAllRecruitment)
  *                   type: string
  *                   example: "서버 오류 발생"
  */
-router.get('/:recruitmentId', recruitmentController.getOneRecruitment)
+router.get('/:recruimentId', recruitmentController.getOneRecruitment)
+
+// POST /api/recruitments/:recruimentId/subscribe : 리크루팅 구독하기
+/**
+ * @swagger
+ * /api/recruitments/{recruimentId}/subscribe:
+ *   post:
+ *     summary: 채용 공고 구독
+ *     description: 특정 채용 공고를 구독합니다
+ *     tags:
+ *       - Recruitments
+ *     parameters:
+ *       - in: path
+ *         name: recruimentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채용 공고 ID
+ *         example: 26
+ *     responses:
+ *       200:
+ *         description: 구독이 완료되었습니다
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "구독이 완료되었습니다."
+ *       401:
+ *         description: 권한이 없음 (상태 코드 401)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "로그인이 필요한 요청입니다."
+ *       404:
+ *         description: 공고가 존재하지 않음 (상태코드 404)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 공고를 찾을 수 없습니다."
+ *       409:
+ *         description: 이미 구독한 공고임 (상태 코드 409)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "이미 구독한 공고입니다."
+ *       500:
+ *         description: 서버 오류 (상태 코드 500)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/:recruimentId/subscribe', isAuthenticated, subscriptionController.subscribeRecruitment)
+
+// DELETE /api/recruitments/:recruimentId/subscribe : 리크루팅 구독 해제
+/**
+ * @swagger
+ * /api/recruitments/{recruimentId}/subscribe:
+ *   delete:
+ *     summary: 채용 공고 구독 취소
+ *     description: 특정 채용 공고의 구독을 취소합니다
+ *     tags:
+ *       - Recruitments
+ *     parameters:
+ *       - in: path
+ *         name: recruimentId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채용 공고 ID
+ *         example: 26
+ *     responses:
+ *       200:
+ *         description: 구독이 취소되었습니다
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "구독이 취소되었습니다."
+ *       400:
+ *         description: 구독한 공고가 아님 (상태 코드 400)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 공고를 구독한 내역이 없습니다."
+ *       401:
+ *         description: 권한이 없음 (상태 코드 401)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "로그인이 필요한 요청입니다."
+ *       404:
+ *         description: 공고가 존재하지 않음 (상태코드 404)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "해당 공고를 찾을 수 없습니다."
+ *       500:
+ *         description: 서버 오류 (상태 코드 500)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete('/:recruimentId/subscribe', isAuthenticated, subscriptionController.unSubscribeRecruitment)
 
 export default router

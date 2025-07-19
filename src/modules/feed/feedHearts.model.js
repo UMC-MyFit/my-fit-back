@@ -39,7 +39,7 @@ class Heart {
                     id: BigInt(feedId)
                 }
             })
-            console.log(feed)
+
             if (feed === null) {
                 throw new NotFoundError({ message: "삭제할 해당 피드를 찾을 수 없습니다." })
             }

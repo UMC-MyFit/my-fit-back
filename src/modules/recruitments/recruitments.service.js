@@ -184,7 +184,7 @@ const recruitmentService = {
             const recruiment = await prisma.RecruitingNotice.findUnique(findOneRecruimentQueryOptions);
             if (!recruiment) {
                 throw new NotFoundError({
-                    message: '존재하지 않는 상위 지역입니다.',
+                    message: '해당 공고가 존재하지 않습니다.',
                 })
             }
             return convertBigIntsToNumbers(recruiment)
