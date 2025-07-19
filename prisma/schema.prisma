@@ -85,14 +85,14 @@ model UserArea {
   id           BigInt   @id @default(autoincrement()) // 유저 활동지역 번호 (PK)
   created_at   DateTime @default(now()) // 생성일자
   updated_at   DateTime @updatedAt // 수정일자
-  service_id   BigInt // 서비스 번호 (FK)
-  high_area_id Int // 상위 활동지역 번호 (FK)
-  low_area_id  Int // 하위 활동지역 번호 (FK)
+  service_id   BigInt   // 서비스 번호 (FK)
+  high_area    String   @default("") // 상위 활동지역
+  low_area     String   @default("")// 하위 활동지역
 
   // 관계
   service  Service  @relation(fields: [service_id], references: [id]) // 서비스와 연결
-  highArea HighArea @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
-  lowArea  LowArea  @relation(fields: [low_area_id], references: [id]) // 하위 지역과 연결
+  // highArea HighArea @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
+  // lowArea  LowArea  @relation(fields: [low_area_id], references: [id]) // 하위 지역과 연결
 }
 
 model HighArea {
@@ -101,7 +101,7 @@ model HighArea {
 
   // 관계
   lowAreas        LowArea[] // 하위 지역들과 연결
-  userAreas       UserArea[] // 유저 활동지역들과 연결
+  // userAreas       UserArea[] // 유저 활동지역들과 연결
   recruitingAreas RecruitingArea[] // 공고 활동지역들과 연결
 }
 
@@ -112,7 +112,7 @@ model LowArea {
 
   // 관계
   highArea        HighArea         @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
-  userAreas       UserArea[] // 유저 활동지역들과 연결
+  // userAreas       UserArea[] // 유저 활동지역들과 연결
   recruitingAreas RecruitingArea[] // 공고 활동지역들과 연결
 }
 
@@ -138,6 +138,7 @@ model RecruitingNotice {
   low_sector     String   @db.VarChar(100) @default("") // 하위 직무
   salary         String   @db.VarChar(255) // 급여
   work_type      String   @db.VarChar(255) // 근무 형태
+  area           String   @db.VarChar(255) @default("") // 근무 지역
   dead_line      DateTime // 마감일자
   recruiting_img String   @db.VarChar(255) // 공고 이미지
   created_at     DateTime @default(now()) // 생성일자
