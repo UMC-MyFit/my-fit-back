@@ -160,6 +160,8 @@ model SubscribedNotice {
   // 관계
   service          Service          @relation(fields: [service_id], references: [id]) // 서비스와 연결
   recruitingNotice RecruitingNotice @relation(fields: [recruiting_notice_id], references: [id]) // 구인 공고와 연결
+
+  @@unique([service_id, recruiting_notice_id], name: "service_recruiting_notice_id")
 }
 
 model Feed {
