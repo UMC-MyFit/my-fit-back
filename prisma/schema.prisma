@@ -284,6 +284,12 @@ model Network {
   @@index([recipientId, senderId])
 }
 
+enum NetworkStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model UserBlock {
   id        BigInt   @id @default(autoincrement())
   blockerId BigInt   @map("blocker_id") // 차단하는 사용자 ID
