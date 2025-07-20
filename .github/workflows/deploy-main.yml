@@ -1,13 +1,67 @@
-name: deploy-main  # 파이프라인 이름은 자유롭게 지어주세요
+name: deploy-main
 
 on:
   push:
     branches:
-      - main  # main 브랜치에 새로운 커밋이 올라왔을 떄 실행되도록 합니다
-  workflow_dispatch:  # 필요한 경우 수동으로 실행할 수도 있도록 합니다
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # CI/CD 파이프라인이 실행될 운영체제 환경을 지정합니다
+    runs-on: ubuntu-latest
     steps:
-      - TODO
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          cat >>~/.ssh/config <<END
+          Host myfit-test-server
+            HostName $EC2_HOST
+            User $EC2_USER
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+          END
+        env:
+          EC2_USER: ubuntu
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Copy Workspace
+        run: |
+          ssh myfit-test-server 'sudo mkdir -p /opt/app'
+          ssh myfit-test-server 'sudo chown ubuntu:ubuntu /opt/app'
+          scp -r ./[!.]* myfit-test-server:/opt/app
+
+      - name: Install dependencies
+        run: |
+          ssh myfit-test-server 'npm install --prefix /opt/app/'
+
+      - name: Copy systemd service file
+        run: |
+          ssh myfit-test-server '
+            echo "[Unit]
+            Description=My fit Project
+            After=network.target
+
+            [Service]
+            User=${USER}
+            ExecStart=/usr/bin/npm run dev --prefix /opt/app/
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target" | sudo tee /etc/systemd/system/app.service
+          '
+
+      - name: Enable systemd service
+        run: |
+          ssh myfit-test-server 'sudo systemctl daemon-reload'
+          ssh myfit-test-server 'sudo systemctl enable app'
+
+      - name: Restart systemd service
+        run: |
+          ssh myfit-test-server 'sudo systemctl restart app'
