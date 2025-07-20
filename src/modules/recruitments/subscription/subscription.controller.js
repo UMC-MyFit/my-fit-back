@@ -5,7 +5,6 @@ class SubscriptionController {
         try {
             const recruitmentId = req.params.recruitmentId
             const serviceId = req.user.service_id
-            console.log(recruitmentId)
             await subscriptionService.subscribeRecruitment(serviceId, recruitmentId)
             res.success({
                 code: 201,

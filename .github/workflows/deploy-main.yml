@@ -1,0 +1,13 @@
+name: deploy-main  # 파이프라인 이름은 자유롭게 지어주세요
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 새로운 커밋이 올라왔을 떄 실행되도록 합니다
+  workflow_dispatch:  # 필요한 경우 수동으로 실행할 수도 있도록 합니다
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # CI/CD 파이프라인이 실행될 운영체제 환경을 지정합니다
+    steps:
+      - TODO
