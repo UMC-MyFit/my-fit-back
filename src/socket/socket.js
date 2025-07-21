@@ -29,4 +29,4 @@ io.on('connection', (socket) => {
     })
 })
 
-export { httpServer }
+export { httpServer, io }

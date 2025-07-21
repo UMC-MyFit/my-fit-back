@@ -25,19 +25,35 @@ const chattingController = {
     sendMessage: async (req, res, next) => {
         try {
             const { chattingRoomId } = req.params
-            const { senderId, content, type } = req.body
-
+            const { senderId, detail_message, type } = req.body
+            console.log(chattingRoomId)
             const message = await chattingService.sendMessage({
                 chattingRoomId,
                 senderId,
-                content,
-                type,
+                detail_message,
+                type
+
             })
 
             res.success({
                 code: 200,
                 message: '메시지 전송 성공',
                 result: message,
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    getMessages: async (req, res, next) => {
+        try {
+            const { chattingRoomId } = req.params
+            const offset = parseInt(req.query.offset) || 0
+
+            const messages = await chattingService.getMessages(chattingRoomId, offset)
+            res.success({
+                code: 200,
+                message: '메시지 조회 성공',
+                result: messages,
             })
         } catch (error) {
             next(error)
