@@ -24,11 +24,21 @@ const router = express.Router()
  *                 type: string
  *                 example: 프론트엔드 신입 개발자 모집
  *               high_sector:
- *                 type: string
- *                 example: 개발 / 엔지니어링
+ *                 type: array
+ *                 items:
+ *                      type: string
+ *                 description: 대분류 분야 (예- 개발 / 엔지니어링)
+ *                 example:
+ *                      - 개발 / 엔지니어링
+ *                      - 개발 / 엔지니어링
  *               low_sector:
- *                 type: string
- *                 example: 프론트엔드 개발자
+ *                 type: array
+ *                 items:
+ *                      type: string
+ *                 description: 소분류 분야 (예- 프론트엔드 개발자, 백엔드 개발자 등)
+ *                 example: 
+ *                      - 프론트엔드 개발자
+ *                      - 백엔드 개발자
  *               area:
  *                 type: String
  *                 example: 서울특별시 강남구 테헤란로 311 (역삼역 도보 5분)
@@ -135,9 +145,13 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *         name: lowSector
  *         required: false
  *         schema:
- *           type: string
+ *           type: array
+ *           items:
+ *            type: string
  *         description: 소분류 분야 (예- 프론트엔드, 백엔드 등)
- *         example: "프론트엔드 개발자"
+ *         example: 
+ *              - "프론트엔드 개발자"
+ *              - "백엔드 개발자"
  *       - in: query
  *         name: cursor
  *         required: false
@@ -171,9 +185,13 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *                         description: 채용 요구사항
  *                         example: "신입 및 경력 이상 (2023년 2월 졸업 예정)"
  *                       low_sector:
- *                         type: string
+ *                         type: array
+ *                         items:
+ *                              type: string
  *                         description: 소분류 분야
- *                         example: "프론트엔드"
+ *                         example: "
+ *                              - 프론트엔드 개발자
+ *                              - 백엔드 개발자"
  *                       work_type:
  *                         type: string
  *                         description: 근무형태
@@ -267,9 +285,13 @@ router.get('/', recruitmentController.getAllRecruitment)
  *                   description: 채용공고 제목
  *                   example: "Next.js에 능한 성장형 프론트엔드 엔지니어"
  *                 low_sector:
- *                   type: string
+ *                   type: array
  *                   description: 소분류 분야
- *                   example: "프론트엔드"
+ *                   items:
+ *                      type: string
+ *                   example: 
+ *                      - "프론트엔드 개발자" 
+ *                      - "백엔드 개발자"
  *                 area:
  *                   type: string
  *                   description: 근무 지역

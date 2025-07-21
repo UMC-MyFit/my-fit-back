@@ -29,3 +29,13 @@ export const convertBigIntsToNumbers = (data) => {
     }
     return newData
 }
+
+export const listToString = (list) => {
+    const stringResult = list.map(item => item.trim()).join(", ")
+    return stringResult
+}
+
+export const stringToList = (string) => {
+    const listResult = string.split(", ").map(item => item.trim())
+    return listResult
+}
