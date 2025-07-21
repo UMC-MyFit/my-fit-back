@@ -8,8 +8,6 @@ class Subscription {
     static async subscribe(serviceId, recruitmentId) {
         try {
             // 오류 검사 및 처리
-            console.log(serviceId)
-            console.log(recruitmentId)
             const recruiment = await prisma.RecruitingNotice.findUnique({
                 where: {
                     id: BigInt(recruitmentId)
