@@ -22,6 +22,19 @@ class SubscriptionService {
             throw error;
         }
     }
+    async getSubscribedRecruitments(serviceId, lastRecruimentId, limit) {
+        try {
+            const subscribedRecruitments = await Subscription.getSubscribedRecruitments(serviceId, lastRecruimentId, limit)
+            return subscribedRecruitments
+        }
+        catch (error) {
+            console.error('구독한 리크루팅 목록 조회 오류:', error);
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new InternalServerError({ originalError: error.message });
+        }
+    }
 }
 
 export default new SubscriptionService();

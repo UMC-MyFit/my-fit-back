@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { convertBigIntsToNumbers } from '../../../libs/dataTransformer.js';
+import { convertBigIntsToNumbers, stringToList } from '../../../libs/dataTransformer.js';
 import { ConflictError, NotFoundError } from '../../../middlewares/error.js'
 
 const prisma = new PrismaClient();
@@ -76,6 +76,63 @@ class Subscription {
         }
         catch (error) {
             console.error('리크루팅 구독 오류:', error);
+            throw error;
+        }
+    }
+    static async getSubscribedRecruitments(serviceId, lastRecruimentId, limit) {
+        try {
+            const subscribedRecruitmentsQueryOptions = {
+                where: {
+                    service_id: BigInt(serviceId)
+                },
+                select: {
+                    recruitingNotice: {
+                        select: {
+                            id: true,
+                            title: true,
+                            low_sector: true,
+                            dead_line: true,
+                            service: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    profile_img: true
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: [
+                    { id: 'desc' }
+                ],
+                take: limit,
+            }
+            if (lastRecruimentId !== null) {
+                findAllRecruimentQueryOptions.cursor = { id: BigInt(lastRecruimentId) };
+                findAllRecruimentQueryOptions.skip = 1;
+            }
+
+            const recruitments = await prisma.SubscribedNotice.findMany(subscribedRecruitmentsQueryOptions);
+            const processedRecruitments = recruitments.map(recruitment => {
+                const lowSectorToList = stringToList(recruitment.recruitingNotice.low_sector)
+                console.log(lowSectorToList)
+                return {
+                    "recruitment_id": recruitment.recruitingNotice.id,
+                    "title": recruitment.recruitingNotice.title,
+                    "low_sector": lowSectorToList,
+                    "dead_line": recruitment.recruitingNotice.dead_line,
+                    "user": {
+                        "id": recruitment.recruitingNotice.service.id,
+                        "name": recruitment.recruitingNotice.service.name,
+                        "profile_img": recruitment.recruitingNotice.service.profile_img
+                    }
+                };
+            });
+
+            return convertBigIntsToNumbers(processedRecruitments);
+        }
+        catch (error) {
+            console.error('구독한 리크루팅 목록 조회 오류:', error);
             throw error;
         }
     }

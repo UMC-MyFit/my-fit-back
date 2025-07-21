@@ -49,7 +49,6 @@ const recruitmentController = {
     getOneRecruitment: async (req, res, next) => {
         try {
             const recruitmentId = req.params.recruitmentId;
-            console.log(recruitmentId)
             const recruitment = await recruitmentService.getOneRecruitment(recruitmentId)
             res.success({
                 code: 200,

@@ -176,6 +176,7 @@ const recruitmentService = {
     },
     getOneRecruitment: async (recruitmentId) => {
         try {
+            console.log("test1")
             const findOneRecruimentQueryOptions = {
                 where: {
                     id: BigInt(recruitmentId)
