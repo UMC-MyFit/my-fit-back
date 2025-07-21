@@ -12,7 +12,6 @@ import dotenv from 'dotenv'
 dotenv.config()
 const prisma = new PrismaClient()
 
-console.log('✅ PASSPORT_GOOGLE_CLIENT_ID:', process.env.PASSPORT_GOOGLE_CLIENT_ID)
 passport.use(
     new LocalStrategy(
         {

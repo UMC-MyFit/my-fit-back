@@ -20,8 +20,8 @@ const usersService = {
         name,
         one_line_profile,
         birth_date,
-        high_area_id,
-        low_area_id,
+        high_area,
+        low_area,
         recruiting_status,
         high_sector,
         low_sector,
@@ -118,8 +118,8 @@ const usersService = {
         await prisma.userArea.create({
             data: {
                 service_id: newService.id,
-                high_area_id,
-                low_area_id,
+                high_area,
+                low_area,
             },
         })
         console.log('UserArea 생성 완료')
