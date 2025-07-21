@@ -43,7 +43,7 @@ const router = express.Router()
  *             example:
  *               isSuccess: false
  *               code: 400
- *               message: 잘못된 요청입니다.
+ *               message: 잘못된 요청입니다..
  *               result:
  *                 errorCode: "U003"
  *                 data:
