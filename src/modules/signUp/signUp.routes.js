@@ -22,8 +22,8 @@ const router = express.Router()
  *               - division
  *               - one_line_profile
  *               - birth_date
- *               - high_area_id
- *               - low_area_id
+ *               - high_area
+ *               - low_area
  *               - recruiting_status
  *               - high_sector
  *               - low_sector
@@ -50,12 +50,12 @@ const router = express.Router()
  *                 type: string
  *                 format: date
  *                 example: 1995-10-08
- *               high_area_id:
- *                 type: integer
- *                 example: 1
- *               low_area_id:
- *                 type: integer
- *                 example: 101
+ *               high_area:
+ *                 type: string
+ *                 example: 서울
+ *               low_area:
+ *                 type: string
+ *                 example: 강남구
  *               recruiting_status:
  *                 type: string
  *                 example: 구직중
