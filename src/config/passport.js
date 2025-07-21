@@ -7,9 +7,12 @@ import bcrypt from 'bcrypt' // 비밀번호 암호화 시 사용 예정
 import { PrismaClient } from '@prisma/client'
 import loginService from '../modules/login/login.service.js'
 import { convertBigIntsToNumbers } from '../libs/dataTransformer.js'
+import dotenv from 'dotenv'
 
+dotenv.config()
 const prisma = new PrismaClient()
 
+console.log('✅ PASSPORT_GOOGLE_CLIENT_ID:', process.env.PASSPORT_GOOGLE_CLIENT_ID)
 passport.use(
     new LocalStrategy(
         {
