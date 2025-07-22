@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { BadRequestError } from '../../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import { io } from '../../socket/socket.js'
-
+import { calcAge } from '../../libs/calcAge.js'
 const prisma = new PrismaClient()
 
 const chattingService = {
@@ -37,7 +37,6 @@ const chattingService = {
                 chats: true,
             },
         })
-        console.log('existingRoom:', existingRoom)
 
         const myId = BigInt(myServiceId)
         const targetId = BigInt(target_service_id)
@@ -145,8 +144,80 @@ const chattingService = {
         // 2. MySQL에서 이후 메시지 가져오기
         console.log('MySQL에서 메시지 조회')
         const messages = await chattingModel.getMessagesFromDB(BigInt(chattingRoomId), offset)
-        return messages.map(convertBigIntsToNumbers)
 
+        if (!messages || messages.length === 0) {
+            console.log('메시지 없음')
+            return []
+        }
+        return messages.map(convertBigIntsToNumbers)
+    },
+    getChattingRooms: async (myServiceId, cursor) => {
+        const take = 10 // 한 번에 10개씩
+        const whereClause = {
+            service_id: myServiceId,
+            ...(cursor && {
+                chat_id: { lt: cursor }, // cursor보다 작은 id만 조회
+            }),
+        }
+
+        const chats = await prisma.chat.findMany({
+            where: whereClause,
+            orderBy: { chat_id: 'desc' }, // 최신 순
+            take,
+            include: {
+                chatRoom: {
+                    include: {
+                        chats: {
+                            include: {
+                                service: {
+                                    include: {
+                                        userDBs: {
+                                            include: {
+                                                user: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        messages: {
+                            orderBy: { created_at: 'desc' },
+                            take: 1,
+                        }
+                    }
+                }
+            }
+        })
+
+        const formatted = chats.map(chat => {
+            const chatRoom = chat.chatRoom
+            const partner = chatRoom.chats.find(c => c.service_id !== myServiceId)?.service
+            const lastMessage = chatRoom.messages[0]
+
+            return convertBigIntsToNumbers({
+                chatting_room_id: chat.chat_id,
+                partner: {
+                    name: partner?.name || '',
+                    age: partner ? calcAge(partner.userDBs?.[0]?.user?.birth_date) : null,
+                    low_sector: partner?.low_sector || '',
+                    profile_image: partner?.profile_img || '',
+                },
+                last_message: lastMessage
+                    ? {
+                        message: lastMessage.detail_message,
+                        created_at: lastMessage.created_at,
+                    }
+                    : null,
+            })
+        })
+
+        // next_cursor 설정
+        const nextCursor = chats.length === take ? chats[chats.length - 1].chat_id : null
+
+        return {
+            chatting_rooms: formatted,
+            next_cursor: nextCursor,
+        }
     }
 }
 

@@ -1,7 +1,65 @@
 import express from 'express'
 import chattingController from './chatting.controller.js'
-
+import { isAuthenticated } from '../../middlewares/auth.js'
 const router = express.Router()
+
+/**
+ * @swagger
+ * /api/chatting-rooms:
+ *   get:
+ *     summary: 채팅방 목록 조회
+ *     description: 로그인한 사용자의 채팅방 목록을 조회합니다.
+ *     tags:
+ *       - Chatting
+ *     responses:
+ *       200:
+ *         description: 채팅 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: true
+ *               code: 200
+ *               message: 채팅 목록 조회 성공
+ *               result:
+ *                 chatting_rooms:
+ *                   - chatting_room_id: 11
+ *                     partner:
+ *                       name: 김마핏
+ *                       age: 25
+ *                       low_sector: UI/UX 개발자
+ *                       profile_image: ""
+ *                     last_message:
+ *                       message: 체크체크
+ *                       created_at: "2025-07-22T07:57:19.077Z"
+ *                 next_cursor: null
+ *       401:
+ *         description: 인증 실패 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 401
+ *               message: 로그인이 필요한 요청입니다.
+ *               result:
+ *                 errorCode: A001
+ *                 data:
+ *                   message: 로그인이 필요한 요청입니다.
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 500
+ *               message: 서버에 오류가 발생하였습니다.
+ *               result:
+ *                 errorCode: S001
+ *                 data:
+ *                   message: 서버에 오류가 발생하였습니다.
+ */
+
+// 채팅방 목록 조회
+router.get('/', isAuthenticated, chattingController.getChattingRooms)
 
 /**
  * @swagger
@@ -18,12 +76,9 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
- *               my_service_id:
- *                 type: integer
  *               service_id:
  *                 type: integer
  *             example:
- *               my_service_id: 8
  *               service_id: 9
  *     responses:
  *       200:
@@ -38,7 +93,7 @@ const router = express.Router()
  *                 chatting_room_id: 10
  */
 // 채팅방 존재 여부 확인
-router.post('/check-or-create', chattingController.checkOrCreateRoom)
+router.post('/check-or-create', isAuthenticated, chattingController.checkOrCreateRoom)
 
 /**
  * @swagger
@@ -61,15 +116,12 @@ router.post('/check-or-create', chattingController.checkOrCreateRoom)
  *           schema:
  *             type: object
  *             properties:
- *               senderId:
- *                 type: integer
  *               detail_message:
  *                 type: string
  *               type:
  *                 type: string
- *                 enum: [TEXT, IMAGE, FILE]
+ *                 enum: [TEXT, COFFEECHAT, SYSTEM]
  *             example:
- *               senderId: 8
  *               detail_message: 안녕하세요~
  *               type: TEXT
  *     responses:
@@ -91,7 +143,7 @@ router.post('/check-or-create', chattingController.checkOrCreateRoom)
  */
 // 메시지 전송
 router.post(
-    '/:chattingRoomId/messages', chattingController.sendMessage
+    '/:chattingRoomId/messages', isAuthenticated, chattingController.sendMessage
 )
 
 /**
@@ -132,6 +184,7 @@ router.post(
  *                   type: TEXT
  */
 // 메시지 조회
-router.get('/:chattingRoomId/messages', chattingController.getMessages)
+router.get('/:chattingRoomId/messages', isAuthenticated, chattingController.getMessages)
+
 
 export default router

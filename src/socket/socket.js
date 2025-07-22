@@ -6,17 +6,19 @@ const httpServer = createServer(app)
 
 const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: ['http://localhost:5173'],
         methods: ['GET', 'POST'],
         credentials: true,
     }
 })
+
 
 io.on('connection', (socket) => {
     console.log(`소켓 연결: ${socket.id}`)
 
     socket.on('joinRoom', (roomId) => {
         socket.join(roomId)
+        console.log('현재 소켓이 속한 방:', [...socket.rooms])
         console.log(`참여한 채팅방: ${roomId}`)
     })
 

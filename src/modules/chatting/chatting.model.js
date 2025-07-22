@@ -19,12 +19,13 @@ const chattingModel = {
     },
 
     getMessagesFromDB: async (chattingRoomId, offset) => {
-        return await prisma.message.findMany({
-            where: { chatting_room_id: chattingRoomId },
+        const messages = await prisma.message.findMany({
+            where: { chat_id: chattingRoomId },
             orderBy: { created_at: 'desc' },
             skip: offset,
             take: 20,
         })
+        return messages || []
     }
 }
 

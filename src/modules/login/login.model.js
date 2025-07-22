@@ -6,14 +6,11 @@ const prisma = new PrismaClient()
 
 const loginModel = {
     // 이메일+플랫폼으로 사용자 조회
-    findByEmailAndPlatform: async (email, platform) => {
+    findByEmail: async (email) => {
         try {
             const user = await prisma.user.findUnique({
                 where: {
-                    email_platform: {
-                        email,
-                        platform,
-                    },
+                    email,
                 },
             })
             return user ? convertBigIntsToNumbers(user) : null
