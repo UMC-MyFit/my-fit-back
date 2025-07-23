@@ -10,6 +10,7 @@ import recruitmentRouter from '../modules/recruitments/recruitments.routes.js'
 import feedsRouter from '../modules/feed/feed.routes.js'
 import mypageRouter from '../modules/mypage/mypage.routes.js'
 import chattingRouter from '../modules/chatting/chatting.routes.js'
+import coffeechatRouter from '../modules/coffeechat/coffeechat.routes.js'
 const router = express.Router()
 
 // 회원가입
@@ -33,7 +34,10 @@ router.use('/recruitments', recruitmentRouter)
 // 마이페이지
 router.use('/mypage', mypageRouter)
 
-// 채팅, 커피챗
+// 채팅
 router.use('/chatting-rooms', chattingRouter)
+
+// 커피챗
+router.use('/chatting-rooms', coffeechatRouter)
 
 export default router
