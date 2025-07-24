@@ -5,7 +5,15 @@ const cardsController = {
     createCard: async (req, res, next) => {
         try {
             console.log('controller 접근')
-            const serviceId = req.user.service_id
+
+            // 로그인 상태면 세션에서, 아니면 body에서
+            const serviceId = req.user?.service_id || req.body.service_id
+            console.log(serviceId)
+            if (!serviceId) {
+                throw new BadRequestError({
+                    message: 'service_id가 필요합니다. (세션 또는 body에 있어야 함)'
+                })
+            }
             const cardData = req.body
 
             const result = await cardsService.createCard(serviceId, cardData)
@@ -64,8 +72,8 @@ const cardsController = {
             const keywordArray = Array.isArray(keywords)
                 ? keywords
                 : keywords
-                  ? [keywords]
-                  : []
+                    ? [keywords]
+                    : []
 
             // 필터링 여부 판단 (하나라도 참이면 필터링 처리)
             const isFiltered =
@@ -105,8 +113,8 @@ const cardsController = {
                 keywords: Array.isArray(keywords)
                     ? keywords
                     : keywords
-                      ? [keywords]
-                      : [],
+                        ? [keywords]
+                        : [],
             })
 
             res.success({
