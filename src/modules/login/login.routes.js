@@ -84,10 +84,11 @@ router.post('/login', (req, res, next) => {
 
         req.logIn(user, (error) => {
             if (error) return next(error)
-            const { id, email, name } = user
+            const { email, name } = user
+            const service_id = user.userDBs?.[0]?.service?.id
             res.success({
                 message: '로그인 성공',
-                result: { service_id: id, email, name },
+                result: { service_id, email, name },
             })
         })
     })(req, res, next)

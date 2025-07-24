@@ -7,8 +7,8 @@ const router = express.Router()
  *   post:
  *     tags:
  *         - SignUp
- *     summary: 회원가입
- *     description: 회원 정보를 입력하여 회원가입을 진행합니다.
+ *     summary: 회원가입(개인)
+ *     description: 개인 회원 정보를 입력하여 회원가입을 진행합니다.
  *     requestBody:
  *       required: true
  *       content:
@@ -38,7 +38,6 @@ const router = express.Router()
  *                 example: 1234
  *               division:
  *                 type: string
- *                 enum: [personal, team]
  *                 example: personal
  *               name:
  *                 type: string
@@ -102,8 +101,11 @@ const router = express.Router()
  *                       example: chulsoo@naver.com
  */
 
-// 회원가입
+// 회원가입(개인)
 router.post('/', userController.signup)
+
+// 회원가입(팀)
+//router.post('/team', userController.signupTeam)
 
 /**
  * @swagger
