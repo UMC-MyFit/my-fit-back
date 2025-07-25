@@ -368,6 +368,27 @@ const cardsService = {
             throw new BadRequestError({ message: '카드 전체 조회 실패' })
         }
     },
+
+    getUserByServiceId: async (serviceId) => {
+        const userDB = await prisma.userDB.findFirst({
+            where: { service_id: serviceId },
+            include: {
+                user: true,
+                service: true,
+            }
+        })
+
+        if (!userDB || !userDB.user) {
+            throw new NotFoundError('해당 서비스 아이디를 가진 사용자를 찾을 수 없습니다.')
+        }
+
+        return {
+            service_id: serviceId,
+            email: userDB.user.email,
+            name: userDB.user.name,
+
+        }
+    }
 }
 
 export default cardsService

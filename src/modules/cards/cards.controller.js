@@ -1,10 +1,10 @@
 import { BadRequestError } from '../../middlewares/error.js'
+import { isAuthenticated } from '../../middlewares/auth.js'
 import cardsService from './cards.service.js'
 
 const cardsController = {
     createCard: async (req, res, next) => {
         try {
-            console.log('controller 접근')
 
             // 로그인 상태면 세션에서, 아니면 body에서
             const serviceId = req.user?.service_id || req.body.service_id
@@ -18,11 +18,26 @@ const cardsController = {
 
             const result = await cardsService.createCard(serviceId, cardData)
 
-            res.success({
-                code: 201,
-                message: '이력/활동 카드 등록 성공',
-                result,
-            })
+            // 로그인 상태가 아니라면 로그인 처리
+            if (!req.isAuthenticated?.() || !req.user) {
+                const user = await cardsService.getUserByServiceId(serviceId)
+                req.login(user, (error) => {
+                    if (error) {
+                        next(error)
+                    }
+                    res.success({
+                        code: 201,
+                        message: '첫 이력/활동 카드 등록 및 로그인 성공',
+                        result,
+                    })
+                })
+            } else {
+                res.success({
+                    code: 201,
+                    message: '이력/활동 카드 등록 성공',
+                    result,
+                })
+            }
         } catch (error) {
             console.log('에러 발생')
             next(error)
