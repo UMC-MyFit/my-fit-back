@@ -5,7 +5,7 @@ import {
 } from '../../middlewares/error.js'
 import { sendAuthCodeEmail } from '../../libs/auth.utils.js'
 const userController = {
-    // 회원가입
+    // 회원가입(개인)
     signup: async (req, res, next) => {
         console.log('controller 진입')
         try {
@@ -20,6 +20,21 @@ const userController = {
         } catch (err) {
             console.log('여기서 에러')
             next(err) // 에러 미들웨어로 전달
+        }
+    },
+    // 회원가입(팀)
+    singupTeam: async (req, res, next) => {
+        try {
+            const userData = req.body;
+
+            const result = await usersService.singupTeam(userData);
+            res.success({
+                code: 201,
+                message: '팀 회원가입 성공',
+                result,
+            })
+        } catch (error) {
+            next(error)
         }
     },
     sendAuthCode: async (req, res, next) => {

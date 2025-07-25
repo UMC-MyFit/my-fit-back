@@ -10,7 +10,7 @@ const router = express.Router()
  *     tags:
  *        - Cards
  *     summary: 이력/활동 카드 등록
- *     description: 활동 카드 정보를 등록하고 키워드와 연결합니다.
+ *     description: 활동 카드 정보를 등록하고 키워드와 연결합니다. ( 첫 이력/활동 카드에선 프로필 등록(1)에서 받은 service_id를 넘겨 주세요. 로그인 상태에선 body에 어떤 service_id를 적어도 로그인한 유저의 service_id로 이력/활동 카드로 생성됨)
  *     requestBody:
  *       required: true
  *       content:
@@ -18,6 +18,9 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             properties:
+ *               service_id:
+ *                 type: integer
+ *                 example: 3
  *               card_img:
  *                 type: string
  *                 example: "https://cdn.example.com/cards/card_img01.png"
@@ -71,7 +74,7 @@ const router = express.Router()
  */
 
 // 이력/활동 카드 등록
-router.post('/', isAuthenticated, cardsController.createCard)
+router.post('/', cardsController.createCard)
 
 /**
  * @swagger

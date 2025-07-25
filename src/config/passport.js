@@ -6,8 +6,10 @@ import { Strategy as NaverStrategy } from 'passport-naver'
 import bcrypt from 'bcrypt' // 비밀번호 암호화 시 사용 예정
 import { PrismaClient } from '@prisma/client'
 import loginService from '../modules/login/login.service.js'
+import { NotFoundError } from '../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../libs/dataTransformer.js'
 import dotenv from 'dotenv'
+import usersService from '../modules/signUp/signUp.service.js'
 
 dotenv.config()
 const prisma = new PrismaClient()
@@ -31,25 +33,28 @@ passport.use(
 
 // 세션에 사용자 id 저장(로그인 성공 시)
 passport.serializeUser((user, done) => {
-    done(null, user.id)
+    const userForSession = {
+        service_id: user.service_id || user.userDBs?.[0]?.service.id,
+        name: user.name,
+        email: user.email,
+    }
+    done(null, userForSession)
 })
 
 // 로그인 상태 확인 (매 요청마다 올바르게 로그인 되어있나 확인하고, 해당 사용자의 정보를 req.user에 넣어줌)
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (sessionData, done) => {
     try {
-        const user = await prisma.user.findUnique({ where: { id: BigInt(id) } })
-        const safeUser = convertBigIntsToNumbers(user)
-        // 세션에 저장되는 사용자 서비스 id, 이메일, 이름
-        const userForSession = {
-            service_id: safeUser.id,
-            email: safeUser.email,
-            name: safeUser.name,
+        // 이미 필요한 정보가 있다면 DB 조회 X
+        if (sessionData.service_id) {
+            return done(null, sessionData)
         }
 
-        done(null, userForSession)
+        // 만약 service_id가 없다면 에러
+        return done(new NotFoundError('세션 정보에 service_id가 없습니다.'))
     } catch (error) {
         done(error)
     }
+
 })
 
 export const googleStrategy = new GoogleStrategy(
