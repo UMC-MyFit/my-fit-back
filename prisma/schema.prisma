@@ -258,6 +258,7 @@ model Interest {
   is_ban       Boolean @default(false) // 차단 여부
   sender_id    BigInt // 송신자 서비스 ID (FK)
   recipient_id BigInt // 수신자 서비스 ID (FK)
+  created_at DateTime @default(now())
 
   // 관계
   sender    Service @relation("InterestSender", fields: [sender_id], references: [id])

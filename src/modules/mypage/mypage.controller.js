@@ -107,45 +107,6 @@ class MypageController {
             next(error);
         }
     }
-
-    /**
-     * PATCH /api/mypage/{target_service_id}/interests 요청을 처리하여 관심 관계를 토글합니다.
-     * @param {Object} req - Express 요청 객체
-     * @param {Object} res - Express 응답 객체
-     * @param {Function} next - 다음 미들웨어 함수
-     */
-    static async toggleInterest(req, res, next) {
-        try {
-            const { target_service_id } = req.params; // 경로 파라미터에서 상대방 Service ID
-            const senderServiceId = req.user.service_id; // Passport에서 주입된 로그인 사용자 (나)의 Service ID
-
-
-            // 1. 유효성 검사 및 타입 변환
-
-
-            if (!target_service_id || isNaN(target_service_id) || !/^\d+$/.test(target_service_id)) {
-                throw new BadRequestError({ field: 'target_service_id', message: '유효한 상대방 서비스 ID (숫자 문자열)가 필요합니다.' });
-            }
-
-
-            const parsedTargetServiceId = BigInt(target_service_id);
-            const parsedSenderServiceId = BigInt(senderServiceId);
-
-
-            // 2. 서비스 로직 호출
-            const message = await MypageService.toggleInterest(parsedSenderServiceId, parsedTargetServiceId);
-
-
-            // 3. 성공 응답
-            return res.success({
-                code: 200,
-                message: message,
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-
 }
 
 export default MypageController;
