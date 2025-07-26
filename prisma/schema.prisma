@@ -16,12 +16,14 @@ model User {
   birth_date           DateTime // 생년월일
   Highest_grade        String?  @db.VarChar(100) // 최종학력 (nullable)
   link                 String?  @db.VarChar(100) // 개인 링크 / 포트폴리오 링크 (nullable)
-  email                String   @db.VarChar(100) // 이메일
+  email                String   @unique @db.VarChar(100) // 이메일
   platform             String   @default("local") // local, kakao, google, naver 중 하나
   is_email_AuthN       Boolean  @default(false) // 이메일 인증 여부
   inc_AuthN_file       String?  @db.VarChar(100) // 사업자 등록 파일 (nullable)
   password             String   @db.VarChar(50) // 비밀번호
-  division             String?  @db.VarChar(100) // 구분 (개인/팀/기업 등) (nullable)
+  division             String   @db.VarChar(100) // 구분 (개인/팀/기업 등)
+  team_division        String?  @db.VarChar(100) // 팀 구분 (스타트업 / 창업팀 / 예비창업팀) (nullable)
+  industry             String?  @db.VarChar(100) // 업종 (nullable)
   grade_status         String?  @db.VarChar(100) // 재학/졸업 상태 (nullable)
   created_at           DateTime @default(now()) // 생성일자
   updated_at           DateTime @updatedAt // 수정일자
@@ -29,15 +31,13 @@ model User {
 
   // 관계
   userDBs UserDB[] // 유저가 등록한 서비스들과의 연결
-
-  @@unique([email, platform], name: "email_platform") // 이메일 + 플랫폼 조합으로 중복 금지
 }
 
 model Service {
   id                BigInt   @id @default(autoincrement())
   name              String   @db.VarChar(50)
-  high_sector       String   @db.VarChar(100) @default("") // 상위 직무
-  low_sector       String   @db.VarChar(100) @default("") // 하위 직무
+  high_sector       String   @default("") @db.VarChar(100) // 상위 직무
+  low_sector        String   @default("") @db.VarChar(100) // 하위 직무
   is_inc_AuthN      Boolean  @default(false)
   recruiting_status String   @db.VarChar(100)
   profile_img       String   @db.VarChar(100)
@@ -67,7 +67,7 @@ model Service {
   requestedChats CoffeeChat[] @relation("RequestedChats")
   receivedChats  CoffeeChat[] @relation("ReceivedChats")
 
-  blockedOthers UserBlock[] @relation("BlockedBy")
+  blockedOthers   UserBlock[] @relation("BlockedBy")
   blockedByOthers UserBlock[] @relation("Blocked")
 }
 
@@ -82,15 +82,15 @@ model UserDB {
 }
 
 model UserArea {
-  id           BigInt   @id @default(autoincrement()) // 유저 활동지역 번호 (PK)
-  created_at   DateTime @default(now()) // 생성일자
-  updated_at   DateTime @updatedAt // 수정일자
-  service_id   BigInt   // 서비스 번호 (FK)
-  high_area    String   @default("") // 상위 활동지역
-  low_area     String   @default("")// 하위 활동지역
+  id         BigInt   @id @default(autoincrement()) // 유저 활동지역 번호 (PK)
+  created_at DateTime @default(now()) // 생성일자
+  updated_at DateTime @updatedAt // 수정일자
+  service_id BigInt // 서비스 번호 (FK)
+  high_area  String   @default("") // 상위 활동지역
+  low_area   String   @default("") // 하위 활동지역
 
   // 관계
-  service  Service  @relation(fields: [service_id], references: [id]) // 서비스와 연결
+  service Service @relation(fields: [service_id], references: [id]) // 서비스와 연결
   // highArea HighArea @relation(fields: [high_area_id], references: [id]) // 상위 지역과 연결
   // lowArea  LowArea  @relation(fields: [low_area_id], references: [id]) // 하위 지역과 연결
 }
@@ -134,11 +134,11 @@ model RecruitingNotice {
   id             BigInt   @id @default(autoincrement()) // 공고 번호 (PK)
   title          String   @db.VarChar(255) // 제목
   require        String   @db.VarChar(255) // 지원 조건
-  high_sector    String   @db.VarChar(100) @default("") // 상위 직무
-  low_sector     String   @db.VarChar(100) @default("") // 하위 직무
+  high_sector    String   @default("") @db.VarChar(100) // 상위 직무
+  low_sector     String   @default("") @db.VarChar(100) // 하위 직무
   salary         String   @db.VarChar(255) // 급여
   work_type      String   @db.VarChar(255) // 근무 형태
-  area           String   @db.VarChar(255) @default("") // 근무 지역
+  area           String   @default("") @db.VarChar(255) // 근무 지역
   dead_line      DateTime // 마감일자
   recruiting_img String   @db.VarChar(255) // 공고 이미지
   created_at     DateTime @default(now()) // 생성일자
@@ -198,9 +198,9 @@ model FeedHeart {
 model FeedComment {
   id              BigInt   @id @default(autoincrement()) // 피드 댓글 번호 (PK)
   content         String   @db.Text // 댓글 내용
-  high_comment_id BigInt?   // 상위 댓글
-  service_id      BigInt   // 서비스 번호 (FK)
-  feed_id         BigInt   // 피드 번호 (FK)
+  high_comment_id BigInt? // 상위 댓글
+  service_id      BigInt // 서비스 번호 (FK)
+  feed_id         BigInt // 피드 번호 (FK)
   created_at      DateTime @default(now()) // 생성일자
   updated_at      DateTime @updatedAt // 수정일자
 
@@ -268,10 +268,10 @@ model Interest {
 }
 
 model Network {
-  id           BigInt  @id @default(autoincrement()) // 네트워크 번호 (PK)
+  id           BigInt        @id @default(autoincrement()) // 네트워크 번호 (PK)
   sender_id    BigInt // 송신자 서비스 ID (FK)
   recipient_id BigInt // 수신자 서비스 ID (FK)
-  status NetworkStatus @default(PENDING) // 현재 네트워크 관계의 상태 (PENDING, ACCEPTED, REJECTED)
+  status       NetworkStatus @default(PENDING) // 현재 네트워크 관계의 상태 (PENDING, ACCEPTED, REJECTED)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -295,13 +295,13 @@ enum NetworkStatus {
 }
 
 model UserBlock {
-  id        BigInt   @id @default(autoincrement())
+  id         BigInt @id @default(autoincrement())
   blocker_id BigInt // 차단하는 사용자 ID
   blocked_id BigInt // 차단당한 사용자 ID
 
   // 관계 정의
-  blocker   Service @relation("BlockedBy", fields: [blocker_id], references: [id])
-  blocked   Service @relation("Blocked", fields: [blocked_id], references: [id])
+  blocker Service @relation("BlockedBy", fields: [blocker_id], references: [id])
+  blocked Service @relation("Blocked", fields: [blocked_id], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
 

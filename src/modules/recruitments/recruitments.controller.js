@@ -48,11 +48,7 @@ const recruitmentController = {
     },
     getOneRecruitment: async (req, res, next) => {
         try {
-            console.log('전체 params:', req.params); // 추가
-            console.log('전체 URL:', req.url); // 추가
-            console.log('원본 URL:', req.originalUrl); // 추가
             const recruitmentId = req.params.recruitmentId;
-            console.log(recruitmentId)
             const recruitment = await recruitmentService.getOneRecruitment(recruitmentId)
             res.success({
                 code: 200,
@@ -70,7 +66,6 @@ const recruitmentController = {
     deleteRecruitment: async (req, res, next) => {
         try {
             const recruitmentId = req.params.recruitmentId;
-            console.log(recruitmentId)
             await recruitmentService.deleteRecruitment(recruitmentId)
             res.success({
                 code: 200,

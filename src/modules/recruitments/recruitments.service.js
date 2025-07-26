@@ -1,7 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
-import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
+/*
+    TODO: high_sector과 low_sector를 배열로 받음
+*/
+
+
+import { convertBigIntsToNumbers, listToString, stringToList } from '../../libs/dataTransformer.js'
 import { NotFoundError, InternalServerError } from '../../middlewares/error.js'
 
 const recruitmentService = {
@@ -51,6 +56,10 @@ const recruitmentService = {
                 console.log('생성한 에러:', err.constructor.name)
                 throw err
             }
+            // sector 리스트를 문자열로 변경
+            high_sector = listToString(high_sector)
+            low_sector = listToString(low_sector)
+
             console.log('유저 발견')
 
             // 2. 공고 생성
@@ -104,8 +113,13 @@ const recruitmentService = {
         try {
             const findAllRecruimentQueryOptions = {
                 where: {
-                    high_sector: String(highSector),
-                    low_sector: lowSector !== null ? String(lowSector) : undefined
+                    high_sector: {
+                        contains: String(highSector)
+                    },
+                    // low_sector 값이 안 들어오면 탐색조건에 빼버림
+                    low_sector: {
+                        contains: lowSector !== null ? String(lowSector) : undefined
+                    }
                 },
                 select: {
                     id: true,
@@ -136,11 +150,14 @@ const recruitmentService = {
 
             const recruitments = await prisma.RecruitingNotice.findMany(findAllRecruimentQueryOptions);
             const processedRecruitments = recruitments.map(recruitment => {
+                console.log(recruitment.low_sector)
+                const lowSectorToList = stringToList(recruitment.low_sector)
+                console.log(lowSectorToList)
                 return {
                     "recruitment_id": recruitment.id,
                     "title": recruitment.title,
                     "require": recruitment.require,
-                    "low_sector": recruitment.low_sector,
+                    "low_sector": lowSectorToList,
                     "work_type": recruitment.work_type,
                     "dead_line": recruitment.dead_line,
                     "writer": {
@@ -159,6 +176,7 @@ const recruitmentService = {
     },
     getOneRecruitment: async (recruitmentId) => {
         try {
+            console.log("test1")
             const findOneRecruimentQueryOptions = {
                 where: {
                     id: BigInt(recruitmentId)
@@ -187,6 +205,7 @@ const recruitmentService = {
                     message: '해당 공고가 존재하지 않습니다.',
                 })
             }
+            recruiment.low_sector = stringToList(recruiment.low_sector)
             return convertBigIntsToNumbers(recruiment)
         }
         catch (error) {

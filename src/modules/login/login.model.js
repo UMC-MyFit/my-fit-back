@@ -5,14 +5,18 @@ import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 const prisma = new PrismaClient()
 
 const loginModel = {
-    // 이메일+플랫폼으로 사용자 조회
-    findByEmailAndPlatform: async (email, platform) => {
+    // 이메일로 사용자 조회
+    findByEmail: async (email) => {
         try {
             const user = await prisma.user.findUnique({
                 where: {
-                    email_platform: {
-                        email,
-                        platform,
+                    email,
+                },
+                include: {
+                    userDBs: {
+                        include: {
+                            service: true,
+                        },
                     },
                 },
             })

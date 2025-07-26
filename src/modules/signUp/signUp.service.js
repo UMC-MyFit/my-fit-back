@@ -13,6 +13,7 @@ import {
 import { generateAuthCode, sendAuthCodeEmail } from '../../libs/auth.utils.js'
 
 const usersService = {
+    // 회원가입(일반)
     signup: async ({
         email,
         password,
@@ -20,8 +21,8 @@ const usersService = {
         name,
         one_line_profile,
         birth_date,
-        high_area_id,
-        low_area_id,
+        high_area,
+        low_area,
         recruiting_status,
         high_sector,
         low_sector,
@@ -118,8 +119,8 @@ const usersService = {
         await prisma.userArea.create({
             data: {
                 service_id: newService.id,
-                high_area_id,
-                low_area_id,
+                high_area,
+                low_area,
             },
         })
         console.log('UserArea 생성 완료')
@@ -129,6 +130,123 @@ const usersService = {
             service_id: newService.id,
             email: newUser.email,
         })
+    },
+
+    singupTeam: async ({
+        email,
+        password,
+        name,
+        one_line_profile,
+        division,
+        team_division,
+        industry,
+        link,
+        high_area,
+        low_area,
+        recruiting_status,
+    }) => {
+        // 0. 이전에 is_profile_completed: false로 가입한 유저가 있다면 삭제
+        try {
+            const incompleteUser = await prisma.user.findFirst({
+                where: { email, is_profile_completed: false },
+            })
+
+            if (incompleteUser) {
+                console.log(`기존 is_completed: false 유저(id: ${incompleteUser.id}) 삭제 중`)
+
+                const relatedServices = await prisma.userDB.findMany({
+                    where: { user_id: incompleteUser.id },
+                    select: { service_id: true },
+                })
+                const serviceIds = relatedServices.map((s) => s.service_id)
+
+                await prisma.userArea.deleteMany({
+                    where: { service_id: { in: serviceIds } }
+                })
+
+                await prisma.userDB.deleteMany({
+                    where: { user_id: incompleteUser.id }
+                })
+
+                await prisma.service.deleteMany({
+                    where: { id: { in: serviceIds } }
+                })
+
+                await prisma.user.delete({
+                    where: { id: incompleteUser.id },
+                })
+            }
+
+
+        } catch (error) {
+            console.error('이전 미완료 유저 삭제 중 오류 발생', error.message)
+        }
+
+        // 1. 이메일 중복 확인
+        const existingUser = await prisma.user.findFirst({
+            where: { email, is_profile_completed: true },
+        })
+        if (existingUser) {
+            throw new ConflictError({ message: '이미 존재하는 이메일입니다.' })
+        }
+
+        // 2. 유저 생성
+        const newUser = await prisma.user.create({
+            data: {
+                email,
+                password,
+                name,
+                one_line_profile,
+                birth_date: new Date(),
+                division,
+                team_division,
+                industry,
+                link,
+            }
+        })
+
+        console.log('User 생성 완료')
+
+        // 3. 서비스 생성
+        const newService = await prisma.service.create({
+            data: {
+                name,
+                high_sector: '',
+                low_sector: '',
+                recruiting_status,
+                profile_img: '',
+            }
+        })
+
+        console.log('Service 생성 완료')
+
+        // 4. UserDB 생성
+        await prisma.userDB.create({
+            data: {
+                user_id: newUser.id,
+                service_id: newService.id,
+            }
+        })
+
+        console.log('UserDB 생성 완료')
+
+        // 5. UserArea 생성
+        await prisma.userArea.create({
+            data: {
+                service_id: newService.id,
+                high_area,
+                low_area
+            }
+        })
+
+        console.log('UserArea 생성 완료')
+
+        return convertBigIntsToNumbers({
+            user_id: newUser.id,
+            service_id: newService.id,
+            email: newUser.email,
+        })
+
     },
 
     sendAuthCodeEmail: async ({ email }) => {

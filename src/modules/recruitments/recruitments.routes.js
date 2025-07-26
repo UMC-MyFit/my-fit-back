@@ -24,11 +24,21 @@ const router = express.Router()
  *                 type: string
  *                 example: 프론트엔드 신입 개발자 모집
  *               high_sector:
- *                 type: string
- *                 example: 개발 / 엔지니어링
+ *                 type: array
+ *                 items:
+ *                      type: string
+ *                 description: 대분류 분야 (예- 개발 / 엔지니어링)
+ *                 example:
+ *                      - 개발 / 엔지니어링
+ *                      - 개발 / 엔지니어링
  *               low_sector:
- *                 type: string
- *                 example: 프론트엔드 개발자
+ *                 type: array
+ *                 items:
+ *                      type: string
+ *                 description: 소분류 분야 (예- 프론트엔드 개발자, 백엔드 개발자 등)
+ *                 example: 
+ *                      - 프론트엔드 개발자
+ *                      - 백엔드 개발자
  *               area:
  *                 type: String
  *                 example: 서울특별시 강남구 테헤란로 311 (역삼역 도보 5분)
@@ -135,9 +145,13 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *         name: lowSector
  *         required: false
  *         schema:
- *           type: string
+ *           type: array
+ *           items:
+ *            type: string
  *         description: 소분류 분야 (예- 프론트엔드, 백엔드 등)
- *         example: "프론트엔드 개발자"
+ *         example: 
+ *              - "프론트엔드 개발자"
+ *              - "백엔드 개발자"
  *       - in: query
  *         name: cursor
  *         required: false
@@ -171,9 +185,13 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *                         description: 채용 요구사항
  *                         example: "신입 및 경력 이상 (2023년 2월 졸업 예정)"
  *                       low_sector:
- *                         type: string
+ *                         type: array
+ *                         items:
+ *                              type: string
  *                         description: 소분류 분야
- *                         example: "프론트엔드"
+ *                         example: "
+ *                              - 프론트엔드 개발자
+ *                              - 백엔드 개발자"
  *                       work_type:
  *                         type: string
  *                         description: 근무형태
@@ -232,6 +250,102 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  */
 router.get('/', recruitmentController.getAllRecruitment)
 
+// GET /api/recruitments/subscribe : 구독한 리크루팅 조회
+/**
+ * @swagger
+ * /api/recruitments/subscribe:
+ *   get:
+ *     tags:
+ *       - Recruitments
+ *     summary: 채용 공고 목록 조회
+ *     description: 구독된 채용 공고 목록을 페이징하여 조회합니다.
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: integer
+ *           example: 26
+ *         description: 페이징을 위한 커서 값
+ *     responses:
+ *       200:
+ *         description: 채용 공고 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 recruitments:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       recruitment_id:
+ *                         type: integer
+ *                         description: 채용 공고 ID
+ *                         example: 26
+ *                       title:
+ *                         type: string
+ *                         description: 채용 공고 제목
+ *                         example: "Next.js와 함께 성장할 프론트엔드 엔지니어"
+ *                       low_sector:
+ *                         type: array
+ *                         items:  
+ *                              type: string
+ *                         description: 직무 분야
+ *                         example: 
+ *                              - "프론트엔드 개발자"
+ *                              - "백엔드 개발자"
+ *                       dead_line:
+ *                         type: string
+ *                         format: date
+ *                         description: 마감일
+ *                         example: "2025-01-01"
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             description: 사용자 ID
+ *                             example: 3
+ *                           name:
+ *                             type: string
+ *                             description: 사용자 이름
+ *                             example: "위동화"
+ *                           profile_img:
+ *                             type: string
+ *                             format: uri
+ *                             description: 프로필 이미지 URL
+ *                             example: "https://cdn.myfit.com/profile/3.jpg"
+ *                 next_cursor:
+ *                   type: integer
+ *                   description: 다음 페이지를 위한 커서 값
+ *                   example: 25
+ *                 has_next:
+ *                   type: boolean
+ *                   description: 다음 페이지 존재 여부
+ *                   example: true
+ *       400:
+ *         description: 잘못된 요청 (상태 코드 400)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효하지 않은 요청입니다."
+ *       500:
+ *         description: 서버 오류 (상태 코드 500)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ */
+router.get('/subscribe', isAuthenticated, subscriptionController.getSubscribedRecruitments)
 
 //GET /api/recruiments/:recruitmentId : 리크루트 상세 조회
 /**
@@ -267,9 +381,13 @@ router.get('/', recruitmentController.getAllRecruitment)
  *                   description: 채용공고 제목
  *                   example: "Next.js에 능한 성장형 프론트엔드 엔지니어"
  *                 low_sector:
- *                   type: string
+ *                   type: array
  *                   description: 소분류 분야
- *                   example: "프론트엔드"
+ *                   items:
+ *                      type: string
+ *                   example: 
+ *                      - "프론트엔드 개발자" 
+ *                      - "백엔드 개발자"
  *                 area:
  *                   type: string
  *                   description: 근무 지역

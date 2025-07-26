@@ -2,6 +2,7 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import redisClient from '../../libs/redisClient.js'
 import {
     BadRequestError,
+    ConflictError,
     InternalServerError,
     NotFoundError,
 } from '../../middlewares/error.js'
@@ -21,7 +22,7 @@ const usersService = {
         }
 
         // 2. 기업 회원인지 확인
-        if (user.division !== 'business') {
+        if (user.division !== 'team') {
             throw new BadRequestError({
                 message: '사업자 등록증은 기업 회원만 등록할 수 있습니다.',
             })
@@ -65,6 +66,17 @@ const usersService = {
             },
         })
         if (!user) {
+            const otherPlatformUser = await prisma.user.findFirst({
+                where: {
+                    email,
+                    NOT: {
+                        platform: 'local'
+                    }
+                }
+            })
+            if (otherPlatformUser) {
+                throw new ConflictError('소셜 로그인으로 가입된 회원은 비밀번호 재설정이 불가능합니다.')
+            }
             throw new NotFoundError('가입되지 않은 이메일입니다.')
         }
 
