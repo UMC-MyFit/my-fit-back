@@ -9,6 +9,7 @@ import userRouter from '../modules/user/user.routes.js'
 import recruitmentRouter from '../modules/recruitments/recruitments.routes.js'
 import feedsRouter from '../modules/feed/feed.routes.js'
 import mypageRouter from '../modules/mypage/mypage.routes.js'
+import relationshipsRouter from '../modules/relationships/relationships.routes.js'
 const router = express.Router()
 
 // 회원가입
@@ -31,5 +32,8 @@ router.use('/recruitments', recruitmentRouter)
 
 // 마이페이지
 router.use('/mypage', mypageRouter)
+
+// 관계 설정 (관심, 네트워크, 차단 등)
+router.use('/relationships', relationshipsRouter)
 
 export default router
