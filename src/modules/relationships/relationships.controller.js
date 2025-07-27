@@ -262,7 +262,7 @@ class RelationshipsController {
 
     static async disconnectNetwork(req, res, next) {
         try {
-            const userId = req.user.id_service_id
+            const userId = req.user.service_id
             const { network_id } = req.params
 
             if (!network_id || isNaN(network_id) || !/^\d+$/.test(network_id)) {

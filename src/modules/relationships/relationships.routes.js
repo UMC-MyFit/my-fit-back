@@ -906,7 +906,7 @@ router.get('/networks/count/:target_service_id', RelationshipsController.getNetw
 
 /**
  * @swagger
- * /api/relationships/block/{target_service_id}:
+ * /api/relationships/blocks/{blocked_id}:
  *   post:
  *     summary: 사용자 차단
  *     description: 로그인된 사용자가 다른 특정 사용자를 차단합니다. 차단 시 기존의 관심 및 네트워크 관계도 정리됩니다.
@@ -916,7 +916,7 @@ router.get('/networks/count/:target_service_id', RelationshipsController.getNetw
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: target_service_id
+ *         name: blocked_id
  *         required: true
  *         schema:
  *           type: string
@@ -961,7 +961,7 @@ router.post('/blocks/:blocked_id', isAuthenticated, RelationshipsController.bloc
 
 /**
  * @swagger
- * /api/relationships/unblock/{blocked_id}:
+ * /api/relationships/blocks/{blocked_id}:
  *   delete:
  *     summary: 사용자 차단 해제
  *     description: 로그인된 사용자가 이전에 차단했던 특정 사용자의 차단을 해제합니다.

@@ -83,7 +83,7 @@ class RelationshipsService {
             const offset = (page - 1) * limit
 
             // 전체 개수 조회
-            const totalCount = await RelationshipsModel.countSentInterest(senderId)
+            const totalCount = await RelationshipsModel.countSentInterests(senderId)
             
             // 관심 목록 조회 (페이지네이션 적용)
             const interests = await RelationshipsModel.findInterestsBySender(senderId, limit, offset)
