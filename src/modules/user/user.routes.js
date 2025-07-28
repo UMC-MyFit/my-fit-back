@@ -244,4 +244,110 @@ router.patch('/password-reset', usersController.resetPassword)
 // 인증코드 유효성 검사
 router.post('/verify-code', usersController.verifyCode)
 
+/**
+ * @swagger
+ * /api/users/verify-user:
+ *   post:
+ *     summary: 이메일 및 비밀번호 유효성 검증
+ *     tags:
+ *       - Users
+ *     description: 사용자가 입력한 이메일과 비밀번호의 유효성을 검증합니다. 이메일 형식이 유효하고, 비밀번호가 6자리 이상이며, 중복 이메일이 아닐 경우 성공합니다.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: 123456
+ *     responses:
+ *       200:
+ *         description: 유효한 이메일과 비밀번호
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 아이디와 비밀번호가 유효합니다.
+ *                 result:
+ *                   type: string
+ *                   nullable: true
+ *                   example: null
+ *       400:
+ *         description: 유효하지 않은 이메일 형식 또는 비밀번호
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 400
+ *                 message:
+ *                   type: string
+ *                   example: 비밀번호가 유효하지 않습니다.
+ *                 result:
+ *                   type: string
+ *                   nullable: true
+ *                   example: null
+ *       409:
+ *         description: 이미 가입된 이메일
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 409
+ *                 message:
+ *                   type: string
+ *                   example: 이미 회원가입된 이메일입니다.
+ *                 result:
+ *                   type: string
+ *                   nullable: true
+ *                   example: null
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 500
+ *                 message:
+ *                   type: string
+ *                   example: 서버에 문제가 발생하였습니다.
+ *                 result:
+ *                   type: string
+ *                   nullable: true
+ *                   example: null
+ */
+
+// 이메일+비밀번호 유효성 검사
+router.post('/verify-user', usersController.verifyUser)
 export default router

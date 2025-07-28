@@ -266,10 +266,14 @@ const usersService = {
         await sendAuthCodeEmail(email, authCode)
         console.log('보내기 성공')
 
-        // Redis에 인증코드 저장
-        await redisClient.set(`authCode:${email}`, authCode, {
-            EX: 180, // 유효시간 3분(180초)
-        })
+        try {
+            // Redis에 인증코드 저장
+            await redisClient.set(`authCode:${email}`, authCode, {
+                EX: 180, // 유효시간 3분(180초)
+            })
+        } catch (error) {
+            console.log('redis 연결 실패')
+        }
 
         return authCode
     },

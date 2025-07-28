@@ -87,6 +87,23 @@ const usersController = {
             next(error)
         }
     },
+    verifyUser: async (req, res, next) => {
+        try {
+            const { email, password } = req.body
+            if (!email || !password) {
+                throw new BadRequestError('이메일과 비밀번호를 모두 입력해주세요')
+            }
+            await usersService.verifyUser(email, password)
+
+            res.success({
+                code: 200,
+                message: '이메일과 비밀번호 유효성 확인을 완료하였습니다.',
+                result: null
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 export default usersController
