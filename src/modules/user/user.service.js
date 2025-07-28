@@ -22,7 +22,7 @@ const usersService = {
         }
 
         // 2. 기업 회원인지 확인
-        if (user.division !== 'business') {
+        if (user.division !== 'team') {
             throw new BadRequestError({
                 message: '사업자 등록증은 기업 회원만 등록할 수 있습니다.',
             })

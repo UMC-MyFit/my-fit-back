@@ -21,7 +21,9 @@ model User {
   is_email_AuthN       Boolean  @default(false) // 이메일 인증 여부
   inc_AuthN_file       String?  @db.VarChar(100) // 사업자 등록 파일 (nullable)
   password             String   @db.VarChar(50) // 비밀번호
-  division             String?  @db.VarChar(100) // 구분 (개인/팀/기업 등) (nullable)
+  division             String   @db.VarChar(100) // 구분 (개인/팀/기업 등)
+  team_division        String?  @db.VarChar(100) // 팀 구분 (스타트업 / 창업팀 / 예비창업팀) (nullable)
+  industry             String?  @db.VarChar(100) // 업종 (nullable)
   grade_status         String?  @db.VarChar(100) // 재학/졸업 상태 (nullable)
   created_at           DateTime @default(now()) // 생성일자
   updated_at           DateTime @updatedAt // 수정일자
@@ -256,6 +258,7 @@ model Interest {
   is_ban       Boolean @default(false) // 차단 여부
   sender_id    BigInt // 송신자 서비스 ID (FK)
   recipient_id BigInt // 수신자 서비스 ID (FK)
+  created_at DateTime @default(now())
 
   // 관계
   sender    Service @relation("InterestSender", fields: [sender_id], references: [id])

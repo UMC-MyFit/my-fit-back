@@ -1,10 +1,12 @@
 import { UnauthorizedError } from '../../middlewares/error.js'
 
 export const loginSuccess = (req, res) => {
-    const { id, email, name } = req.user
+    console.log('초기 로그인 후 세션에 저장된 유저:', req.session.passport.user)
+    const { service_id, email, name } = req.user
+
     res.success({
-        message: '로그인 성공',
-        result: { service_id: id, email, name },
+        message: '로그인 성공!!',
+        result: { service_id, email, name },
     })
 }
 
