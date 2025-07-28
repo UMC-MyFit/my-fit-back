@@ -22,9 +22,9 @@ class SubscriptionService {
             throw error;
         }
     }
-    async getSubscribedRecruitments(serviceId, lastRecruimentId, limit) {
+    async getSubscribedRecruitments(serviceId, pageNumber, limit) {
         try {
-            const subscribedRecruitments = await Subscription.getSubscribedRecruitments(serviceId, lastRecruimentId, limit)
+            const subscribedRecruitments = await Subscription.getSubscribedRecruitments(serviceId, pageNumber, limit)
             return subscribedRecruitments
         }
         catch (error) {

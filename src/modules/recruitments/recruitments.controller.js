@@ -25,18 +25,19 @@ const recruitmentController = {
             const limit = 10
             const highSector = req.query.highSector
             const lowSector = req.query.lowSector
-            const lastRecruimentId = req.query.cursor ? parseInt(req.query.cursor) : null;
-            const recruitments = await recruitmentService.getAllRecruitment(highSector, lowSector, lastRecruimentId, limit)
-            const hasMore = recruitments.length === limit;
-            const nextCursorId = hasMore && recruitments.length > 0 ? recruitments[recruitments.length - 1].id : null;
+            const pageNumber = req.query.page ? parseInt(req.query.page) : 1;
+            const [recruitments, totalPage] = await Promise.all([
+                recruitmentService.getAllRecruitment(highSector, lowSector, pageNumber, limit),
+                recruitmentService.getTotalPage(highSector, lowSector, limit)
+            ]);
+
             res.success({
                 code: 200,
                 message: '구인 공고 조회 성공',
                 result: {
                     recruitments,
                     pagination: {
-                        hasMore,
-                        nextCursorId
+                        total_page: totalPage
                     }
                 }
             });

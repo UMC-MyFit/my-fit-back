@@ -26,19 +26,19 @@ const router = express.Router()
  *               high_sector:
  *                 type: array
  *                 items:
- *                      type: string
+ *                   type: string
  *                 description: 대분류 분야 (예- 개발 / 엔지니어링)
  *                 example:
- *                      - 개발 / 엔지니어링
- *                      - 개발 / 엔지니어링
+ *                   - 개발 / 엔지니어링
+ *                   - 개발 / 엔지니어링
  *               low_sector:
  *                 type: array
  *                 items:
- *                      type: string
+ *                   type: string
  *                 description: 소분류 분야 (예- 프론트엔드 개발자, 백엔드 개발자 등)
  *                 example: 
- *                      - 프론트엔드 개발자
- *                      - 백엔드 개발자
+ *                   - 프론트엔드 개발자
+ *                   - 백엔드 개발자
  *               area:
  *                 type: String
  *                 example: 서울특별시 강남구 테헤란로 311 (역삼역 도보 5분)
@@ -149,12 +149,12 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *         description: 소분류 분야 (예- 프론트엔드 개발자, 백엔드 개발자 등)
  *         example: "프론트엔드 개발자"
  *       - in: query
- *         name: cursor
+ *         name: page
  *         required: false
  *         schema:
  *           type: integer
- *         description: 페이지네이션을 위한 커서 (채용공고 ID)
- *         example: 26
+ *         description: 페이지네이션을 위한 offset 값
+ *         example: 1
  *     responses:
  *       200:
  *         description: 채용공고 목록 조회 성공
@@ -185,9 +185,7 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *                         items:
  *                              type: string
  *                         description: 소분류 분야
- *                         example: "
- *                              - 프론트엔드 개발자
- *                              - 백엔드 개발자"
+ *                         example: ["프론트엔드 개발자", "백엔드 개발자"]
  *                       work_type:
  *                         type: string
  *                         description: 근무형태
@@ -215,14 +213,10 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *                 pagination:
  *                   type: object
  *                   properties:
- *                     next_cursor:
- *                       type: integer
- *                       description: 다음 페이지 커서
- *                       example: 25
- *                     has_next:
- *                       type: boolean
- *                       description: 다음 페이지 존재 여부
- *                       example: true
+ *                     total_page:
+ *                      type: integer
+ *                      description: 전체 페이지 수
+ *                      example: 5
  *       400:
  *         description: 잘못된 요청 (유효하지 않은 직무 분야)
  *         content:
@@ -253,15 +247,16 @@ router.get('/', recruitmentController.getAllRecruitment)
  *   get:
  *     tags:
  *       - Recruitments
- *     summary: 채용 공고 목록 조회
+ *     summary: 구독한 채용 공고 목록 조회
  *     description: 구독된 채용 공고 목록을 페이징하여 조회합니다.
  *     parameters:
  *       - in: query
- *         name: cursor
+ *         name: page
+ *         required: false
  *         schema:
  *           type: integer
- *           example: 26
- *         description: 페이징을 위한 커서 값
+ *         example: 1
+ *         description: 페이징을 위한 offset 값
  *     responses:
  *       200:
  *         description: 채용 공고 목록 조회 성공
@@ -312,14 +307,13 @@ router.get('/', recruitmentController.getAllRecruitment)
  *                             format: uri
  *                             description: 프로필 이미지 URL
  *                             example: "https://cdn.myfit.com/profile/3.jpg"
- *                 next_cursor:
- *                   type: integer
- *                   description: 다음 페이지를 위한 커서 값
- *                   example: 25
- *                 has_next:
- *                   type: boolean
- *                   description: 다음 페이지 존재 여부
- *                   example: true
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total_page:
+ *                       type: integer
+ *                       description: 전체 페이지 수
+ *                       example: 1
  *       400:
  *         description: 잘못된 요청 (상태 코드 400)
  *         content:

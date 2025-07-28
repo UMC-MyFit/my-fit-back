@@ -79,7 +79,7 @@ class Subscription {
             throw error;
         }
     }
-    static async getSubscribedRecruitments(serviceId, lastRecruimentId, limit) {
+    static async getSubscribedRecruitments(serviceId, pageNumber = 1, limit = 10) {
         try {
             const subscribedRecruitmentsQueryOptions = {
                 where: {
@@ -105,17 +105,13 @@ class Subscription {
                 orderBy: [
                     { id: 'desc' }
                 ],
+                skip: (pageNumber - 1) * limit,
                 take: limit,
-            }
-            if (lastRecruimentId !== null) {
-                findAllRecruimentQueryOptions.cursor = { id: BigInt(lastRecruimentId) };
-                findAllRecruimentQueryOptions.skip = 1;
             }
 
             const recruitments = await prisma.SubscribedNotice.findMany(subscribedRecruitmentsQueryOptions);
             const processedRecruitments = recruitments.map(recruitment => {
                 const lowSectorToList = stringToList(recruitment.recruitingNotice.low_sector)
-                console.log(lowSectorToList)
                 return {
                     "recruitment_id": recruitment.recruitingNotice.id,
                     "title": recruitment.recruitingNotice.title,

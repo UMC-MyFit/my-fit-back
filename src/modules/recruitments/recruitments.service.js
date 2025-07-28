@@ -109,7 +109,7 @@ const recruitmentService = {
             })
         }
     },
-    getAllRecruitment: async (highSector, lowSector = null, lastRecruimentId = null, limit = 10) => {
+    getAllRecruitment: async (highSector, lowSector = null, pageNumber = 1, limit = 10) => {
         try {
             const findAllRecruimentQueryOptions = {
                 where: {
@@ -139,20 +139,13 @@ const recruitmentService = {
                 orderBy: [
                     { id: 'desc' }
                 ],
+                skip: (pageNumber - 1) * limit,
                 take: limit,
-            }
-
-            // 페이지네이션
-            if (lastRecruimentId !== null) {
-                findAllRecruimentQueryOptions.cursor = { id: BigInt(lastRecruimentId) };
-                findAllRecruimentQueryOptions.skip = 1;
             }
 
             const recruitments = await prisma.RecruitingNotice.findMany(findAllRecruimentQueryOptions);
             const processedRecruitments = recruitments.map(recruitment => {
-                console.log(recruitment.low_sector)
                 const lowSectorToList = stringToList(recruitment.low_sector)
-                console.log(lowSectorToList)
                 return {
                     "recruitment_id": recruitment.id,
                     "title": recruitment.title,
@@ -176,7 +169,6 @@ const recruitmentService = {
     },
     getOneRecruitment: async (recruitmentId) => {
         try {
-            console.log("test1")
             const findOneRecruimentQueryOptions = {
                 where: {
                     id: BigInt(recruitmentId)
@@ -233,6 +225,24 @@ const recruitmentService = {
         catch (error) {
             console.error('구인 공고 삭제 중 오류', error);
             throw error
+        }
+    },
+    getTotalPage: async (highSector = null, lowSector = null, limit = 10) => {
+        try {
+            const totalCount = await prisma.RecruitingNotice.count({
+                where: {
+                    high_sector: {
+                        contains: highSector !== null ? String(highSector) : undefined
+                    },
+                    low_sector: {
+                        contains: lowSector !== null ? String(lowSector) : undefined
+                    }
+                }
+            });
+            return Math.ceil(totalCount / limit);
+        } catch (error) {
+            console.error('총 페이지 수 조회 중 오류:', error);
+            throw new InternalServerError({ originalError: error.message });
         }
     }
 }
