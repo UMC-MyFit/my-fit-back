@@ -142,7 +142,7 @@ router.delete('/:recipient_id/interests', isAuthenticated, RelationshipsControll
  *                 message:
  *                   type: string
  *                   example: "관심 목록 조회가 성공적으로 완료되었습니다."
- *                 data:
+ *                 result:
  *                   type: object
  *                   properties:
  *                     interests:
