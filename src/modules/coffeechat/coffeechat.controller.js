@@ -26,7 +26,6 @@ export const coffeechatController = {
             if (!chattingRoomId) {
                 throw new BadRequestError('chattingRoomId가 유효하지 않습니다.')
             }
-            console.log(chattingRoomId, senderId, receiver_id, title, scheduled_at, place)
             const result = await coffeechatService.requestCoffeechat({
                 chattingRoomId, senderId, receiver_id, title, scheduled_at, place
             }

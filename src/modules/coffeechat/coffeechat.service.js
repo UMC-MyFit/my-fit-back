@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client'
 import { BadRequestError } from '../../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import redisClient from '../../libs/redisClient.js'
+import { io } from '../../socket/socket.js'
 const prisma = new PrismaClient()
 const coffeechatService = {
     getCoffeeChatPreview: async (chattingRoomId) => {
@@ -42,9 +43,7 @@ const coffeechatService = {
         })
     },
     requestCoffeechat: async ({ chattingRoomId, senderId, receiver_id, title, scheduled_at, place }) => {
-        console.log('service 진입')
         const tx = await prisma.$transaction(async tx => {
-            console.log('트랜잭션 진입')
             console.log(chattingRoomId, senderId, receiver_id, title, scheduled_at, place)
             // 1. 커피챗 생성
             const newCoffeeChat = await tx.coffeeChat.create({
@@ -56,7 +55,6 @@ const coffeechatService = {
                     place
                 }
             })
-            console.log('커피챗 생성 완료')
 
             // 2. 메시지 생성및 Redis 캐시 (type: COFFEECHAT)
             const newMessage = await tx.message.create({
@@ -79,7 +77,6 @@ const coffeechatService = {
                 await redisClient.rPush(redisKey, JSON.stringify(safeNewMessage))
                 //최신 20개만 유지
                 await redisClient.lTrim(redisKey, -20, -1)
-                console.log('Redis에 저장 완료')
             } catch (error) {
                 throw new Error('redis 연결 실패', error)
             }
@@ -88,8 +85,11 @@ const coffeechatService = {
         })
 
         const safeMessage = convertBigIntsToNumbers(tx.message)
-        io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
-
+        try {
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
+        } catch (error) {
+            console.log('소켓 통신 실패')
+        }
         return {
             chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(tx.coffeechat.id),
