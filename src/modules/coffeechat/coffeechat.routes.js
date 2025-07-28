@@ -82,4 +82,7 @@ const router = express.Router()
 // 커피챗 요청 미리보기 정보 조회
 router.get('/:chattingRoomId/coffeechats/preview', isAuthenticated, coffeechatController.getCoffeeChatPreview)
 
+// 커피챗 요청
+router.post('/:chattingRoomId/coffeechats', isAuthenticated, coffeechatController.requestCoffeechat)
+
 export default router

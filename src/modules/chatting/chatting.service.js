@@ -125,31 +125,53 @@ const chattingService = {
         console.log('소켓 emit 완료')
         return safeMessage
     },
-    getMessages: async (chattingRoomId, offset) => {
+    getMessages: async (chattingRoomId, cursor) => {
+        const TAKE_LIMIT = 20;
         const redisKey = `chat:room:${chattingRoomId}`
 
         if (!redisClient.isOpen) {
             await redisClient.connect()
         }
 
-        // 1. Redis에서 최신 20개 가져오기
-        if (offset === 0) {
-            const cached = await redisClient.lRange(redisKey, -20, -1)
-            if (cached.length > 0) {
-                console.log('Redis에서 메시지 조회')
-                return cached.map(msg => JSON.parse(msg))
+        // 1. 최신 20개 (cursor가 없을 때만 Redis 캐시 사용)
+
+        if (!cursor) {
+            const cached = await redisClient.lRange(redisKey, -TAKE_LIMIT, -1)
+            if (cached.length) {
+                const msgs = cached.map(JSON.parse).reverse();
+                const nextCursor = msgs.length === TAKE_LIMIT ? msgs[msgs.length - 1].id : null;
+                return convertBigIntsToNumbers({
+                    chatting_room_id: Number(chattingRoomId),
+                    messages: msgs,
+                    next_cursor: nextCursor,
+                    has_next: !!nextCursor
+                })
             }
         }
 
         // 2. MySQL에서 이후 메시지 가져오기
-        console.log('MySQL에서 메시지 조회')
-        const messages = await chattingModel.getMessagesFromDB(BigInt(chattingRoomId), offset)
-
-        if (!messages || messages.length === 0) {
-            console.log('메시지 없음')
-            return []
+        const whereClause = {
+            chat_id: BigInt(chattingRoomId),
+            ...(cursor && { id: { lt: BigInt(cursor) } })
         }
-        return messages.map(convertBigIntsToNumbers)
+
+        const dbMessages = await prisma.message.findMany({
+            where: whereClause,
+            orderBy: { id: 'desc' },
+            take: TAKE_LIMIT
+        })
+
+        const formatted = dbMessages.map(convertBigIntsToNumbers)
+
+        // 3. 페이징 정보 계산
+        const nextCursor = formatted.length === TAKE_LIMIT ? formatted[formatted.length - 1].id : null;
+
+        return {
+            chatting_room_id: Number(chattingRoomId),
+            messages: formatted,
+            next_cursor: nextCursor,
+            has_next: !!nextCursor
+        }
     },
     getChattingRooms: async (myServiceId, cursor) => {
         const take = 10 // 한 번에 10개씩

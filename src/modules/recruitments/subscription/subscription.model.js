@@ -121,7 +121,7 @@ class Subscription {
                     "title": recruitment.recruitingNotice.title,
                     "low_sector": lowSectorToList,
                     "dead_line": recruitment.recruitingNotice.dead_line,
-                    "user": {
+                    "writer": {
                         "id": recruitment.recruitingNotice.service.id,
                         "name": recruitment.recruitingNotice.service.name,
                         "profile_img": recruitment.recruitingNotice.service.profile_img
