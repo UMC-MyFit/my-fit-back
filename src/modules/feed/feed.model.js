@@ -69,7 +69,7 @@ class Feed {
                         select: {
                             id: true,
                             name: true,
-                            sector: true,
+                            low_sector: true,
                             profile_img: true
                         }
                     },
@@ -109,7 +109,7 @@ class Feed {
                     "user": {
                         "id": feed.service.id,
                         "name": feed.service.name,
-                        "sector": feed.service.sector,
+                        "sector": feed.service.low_sector,
                         "profile_img": feed.service.profile_img
                     },
                     "created_at": feed.created_at,
