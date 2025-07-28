@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { BadRequestError } from '../../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
+import redisClient from '../../libs/redisClient.js'
+import { io } from '../../socket/socket.js'
 const prisma = new PrismaClient()
 const coffeechatService = {
     getCoffeeChatPreview: async (chattingRoomId) => {
@@ -39,6 +41,62 @@ const coffeechatService = {
                 }
             ]
         })
+    },
+    requestCoffeechat: async ({ chattingRoomId, senderId, receiver_id, title, scheduled_at, place }) => {
+        const tx = await prisma.$transaction(async tx => {
+            console.log(chattingRoomId, senderId, receiver_id, title, scheduled_at, place)
+            // 1. 커피챗 생성
+            const newCoffeeChat = await tx.coffeeChat.create({
+                data: {
+                    requester_id: BigInt(senderId),
+                    receiver_id: BigInt(receiver_id),
+                    title,
+                    scheduled_at: new Date(scheduled_at),
+                    place
+                }
+            })
+
+            // 2. 메시지 생성및 Redis 캐시 (type: COFFEECHAT)
+            const newMessage = await tx.message.create({
+                data: {
+                    chat_id: BigInt(chattingRoomId),
+                    sender_id: BigInt(senderId),
+                    detail_message: '커피챗 요청이 도착했습니다.',
+                    type: 'COFFEECHAT'
+                }
+            })
+            console.log('메시지 생성 완료')
+            // Redis 캐시
+            try {
+                if (!redisClient.isOpen) {
+                    await redisClient.connect()
+                    console.log('Redis 연결 완료')
+                }
+                const redisKey = `chat:room:${chattingRoomId}`
+                const safeNewMessage = convertBigIntsToNumbers(newMessage)
+                await redisClient.rPush(redisKey, JSON.stringify(safeNewMessage))
+                //최신 20개만 유지
+                await redisClient.lTrim(redisKey, -20, -1)
+            } catch (error) {
+                throw new Error('redis 연결 실패', error)
+            }
+
+            return { coffeechat: newCoffeeChat, message: newMessage }
+        })
+
+        const safeMessage = convertBigIntsToNumbers(tx.message)
+        try {
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
+        } catch (error) {
+            console.log('소켓 통신 실패')
+        }
+        return {
+            chatting_room_id: Number(chattingRoomId),
+            coffeechat_id: Number(tx.coffeechat.id),
+            sender_id: Number(senderId),
+            receiver_id: Number(receiver_id),
+            created_at: tx.coffeechat.created_at
+        }
     }
 }
 

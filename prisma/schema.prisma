@@ -56,7 +56,6 @@ model Service {
   ActivityCard      ActivityCard[]
   Chat              Chat[]
   Message           Message[]
-  CoffeeChat        CoffeeChat[]
 
   sentInterests     Interest[] @relation("InterestSender")
   receivedInterests Interest[] @relation("InterestRecipient")
@@ -361,10 +360,8 @@ model CoffeeChat {
   created_at   DateTime   @default(now()) // 생성 시간
 
   // 관계
-  requester Service  @relation("RequestedChats", fields: [requester_id], references: [id])
-  receiver  Service  @relation("ReceivedChats", fields: [receiver_id], references: [id])
-  Service   Service? @relation(fields: [serviceId], references: [id])
-  serviceId BigInt?
+  requester Service @relation("RequestedChats", fields: [requester_id], references: [id])
+  receiver  Service @relation("ReceivedChats", fields: [receiver_id], references: [id])
 }
 
 enum ChatStatus {

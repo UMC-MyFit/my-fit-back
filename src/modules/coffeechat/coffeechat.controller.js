@@ -17,5 +17,27 @@ export const coffeechatController = {
         } catch (error) {
             next(error)
         }
+    },
+    requestCoffeechat: async (req, res, next) => {
+        try {
+            const chattingRoomId = BigInt(req.params.chattingRoomId);
+            const { receiver_id, title, scheduled_at, place } = req.body;
+            const senderId = req.user.service_id;
+            if (!chattingRoomId) {
+                throw new BadRequestError('chattingRoomId가 유효하지 않습니다.')
+            }
+            const result = await coffeechatService.requestCoffeechat({
+                chattingRoomId, senderId, receiver_id, title, scheduled_at, place
+            }
+            )
+
+            res.success({
+                code: 200,
+                message: '커피챗 요청 성공',
+                result,
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }

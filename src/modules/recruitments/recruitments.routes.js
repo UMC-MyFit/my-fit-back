@@ -296,7 +296,7 @@ router.get('/', recruitmentController.getAllRecruitment)
  *                         format: date
  *                         description: 마감일
  *                         example: "2025-01-01"
- *                       user:
+ *                       writer:
  *                         type: object
  *                         properties:
  *                           id:

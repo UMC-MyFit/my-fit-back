@@ -182,6 +182,8 @@ router.post(
  *                   detail_message: 안녕하세요~
  *                   created_at: "2025-07-21T14:24:17.978Z"
  *                   type: TEXT
+ *               next_cursor: 21,
+ *               has_next: true
  */
 // 메시지 조회
 router.get('/:chattingRoomId/messages', isAuthenticated, chattingController.getMessages)

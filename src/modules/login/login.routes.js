@@ -45,21 +45,15 @@ const router = express.Router()
  *         description: 로그인 실패
  *         content:
  *           application/json:
- *             examples:
+ *             example:
  *               UserNotFound:
- *                 summary: 존재하지 않는 사용자
+ *                 summary: 로그인 실패
  *                 value:
  *                   isSuccess: false
  *                   code: 401
- *                   message: 존재하지 않는 사용자입니다.
+ *                   message: 로그인에 실패하였습니다. 이메일이나 비밀번호를 확인해주세요.
  *                   result: null
- *               WrongPassword:
- *                 summary: 비밀번호 불일치
- *                 value:
- *                   isSuccess: false
- *                   code: 401
- *                   message: 비밀번호가 일치하지 않습니다.
- *                   result: null
+ *             
  *       500:
  *         description: 서버 오류
  *         content:
@@ -77,7 +71,7 @@ router.post('/login', (req, res, next) => {
             return res.status(401).json({
                 isSuccess: false,
                 code: 401,
-                message: info?.message || '인증 실패',
+                message: info?.message || '로그인 실패',
                 result: null,
             })
         }

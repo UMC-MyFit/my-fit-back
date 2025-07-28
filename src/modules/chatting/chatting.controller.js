@@ -45,9 +45,9 @@ const chattingController = {
     getMessages: async (req, res, next) => {
         try {
             const { chattingRoomId } = req.params
-            const offset = parseInt(req.query.offset) || 0
+            const cursor = req.query.cursor ? BigInt(req.query.cursor) : null;
 
-            const messages = await chattingService.getMessages(chattingRoomId, offset)
+            const messages = await chattingService.getMessages(chattingRoomId, cursor)
             res.success({
                 code: 200,
                 message: '메시지 조회 성공',

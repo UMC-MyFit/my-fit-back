@@ -82,4 +82,78 @@ const router = express.Router()
 // 커피챗 요청 미리보기 정보 조회
 router.get('/:chattingRoomId/coffeechats/preview', isAuthenticated, coffeechatController.getCoffeeChatPreview)
 
+/**
+ * @swagger
+ * /api/chatting-rooms/{chattingRoomId}/coffeechats:
+ *   post:
+ *     summary: 커피챗 요청
+ *     description: 해당 채팅방에서 커피챗을 요청합니다.
+ *     tags:
+ *       - CoffeeChat
+ *     parameters:
+ *       - in: path
+ *         name: chattingRoomId
+ *         required: true
+ *         description: 채팅방 ID
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - receiver_id
+ *               - title
+ *               - scheduled_at
+ *               - place
+ *             properties:
+ *               receiver_id:
+ *                 type: integer
+ *                 description: 커피챗 수신자 (상대방) 서비스 ID
+ *                 example: 7
+ *               title:
+ *                 type: string
+ *                 description: 커피챗 제목
+ *                 example: 커리어 이야기 나눠요!
+ *               scheduled_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: 약속 시간 (ISO8601)
+ *                 example: "2025-08-01T15:00:00.000Z"
+ *               place:
+ *                 type: string
+ *                 description: 약속 장소
+ *                 example: 스타벅스 강남점
+ *     responses:
+ *       200:
+ *         description: 커피챗 요청 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 chatting_room_id:
+ *                   type: integer
+ *                   example: 42
+ *                 coffeechat_id:
+ *                   type: integer
+ *                   example: 9
+ *                 sender_id:
+ *                   type: integer
+ *                   example: 3
+ *                 receiver_id:
+ *                   type: integer
+ *                   example: 7
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-07-05T14:50:00.000Z"
+ *       400:
+ *         description: 잘못된 요청
+ */
+// 커피챗 요청
+router.post('/:chattingRoomId/coffeechats', isAuthenticated, coffeechatController.requestCoffeechat)
+
 export default router
