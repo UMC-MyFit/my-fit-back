@@ -24,6 +24,7 @@ const router = express.Router()
  *                 chatting_rooms:
  *                   - chatting_room_id: 11
  *                     partner:
+ *                       service_id: 8
  *                       name: 김마핏
  *                       age: 25
  *                       low_sector: UI/UX 개발자

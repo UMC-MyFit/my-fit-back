@@ -20,10 +20,6 @@ const coffeechatService = {
             }
         })
 
-        if (chats.length !== 2) {
-            throw new BadRequestError('존재하지 않는 채팅방입니다.')
-        }
-
         // 2. 참여자 정보 분리
         const [serviceA, serviceB] = chats.map((chat) => chat.service)
 
@@ -43,6 +39,7 @@ const coffeechatService = {
         })
     },
     requestCoffeechat: async ({ chattingRoomId, senderId, receiver_id, title, scheduled_at, place }) => {
+
         const tx = await prisma.$transaction(async tx => {
             console.log(chattingRoomId, senderId, receiver_id, title, scheduled_at, place)
             // 1. 커피챗 생성
@@ -100,6 +97,7 @@ const coffeechatService = {
     },
 
     acceptCoffeechat: async ({ chattingRoomId, coffeechatId, senderId }) => {
+
         // 1. 커피챗 존재 확인
         const coffeechat = await prisma.coffeeChat.findUnique({
             where: { id: BigInt(coffeechatId) }
@@ -118,7 +116,7 @@ const coffeechatService = {
         }
 
         // 3. 상태 업데이트
-        const updatedCoffeechat = await prisma.coffeeChat.update({
+        await prisma.coffeeChat.update({
             where: { id: BigInt(coffeechatId) },
             data: { status: 'ACCEPTED' }
         })
@@ -160,6 +158,163 @@ const coffeechatService = {
         return {
             coffeechat_id: Number(coffeechatId),
             status: 'ACCEPTED'
+        }
+    },
+
+    rejectCoffeechat: async ({ chattingRoomId, coffeechatId, senderId }) => {
+
+        // 1. 커피챗 존재 확인
+        const coffeechat = await prisma.coffeeChat.findUnique({
+            where: { id: BigInt(coffeechatId) }
+        })
+        if (!coffeechat) {
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+        }
+
+        if (coffeechat.status !== 'PENDING') {
+            throw new BadRequestError('이미 처리된 커피챗입니다.')
+        }
+
+        // 2. 수락자 검증
+        if (coffeechat.receiver_id !== BigInt(senderId)) {
+            throw new UnauthorizedError('해당 커피챗 요청의 수락자가 아닙니다.')
+        }
+
+        // 3. 상태 업데이트
+        await prisma.coffeeChat.update({
+            where: { id: BigInt(coffeechatId) },
+            data: { status: 'REJECTED' }
+        })
+
+        // 4. 메시지 생성
+        const senderService = await prisma.service.findUnique({
+            where: { id: BigInt(senderId) }
+        })
+        const systemMessage = await prisma.message.create({
+            data: {
+                chat_id: BigInt(chattingRoomId),
+                sender_id: BigInt(senderId),
+                detail_message: `${senderService.name}님이 커피챗 요청을 거절하였습니다!`,
+                type: 'SYSTEM'
+            }
+        })
+
+        // 5. Redis 캐시 추가
+        try {
+            if (!redisClient.isOpen) {
+                await redisClient.connect()
+            }
+            const redisKey = `chat:room:${chattingRoomId}`
+            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
+            // Redis에 20개만 저장
+            await redisClient.lTrim(redisKey, -20, -1)
+        } catch (error) {
+            console.log('Redis 캐시 저장 실패', error)
+        }
+
+        // 6. 소켓 전송
+        try {
+            const safeMsg = convertBigIntsToNumbers(systemMessage)
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+        } catch (error) {
+            console.log('소켓 전송 실패', error)
+        }
+
+        return {
+            coffeechat_id: Number(coffeechatId),
+            status: 'REJECTED'
+        }
+    },
+    updateCoffeechat: async ({ chattingRoomId, coffeechatId, senderId, title, scheduled_at, place }) => {
+
+        const coffeechat = await prisma.coffeeChat.findUnique({
+            where: { id: BigInt(coffeechatId) }
+        })
+        if (!coffeechat) {
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+        }
+        if (coffeechat.requester_id !== BigInt(senderId)) {
+            throw new UnauthorizedError('커피챗 요청자만 변경할 수 있습니다.')
+        }
+
+        const updated = await prisma.coffeeChat.update({
+            where: { id: BigInt(coffeechatId) },
+            data: {
+                title,
+                scheduled_at: new Date(scheduled_at),
+                place
+            }
+        })
+
+        return {
+            coffeechat_id: Number(updated.id),
+            title: updated.title,
+            scheduled_at: updated.scheduled_at,
+            place: updated.place
+        }
+    },
+    cancelCoffeechat: async ({ chattingRoomId, coffeechatId, serviceId }) => {
+
+        const coffeechat = await prisma.coffeeChat.findUnique({
+            where: { id: BigInt(coffeechatId) }
+        })
+        if (!coffeechat) {
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+        }
+
+        // 커피챗 송신자, 수신자만 취소 가능
+        const isRequester = coffeechat.requester_id === BigInt(serviceId)
+        const isReceiver = coffeechat.receiver_id === BigInt(serviceId)
+
+        if (!isRequester && !isReceiver) {
+            throw new UnauthorizedError('해당 커피챗 요청자 또는 수신자만 취소할 수 있습니다.')
+        }
+
+        // 1. 상태 업데이트
+        await prisma.coffeeChat.update({
+            where: { id: BigInt(coffeechatId) },
+            data: { status: 'CANCELED' },
+        })
+
+        // 2. 시스템 메시지 생성
+        const senderService = await prisma.service.findUnique({
+            where: { id: BigInt(serviceId) }
+        })
+
+        const systemMessage = await prisma.message.create({
+            data: {
+                chat_id: BigInt(chattingRoomId),
+                sender_id: BigInt(serviceId),
+                detail_message: `${senderService.name}님이 커피챗 요청을 취소하였습니다.`,
+                type: 'SYSTEM'
+            },
+        })
+
+        // 3. Redis 캐시
+        try {
+            if (!redisClient.isOpen) {
+                await redisClient.connect()
+            }
+            const redisKey = `chat:room:${chattingRoomId}`
+            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
+            await redisClient.lTrim(redisKey, -20, -1)
+        }
+        catch (error) {
+            console.log('Redis 저장 실패:', error)
+        }
+
+        // 4. 소켓 전송
+        try {
+            const safeMsg = convertBigIntsToNumbers(systemMessage)
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+        }
+        catch (error) {
+            console.log('소켓 전송 실패:', error)
+        }
+
+        return {
+            coffeechat_id: Number(coffeechatId),
+            status: 'CANCELED',
         }
     }
 }
