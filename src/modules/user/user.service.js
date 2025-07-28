@@ -108,6 +108,27 @@ const usersService = {
             throw new BadRequestError('인증코드가 유효하지 않습니다.')
         }
     },
+    verifyUser: async (email, password) => {
+        // 이메일 형식 검증
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            throw new BadRequestError('유효하지 않은 이메일 형식입니다.')
+        }
+
+        // 비밀번호 길이 검증
+        if (password.length < 6) {
+            throw new BadRequestError('비밀번호가 유효하지 않습니다.')
+        }
+
+        // 이메일 중복 확인
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+        })
+        if (existingUser) {
+            throw new ConflictError('이미 회원가입된 이메일입니다.')
+        }
+        console.log('이메일 중복 확인 완료')
+    }
 }
 
 export default usersService
