@@ -145,13 +145,9 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *         name: lowSector
  *         required: false
  *         schema:
- *           type: array
- *           items:
- *            type: string
- *         description: 소분류 분야 (예- 프론트엔드, 백엔드 등)
- *         example: 
- *              - "프론트엔드 개발자"
- *              - "백엔드 개발자"
+ *           type: string
+ *         description: 소분류 분야 (예- 프론트엔드 개발자, 백엔드 개발자 등)
+ *         example: "프론트엔드 개발자"
  *       - in: query
  *         name: cursor
  *         required: false
