@@ -39,5 +39,25 @@ export const coffeechatController = {
         } catch (error) {
             next(error)
         }
+    },
+    acceptCoffeechat: async (req, res, next) => {
+        try {
+            const { chattingRoomId, coffeechatId } = req.params
+            const senderId = req.user.service_id
+
+            const result = await coffeechatService.acceptCoffeechat({
+                chattingRoomId,
+                coffeechatId,
+                senderId,
+            })
+
+            res.success({
+                code: 200,
+                message: '커피챗 수락 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }

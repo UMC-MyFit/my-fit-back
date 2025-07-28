@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { BadRequestError } from '../../middlewares/error.js'
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import redisClient from '../../libs/redisClient.js'
 import { io } from '../../socket/socket.js'
@@ -96,6 +96,70 @@ const coffeechatService = {
             sender_id: Number(senderId),
             receiver_id: Number(receiver_id),
             created_at: tx.coffeechat.created_at
+        }
+    },
+
+    acceptCoffeechat: async ({ chattingRoomId, coffeechatId, senderId }) => {
+        // 1. 커피챗 존재 확인
+        const coffeechat = await prisma.coffeeChat.findUnique({
+            where: { id: BigInt(coffeechatId) }
+        })
+        if (!coffeechat) {
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+        }
+
+        if (coffeechat.status !== 'PENDING') {
+            throw new BadRequestError('이미 처리된 커피챗입니다.')
+        }
+
+        // 2. 수락자 검증
+        if (coffeechat.receiver_id !== BigInt(senderId)) {
+            throw new UnauthorizedError('해당 커피챗 요청의 수락자가 아닙니다.')
+        }
+
+        // 3. 상태 업데이트
+        const updatedCoffeechat = await prisma.coffeeChat.update({
+            where: { id: BigInt(coffeechatId) },
+            data: { status: 'ACCEPTED' }
+        })
+
+        // 4. 메시지 생성
+        const senderService = await prisma.service.findUnique({
+            where: { id: BigInt(senderId) }
+        })
+        const systemMessage = await prisma.message.create({
+            data: {
+                chat_id: BigInt(chattingRoomId),
+                sender_id: BigInt(senderId),
+                detail_message: `${senderService.name}님이 커피챗 요청을 수락하였습니다!`,
+                type: 'SYSTEM'
+            }
+        })
+
+        // 5. Redis 캐시 추가
+        try {
+            if (!redisClient.isOpen) {
+                await redisClient.connect()
+            }
+            const redisKey = `chat:room:${chattingRoomId}`
+            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
+            // Redis에 20개만 저장
+            await redisClient.lTrim(redisKey, -20, -1)
+        } catch (error) {
+            console.log('Redis 캐시 저장 실패', error)
+        }
+
+        // 6. 소켓 전송
+        try {
+            const safeMsg = convertBigIntsToNumbers(systemMessage)
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+        } catch (error) {
+            console.log('소켓 전송 실패', error)
+        }
+
+        return {
+            coffeechat_id: Number(coffeechatId),
+            status: 'ACCEPTED'
         }
     }
 }

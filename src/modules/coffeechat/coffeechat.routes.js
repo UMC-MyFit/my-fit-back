@@ -227,4 +227,90 @@ router.get('/:chattingRoomId/coffeechats/preview', isAuthenticated, coffeechatCo
 // 커피챗 요청
 router.post('/:chattingRoomId/coffeechats', isAuthenticated, coffeechatController.requestCoffeechat)
 
+/**
+ * @swagger
+ * /api/chatting-rooms/{chattingRoomId}/coffeechats/{coffeechatId}/accept:
+ *   patch:
+ *     summary: 커피챗 요청 수락
+ *     description: 커피챗 요청을 수락하고 메시지를 전송합니다. PENDING 상태일 때만 수락할 수 있습니다.
+ *     tags:
+ *       - CoffeeChat
+ *     parameters:
+ *       - in: path
+ *         name: chattingRoomId
+ *         required: true
+ *         description: 채팅방 ID
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: coffeechatId
+ *         required: true
+ *         description: 커피챗 ID
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 커피챗 수락 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: true
+ *                 code: 200
+ *                 message: 커피챗 요청을 수락했습니다.
+ *                 result:
+ *                   coffeechat_id: 9
+ *                   chatting_room_id: 42
+ *                   sender_id: 3
+ *                   receiver_id: 7
+ *                   created_at: "2025-07-28T10:30:00.000Z"
+ *       400:
+ *         description: 이미 처리된 커피챗
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 400
+ *                 message: 이미 처리된 커피챗입니다.
+ *                 result: null
+ *       401:
+ *         description: 로그인되지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 401
+ *                 message: 로그인이 필요한 요청입니다.
+ *                 result: null
+ *       404:
+ *         description: 커피챗을 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 404
+ *                 message: 해당 커피챗을 찾을 수 없습니다.
+ *                 result: null
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 500
+ *                 message: 서버에 오류가 발생하였습니다.
+ *                 result: null
+ */
+
+// 커피챗 수락
+router.patch('/:chattingRoomId/coffeechats/:coffeechatId/accept', isAuthenticated, coffeechatController.acceptCoffeechat)
 export default router
