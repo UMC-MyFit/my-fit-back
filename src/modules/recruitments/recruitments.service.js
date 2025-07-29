@@ -197,8 +197,23 @@ const recruitmentService = {
                     message: '해당 공고가 존재하지 않습니다.',
                 })
             }
-            recruiment.low_sector = stringToList(recruiment.low_sector)
-            return convertBigIntsToNumbers(recruiment)
+            const processedRecruitment = {
+                "recruitment_id": recruiment.id,
+                "title": recruiment.title,
+                "low_sector": stringToList(recruiment.low_sector),
+                "area": recruiment.area,
+                "require": recruiment.require,
+                "salary": recruiment.salary,
+                "work_type": recruiment.work_type,
+                "dead_line": recruiment.dead_line,
+                "recruiting_img": recruiment.recruiting_img,
+                "writer": {
+                    "id": recruiment.service.id,
+                    "name": recruiment.service.name,
+                    "profile_img": recruiment.service.profile_img
+                }
+            };
+            return convertBigIntsToNumbers(processedRecruitment)
         }
         catch (error) {
             console.error('특정 리크루팅 목록 조회 중 오류:', error);
