@@ -597,6 +597,110 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/update', isAuthenticate
 // 커피챗 취소
 router.patch('/:chattingRoomId/coffeechats/:coffeechatId/cancel', isAuthenticated, coffeechatController.cancelCoffeechat)
 
+/**
+ * @swagger
+ * /api/chatting-rooms/coffeechats:
+ *   get:
+ *     summary: 예정된 커피챗 목록 조회 (무한 스크롤)
+ *     tags: [CoffeeChat]
+ *     description: 로그인된 사용자의 예정된 커피챗 목록을 조회합니다.
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: integer
+ *         description: 다음 페이지 조회를 위한 커서 (마지막 커피챗 ID)
+ *     responses:
+ *       200:
+ *         description: 예정된 커피챗 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 예정된 커피챗 목록 조회 성공
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     coffeechats:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           coffeechat_id:
+ *                             type: integer
+ *                             example: 4
+ *                           opponent:
+ *                             type: object
+ *                             properties:
+ *                               name:
+ *                                 type: string
+ *                                 example: 김김김
+ *                               age:
+ *                                 type: integer
+ *                                 example: 30
+ *                               job:
+ *                                 type: string
+ *                                 example: 프론트엔드 개발자
+ *                               profile_image:
+ *                                 type: string
+ *                                 example: ""
+ *                           scheduled_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2025-10-01T00:00:00.000Z"
+ *                           place:
+ *                             type: string
+ *                             example: 서울시 용산구 마핏카페
+ *                     next_cursor:
+ *                       type: integer
+ *                       nullable: true
+ *                       example: null
+ *                     has_next:
+ *                       type: boolean
+ *                       example: false
+ *       401:
+ *         description: 인증되지 않은 사용자
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 401
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요한 요청입니다.
+ *       500:
+ *         description: 서버 내부 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 500
+ *                 message:
+ *                   type: string
+ *                   example: 서버 내부 오류 발생
+ */
+
 // 예정된 커피챗 조회
 router.get('/coffeechats', isAuthenticated, coffeechatController.getUpcomingCoffeechats)
 export default router

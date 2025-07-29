@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middlew
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import redisClient from '../../libs/redisClient.js'
 import { io } from '../../socket/socket.js'
-import MypageService from '../mypage/mypage.service.js'
+import { calcAge } from '../../libs/calcAge.js'
 const prisma = new PrismaClient()
 const coffeechatService = {
     getCoffeeChatPreview: async (chattingRoomId) => {
@@ -319,12 +319,16 @@ const coffeechatService = {
         }
     },
     getUpcomingCoffeechats: async (myServiceId, cursor) => {
+
         const TAKE = 10;
 
         const whereClause = {
-            requester_id: myServiceId,
             status: 'ACCEPTED',
             scheduled_at: { gte: new Date() }, //현재 시각 이후
+            OR: [
+                { requester_id: myServiceId },
+                { receiver_id: myServiceId }
+            ],
             ...(cursor && { id: { lt: cursor } })
         }
 
@@ -339,29 +343,40 @@ const coffeechatService = {
                             include: { user: true }
                         }
                     }
+                },
+                requester: {
+                    include: {
+                        userDBs: {
+                            include: { user: true }
+                        }
+                    }
                 }
             }
         })
 
-        const formatted = chats.map(chat => ({
-            coffeechat_id: chat.id,
-            opponent: {
-                name: chat.receiver.name,
-                age: calcAge(chat.receiver.userDBs[0]?.user.birth_date),
-                job: chat.receiver.low_sector,
-                profile_image: chat.receiver.profile_img
-            },
-            scheduled_at: chat.scheduled_at,
-            location: chat.location
-        }));
+        const formatted = chats.map(chat => {
+            const isRequester = Number(chat.requester_id) === Number(myServiceId)
+            const opponent = isRequester ? chat.receiver : chat.requester
 
+            return {
+                coffeechat_id: chat.id,
+                opponent: {
+                    name: opponent.name,
+                    age: calcAge(opponent.userDBs[0]?.user.birth_date),
+                    job: opponent.low_sector,
+                    profile_image: opponent.profile_img
+                },
+                scheduled_at: chat.scheduled_at,
+                place: chat.place
+            }
+        })
         const nextCursor = chats.length === TAKE ? chats[chats.length - 1].id : null;
 
-        return {
+        return convertBigIntsToNumbers({
             coffeechats: formatted,
             next_cursor: nextCursor,
             has_next: !!nextCursor
-        };
+        });
     }
 }
 
