@@ -6,7 +6,7 @@ TODO
 */
 
 import { PrismaClient } from '@prisma/client';
-import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js';
+import { convertBigIntsToNumbers, stringToList } from '../../libs/dataTransformer.js';
 
 const prisma = new PrismaClient();
 
@@ -104,6 +104,7 @@ class Feed {
                 const is_liked = feed.feedHearts.some(
                     (heart) => heart.service_id === BigInt(serviceId)
                 );
+                const hashtags = stringToList(feed.hashtag);
                 return {
                     "feed_id": feed.id,
                     "user": {
@@ -115,7 +116,7 @@ class Feed {
                     "created_at": feed.created_at,
                     "images": imageUrls,
                     "feed_text": feed.feed_text,
-                    "hashtags": feed.hashtag,
+                    "hashtags": hashtags,
                     "heart": feed._count.feedHearts,
                     "is_liked": is_liked,
                     "comment_count": feed._count.FeedComment

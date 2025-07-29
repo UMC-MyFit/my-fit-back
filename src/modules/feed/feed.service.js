@@ -2,13 +2,12 @@
 
 import Feed from './feed.model.js';
 import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../middlewares/error.js';
+import { listToString } from '../../libs/dataTransformer.js';
 
 class FeedService {
     async createFeed(feedData, serviceId) {
         try {
-            const processedHashtag = feedData.hashtag && Array.isArray(feedData.hashtag) && feedData.hashtag.length > 0
-                ? feedData.hashtag.join(',')
-                : '';
+            const processedHashtag = listToString(feedData.hashtag);
 
             const newFeedData = {
                 feed_text: feedData.feed_text,
