@@ -10,6 +10,9 @@ class SubscriptionController {
             res.success({
                 code: 201,
                 message: '구독이 완료되었습니다.',
+                result: {
+                    is_subscribed: true
+                }
             });
         }
         catch (error) {
@@ -25,6 +28,9 @@ class SubscriptionController {
             res.success({
                 code: 200,
                 message: '구독이 취소되었습니다.',
+                result: {
+                    is_subscribed: false
+                }
             });
         }
         catch (error) {
