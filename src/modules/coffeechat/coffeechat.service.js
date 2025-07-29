@@ -3,6 +3,7 @@ import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middlew
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import redisClient from '../../libs/redisClient.js'
 import { io } from '../../socket/socket.js'
+import MypageService from '../mypage/mypage.service.js'
 const prisma = new PrismaClient()
 const coffeechatService = {
     getCoffeeChatPreview: async (chattingRoomId) => {
@@ -316,6 +317,51 @@ const coffeechatService = {
             coffeechat_id: Number(coffeechatId),
             status: 'CANCELED',
         }
+    },
+    getUpcomingCoffeechats: async (myServiceId, cursor) => {
+        const TAKE = 10;
+
+        const whereClause = {
+            requester_id: myServiceId,
+            status: 'ACCEPTED',
+            scheduled_at: { gte: new Date() }, //현재 시각 이후
+            ...(cursor && { id: { lt: cursor } })
+        }
+
+        const chats = await prisma.coffeeChat.findMany({
+            where: whereClause,
+            orderBy: { scheduled_at: 'asc' },
+            take: TAKE,
+            include: {
+                receiver: {
+                    include: {
+                        userDBs: {
+                            include: { user: true }
+                        }
+                    }
+                }
+            }
+        })
+
+        const formatted = chats.map(chat => ({
+            coffeechat_id: chat.id,
+            opponent: {
+                name: chat.receiver.name,
+                age: calcAge(chat.receiver.userDBs[0]?.user.birth_date),
+                job: chat.receiver.low_sector,
+                profile_image: chat.receiver.profile_img
+            },
+            scheduled_at: chat.scheduled_at,
+            location: chat.location
+        }));
+
+        const nextCursor = chats.length === TAKE ? chats[chats.length - 1].id : null;
+
+        return {
+            coffeechats: formatted,
+            next_cursor: nextCursor,
+            has_next: !!nextCursor
+        };
     }
 }
 

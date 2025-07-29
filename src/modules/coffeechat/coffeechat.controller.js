@@ -123,5 +123,21 @@ export const coffeechatController = {
         } catch (error) {
             next(error)
         }
+    },
+    getUpcomingCoffeechats: async (req, res, next) => {
+        try {
+            const myServiceId = req.user.service_id
+            const cursor = req.query.cursor ? parseInt(req.query.cursor, 10) : null
+
+            const result = await coffeechatService.getUpcomingCoffeechats(myServiceId, cursor);
+
+            res.success({
+                code: 200,
+                message: '예정된 커피챗 목록 조회 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }

@@ -597,4 +597,6 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/update', isAuthenticate
 // 커피챗 취소
 router.patch('/:chattingRoomId/coffeechats/:coffeechatId/cancel', isAuthenticated, coffeechatController.cancelCoffeechat)
 
+// 예정된 커피챗 조회
+router.get('/coffeechats', isAuthenticated, coffeechatController.getUpcomingCoffeechats)
 export default router

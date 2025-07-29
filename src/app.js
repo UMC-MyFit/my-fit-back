@@ -17,12 +17,16 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // 공통 미들웨어
 app.use(cors({
+    // origin: 'http://172.100.13.155:5173',
     // origin: [
     //     'http://localhost:5173',
     //     'http://localhost:3001',
-    //     'http://192.168.0.4:5173'
+    //     'http://172.100.13.155:5173'
     // ],
-    origin: true,
+    origin: function (origin, callback) {
+        //모든 origin 허용
+        callback(null, origin)
+    },
     credentials: true
 }))
 app.use(morgan('dev'))
