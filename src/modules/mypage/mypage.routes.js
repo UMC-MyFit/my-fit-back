@@ -6,20 +6,12 @@ const router = express.Router()
 
 /**
  * @swagger
- * /mypage/{user_id}/profile_info:
+ * /api/mypage/profile_info:
  *   get:
  *     summary: 사용자 프로필 정보 조회
  *     description: 특정 사용자의 공개 프로필 정보를 조회합니다.
  *     tags:
  *       - Mypage
- *     parameters:
- *       - in: path
- *         name: user_id
- *         required: true
- *         schema:
- *           type: string
- *           format: int64 # Prisma BigInt 타입에 맞춰 string으로 받음
- *         description: 프로필을 조회할 사용자의 고유 ID
  *     responses:
  *       200:
  *         description: 사용자 프로필 정보 조회 성공
@@ -141,12 +133,12 @@ const router = express.Router()
  *                   nullable: true
  *                   example: null
  */
-router.get('/:userId/profile_info', MypageController.getUserProfileInfo)
+router.get('/profile_info', isAuthenticated, MypageController.getUserProfileInfo)
 
 // 사용자 프로필 사진 수정
 /**
  * @swagger
- * /api/mypage/{userId}/profile_pic:
+ * /api/mypage/profile_pic:
  *   patch:
  *     summary: 사용자 프로필 사진 수정
  *     description: 특정 사용자의 프로필 사진 URL을 수정합니다.
@@ -154,15 +146,6 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo)
  *       - Mypage
  *     security:
  *       - bearerAuth: [] # JWT 또는 세션 기반 인증이 필요함을 나타냅니다.
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *           format: int64
- *         description: 프로필 사진을 수정할 사용자의 ID
- *         example: 2
  *     requestBody:
  *       required: true
  *       content:
@@ -246,7 +229,7 @@ router.get('/:userId/profile_info', MypageController.getUserProfileInfo)
  *             schema:
  *               $ref: '#/components/schemas/InternalServerError'
  */
-router.patch('/:userId/profile_pic', isAuthenticated, MypageController.updateProfilePicture)
+router.patch('/profile_pic', isAuthenticated, MypageController.updateProfilePicture)
 
 /**
  * @swagger
