@@ -19,6 +19,7 @@ export const errorHandler = (err, req, res, next) => {
         })
     }
 
+
     // CustomError가 아닌 경우 기본적으로 500으로 응답
     const fallbackError = new InternalServerError()
     return res.status(fallbackError.statusCode).json({

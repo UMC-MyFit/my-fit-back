@@ -210,15 +210,17 @@ const chattingService = {
                 }
             }
         })
-
+        const myId = BigInt(myServiceId)
         const formatted = chats.map(chat => {
             const chatRoom = chat.chatRoom
-            const partner = chatRoom.chats.find(c => c.service_id !== myServiceId)?.service
+            const partnerChat = chatRoom.chats.find(c => c.service_id !== myId)
+            const partner = chatRoom.chats.find(c => c.service_id !== myId)?.service
             const lastMessage = chatRoom.messages[0]
 
             return convertBigIntsToNumbers({
                 chatting_room_id: chat.chat_id,
                 partner: {
+                    service_id: partnerChat?.service_id || null,
                     name: partner?.name || '',
                     age: partner ? calcAge(partner.userDBs?.[0]?.user?.birth_date) : null,
                     low_sector: partner?.low_sector || '',

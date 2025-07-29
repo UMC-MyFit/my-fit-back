@@ -39,5 +39,105 @@ export const coffeechatController = {
         } catch (error) {
             next(error)
         }
+    },
+    acceptCoffeechat: async (req, res, next) => {
+        try {
+            const { chattingRoomId, coffeechatId } = req.params
+            const senderId = req.user.service_id
+
+            const result = await coffeechatService.acceptCoffeechat({
+                chattingRoomId,
+                coffeechatId,
+                senderId,
+            })
+
+            res.success({
+                code: 200,
+                message: '커피챗 수락 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    rejectCoffeechat: async (req, res, next) => {
+        try {
+            const { chattingRoomId, coffeechatId } = req.params
+            const senderId = req.user.service_id
+
+            const result = await coffeechatService.rejectCoffeechat({
+                chattingRoomId,
+                coffeechatId,
+                senderId,
+            })
+
+            res.success({
+                code: 200,
+                message: '커피챗 요청을 거절했습니다.',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    updateCoffeechat: async (req, res, next) => {
+        try {
+            const senderId = req.user.service_id
+            const { chattingRoomId, coffeechatId } = req.params
+            const { title, scheduled_at, place } = req.body
+
+            const result = await coffeechatService.updateCoffeechat({
+                chattingRoomId,
+                coffeechatId,
+                senderId,
+                title,
+                scheduled_at,
+                place
+            })
+
+            res.success({
+                coce: 200,
+                message: '커피챗 요청을 수정했습니다.',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    cancelCoffeechat: async (req, res, next) => {
+        try {
+            const { chattingRoomId, coffeechatId } = req.params
+            const serviceId = req.user.service_id
+
+            const result = await coffeechatService.cancelCoffeechat({
+                chattingRoomId,
+                coffeechatId,
+                serviceId
+            })
+
+            res.success({
+                code: 200,
+                message: '커피챗 요청을 취소했습니다.',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+    getUpcomingCoffeechats: async (req, res, next) => {
+        try {
+            const myServiceId = req.user.service_id
+            const cursor = req.query.cursor ? parseInt(req.query.cursor, 10) : null
+
+            const result = await coffeechatService.getUpcomingCoffeechats(myServiceId, cursor);
+
+            res.success({
+                code: 200,
+                message: '예정된 커피챗 목록 조회 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }
