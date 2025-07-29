@@ -55,8 +55,8 @@ class FeedController {
                 result: {
                     feeds,
                     pagination: {
-                        hasMore,
-                        nextCursorId
+                        has_next: hasMore,
+                        next_cursor: nextCursorId
                     }
                 }
             });

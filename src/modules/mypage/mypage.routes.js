@@ -353,4 +353,226 @@ router.patch('/:userId/profile_pic', isAuthenticated, MypageController.updatePro
  */
 router.patch('/:userId/recruiting_status', isAuthenticated, MypageController.updateRecruitingStatus)
 
+/**
+ * @swagger
+ * /api/mypage/{service_id}/feeds:
+ *   get:
+ *     summary: 특정 유저가 올린 피드 목록 조회 (마이페이지)
+ *     description: 특정 Service ID를 가진 유저가 올린 피드 목록을 최신순으로 조회합니다.
+ *     tags:
+ *       - Mypage
+ *     parameters:
+ *       - in: path
+ *         name: service_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: int64 # BigInt 타입에 맞춰 string으로 받음
+ *         description: 조회할 대상 유저의 서비스 고유 ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *           minimum: 1
+ *           default: 10
+ *         description: 한 페이지에 가져올 피드 수
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *           format: int64 # BigInt 타입에 맞춰 string으로 받음
+ *         description: 이전 페이지의 마지막 피드 ID (다음 페이지 조회를 위한 커서)
+ *     security:
+ *       - cookieAuth: [] # 쿠키 기반 인증을 사용함을 나타냄
+ *     responses:
+ *       200:
+ *         description: 피드 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: number
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "사용자 피드 목록을 성공적으로 조회했습니다."
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     feeds:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           feed_id:
+ *                             type: string
+ *                             example: "1234567890123456789"
+ *                           user:
+ *                             type: object
+ *                             properties:
+ *                               id:
+ *                                 type: string
+ *                                 example: "9876543210987654321"
+ *                               name:
+ *                                 type: string
+ *                                 example: "테스트서비스"
+ *                               sector:
+ *                                 type: string
+ *                                 example: "IT"
+ *                               profile_img:
+ *                                 type: string
+ *                                 nullable: true
+ *                                 example: "http://example.com/profile.png"
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-07-26T14:30:00Z"
+ *                           images:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                               format: uri
+ *                               example: ["http://example.com/feed_img1.jpg", "http://example.com/feed_img2.jpg"]
+ *                           feed_text:
+ *                             type: string
+ *                             example: "이것은 특정 유저의 피드 내용입니다."
+ *                           hashtags:
+ *                             type: string
+ *                             example: "개발,백엔드,Node.js"
+ *                           heart:
+ *                             type: number
+ *                             example: 5
+ *                           comment_count:
+ *                             type: number
+ *                             example: 2
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         hasMore:
+ *                           type: boolean
+ *                           example: true
+ *                         nextCursorId:
+ *                           type: string
+ *                           nullable: true
+ *                           example: "1234567890123456780" # 다음 페이지 조회를 위한 커서
+ *       400:
+ *         $ref: '#/components/schemas/BadRequestError'
+ *       401:
+ *         $ref: '#/components/schemas/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/schemas/InternalServerError'
+ */
+router.get('/:service_id/feeds', isAuthenticated, MypageController.getUserFeeds)
+
+/**
+ * @swagger
+ * /api/mypage/{service_id}/cards:
+ *   get:
+ *     summary: 특정 유저가 올린 이력/활동 카드 목록 조회 (마이페이지)
+ *     description: 특정 Service ID를 가진 유저가 올린 이력/활동 카드 목록을 최신순으로 조회합니다.
+ *     tags:
+ *       - Mypage
+ *     parameters:
+ *       - in: path
+ *         name: service_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: int64 # BigInt 타입에 맞춰 string으로 받음
+ *         description: 조회할 대상 유저의 서비스 고유 ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           format: int32
+ *           minimum: 1
+ *           default: 10
+ *         description: 한 페이지에 가져올 카드 수
+ *       - in: query
+ *         name: cursor
+ *         schema:
+ *           type: string
+ *           format: int64 # BigInt 타입에 맞춰 string으로 받음
+ *         description: 이전 페이지의 마지막 카드 ID (다음 페이지 조회를 위한 커서)
+ *     security:
+ *       - cookieAuth: [] # 쿠키 기반 인증을 사용함을 나타냄
+ *     responses:
+ *       200:
+ *         description: 이력/활동 카드 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: number
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "사용자 이력/활동 카드 목록을 성공적으로 조회했습니다."
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     cards:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             example: "1234567890123456789"
+ *                           card_img:
+ *                             type: string
+ *                             example: "https://cdn.example.com/cards/card_img01.png"
+ *                           one_line_profile:
+ *                             type: string
+ *                             example: "사이드 프로젝트 매니아"
+ *                           detailed_profile:
+ *                             type: string
+ *                             example: "Vue, React 기반 프로젝트 경험 다수. UI/UX에 관심이 많습니다."
+ *                           link:
+ *                             type: string
+ *                             nullable: true
+ *                             example: "https://github.com/chulsoo123"
+ *                           created_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-07-26T14:00:00Z"
+ *                           updated_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: "2024-07-26T14:00:00Z"
+ *                           keywords:
+ *                             type: array
+ *                             items:
+ *                               type: string
+ *                             example: ["Node.js", "Express", "Prisma"]
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         hasMore:
+ *                           type: boolean
+ *                           example: true
+ *                         nextCursorId:
+ *                           type: string
+ *                           nullable: true
+ *                           example: "1234567890123456780" # 다음 페이지 조회를 위한 커서
+ *       400:
+ *         $ref: '#/components/schemas/BadRequestError'
+ *       401:
+ *         $ref: '#/components/schemas/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/schemas/InternalServerError'
+ */
+router.get('/:service_id/cards', isAuthenticated, MypageController.getUserCards)
+
 export default router

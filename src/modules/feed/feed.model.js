@@ -148,6 +148,75 @@ class Feed {
             throw error;
         }
     }
+
+    // 특정 사용자가 작성한 피드만 조회
+    static async findFeedsByServiceId(serviceId, limit = 10, cursor = null) {
+        try {
+            const whereClause = {
+                service_id: serviceId
+            }
+
+            if (cursor) {
+                whereClause.id = { lt: cursor } // 다음 페이지를 위한 cursor 기반 페이징
+            }
+
+            const feeds = await prisma.feed.findMany({
+                where: whereClause,
+                take: limit,
+                orderBy: {
+                    id: 'desc', // 최신 피드가 먼저 오도록 내림차순 정렬
+                },
+                include: {
+                    service: {
+                        select: {
+                            id: true,
+                            name: true,
+                            profile_img: true,
+                        },
+                    },
+                    FeedImage: {
+                        select: { image_url: true },
+                        orderBy: { id: 'asc' }, // 이미지 순서 보장
+                    },
+                    feedHearts: {
+                        select: { id: true }, // 좋아요 수 카운트용
+                    },
+                    _count: {
+                        select: { FeedComment: true, feedHearts: true },
+                    },
+                },
+            })
+
+            // 현재 사용자가 해당 피드에 '좋아요'를 눌렀는지 여부 판단 (추가 기능이라면)
+            // 현재 로그인한 사용자의 serviceId를 받아와서 is_liked 필드를 추가할 수 있습니다.
+            // 여기서는 일반 조회이므로 is_liked 로직은 빼거나, MypageService에서 처리하도록 합니다.
+
+            const processedFeeds = feeds.map((feed) => {
+                const imageUrls = feed.FeedImage.map((img) => img.image_url)
+                return {
+                    feed_id: feed.id,
+                    user: {
+                        id: feed.service.id,
+                        name: feed.service.name,
+                        sector: feed.service.sector,
+                        profile_img: feed.service.profile_img,
+                    },
+                    created_at: feed.created_at,
+                    images: imageUrls,
+                    feed_text: feed.feed_text,
+                    hashtags: feed.hashtag,
+                    heart: feed._count.feedHearts,
+                    // is_liked: false, // 로그인 사용자의 좋아요 여부는 로그인 사용자 serviceId가 필요함
+                    comment_count: feed._count.FeedComment,
+                }
+            })
+
+            return convertBigIntsToNumbers(processedFeeds)
+        } catch (error) {
+            console.error('사용자 피드 조회 중 오류:', error)
+            throw error
+        }
+    }
 }
 
 export default Feed;
