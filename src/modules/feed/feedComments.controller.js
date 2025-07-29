@@ -53,7 +53,7 @@ class CommentController {
                     feeds,
                     pagination: {
                         hasMore,
-                        nextCursorId
+                        next_cursor: nextCursorId
                     }
                 }
             });

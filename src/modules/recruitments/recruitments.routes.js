@@ -27,10 +27,10 @@ const router = express.Router()
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: 대분류 분야 (예- 개발 / 엔지니어링)
+ *                 description: 대분류 분야 (예- 개발/엔지니어링)
  *                 example:
- *                   - 개발 / 엔지니어링
- *                   - 개발 / 엔지니어링
+ *                   - 개발/엔지니어링
+ *                   - 개발/엔지니어링
  *               low_sector:
  *                 type: array
  *                 items:
@@ -140,7 +140,7 @@ router.post('/', isAuthenticated, recruitmentController.createRecruitment)
  *         schema:
  *           type: string
  *         description: 대분류 분야 (예- 개발)
- *         example: "개발 / 엔지니어링"
+ *         example: "개발/엔지니어링"
  *       - in: query
  *         name: lowSector
  *         required: false
