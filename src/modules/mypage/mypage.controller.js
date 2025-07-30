@@ -56,7 +56,7 @@ class MypageController {
             next(error)
         }
     }
-    
+
     // PUT /api/mypage/:userId/recruiting_status 요청을 처리하여 사용자 서비스의 recruiting_status를 업데이트
     static async updateRecruitingStatus(req, res, next) {
         try {
@@ -83,7 +83,7 @@ class MypageController {
             return res.success({
                 code: 200,
                 message: '서비스 모집 상태가 성공적으로 수정되었습니다.',
-                result: result, 
+                result: result,
             });
         } catch (error) {
             next(error)
@@ -93,6 +93,7 @@ class MypageController {
     static async getUserFeeds(req, res, next) {
         try {
             const { service_id } = req.params
+            const authenticatedUserId = req.user.service_id
             const limit = parseInt(req.query.limit) || 10
             const cursor = req.query.cursor ? BigInt(req.query.cursor) : null
 
@@ -100,7 +101,7 @@ class MypageController {
                 throw new BadRequestError({ field: 'service_id', message: '유효한 서비스 ID가 필요합니다.' })
             }
 
-            const feeds = await MypageService.getUserFeeds(BigInt(service_id), limit, cursor)
+            const feeds = await MypageService.getUserFeeds(BigInt(service_id), authenticatedUserId, limit, cursor)
 
             return res.success({
                 code: 200,

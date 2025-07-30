@@ -167,7 +167,7 @@ const recruitmentService = {
             throw error;
         }
     },
-    getOneRecruitment: async (recruitmentId) => {
+    getOneRecruitment: async (recruitmentId, serviceId) => {
         try {
             const findOneRecruimentQueryOptions = {
                 where: {
@@ -202,7 +202,7 @@ const recruitmentService = {
                     id: true
                 }
             }
-            const isSubscribed = await prisma.SubscribedNotice.findFirst(isSubscribedQueryOptions);
+            const isSubscribed = await prisma.SubscribedNotice.findUnique(isSubscribedQueryOptions);
             const recruiment = await prisma.RecruitingNotice.findUnique(findOneRecruimentQueryOptions);
             if (!recruiment) {
                 throw new NotFoundError({

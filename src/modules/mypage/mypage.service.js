@@ -99,17 +99,17 @@ class MypageService {
             if (error instanceof CustomError) {
                 throw error
             }
-            if (error.code === 'P2025') { 
+            if (error.code === 'P2025') {
                 throw new NotFoundError('서비스를 찾을 수 없습니다.')
             }
             throw new InternalServerError({ message: '유저 상태를 수정하는 중 서버 오류가 발생했습니다.', originalError: error.message })
         }
     }
 
-    static async getUserFeeds(serviceId, limit, cursor) {
+    static async getUserFeeds(serviceId, authenticatedUserId, limit, cursor) {
         try {
             // FeedModel에서 특정 service_id를 가진 피드를 조회하는 메서드 필요
-            const feeds = await FeedModel.findFeedsByServiceId(serviceId, limit, cursor)
+            const feeds = await FeedModel.findFeedsByServiceId(serviceId, authenticatedUserId, limit, cursor)
 
             // 필요한 경우 데이터 변환 (BigInt -> Number)
             // return convertBigIntsToNumbers(feeds);

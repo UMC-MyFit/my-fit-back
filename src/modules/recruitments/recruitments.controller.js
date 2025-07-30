@@ -50,7 +50,8 @@ const recruitmentController = {
     getOneRecruitment: async (req, res, next) => {
         try {
             const recruitmentId = req.params.recruitmentId;
-            const recruitment = await recruitmentService.getOneRecruitment(recruitmentId)
+            const serviceId = req.user.service_id
+            const recruitment = await recruitmentService.getOneRecruitment(recruitmentId, serviceId)
             res.success({
                 code: 200,
                 message: '구인 공고 조회 성공',

@@ -443,7 +443,7 @@ router.get('/subscribe', isAuthenticated, subscriptionController.getSubscribedRe
  *                   example: "서버 오류 발생"
  */
 
-router.get('/:recruitmentId', recruitmentController.getOneRecruitment)
+router.get('/:recruitmentId', isAuthenticated, recruitmentController.getOneRecruitment)
 
 // DELETE /api/recruitments/:recruitmentId
 /**

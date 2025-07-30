@@ -151,7 +151,7 @@ class Feed {
     }
 
     // 특정 사용자가 작성한 피드만 조회
-    static async findFeedsByServiceId(serviceId, limit = 10, cursor = null) {
+    static async findFeedsByServiceId(serviceId, authenticatedUserId, limit = 10, cursor = null) {
         try {
             const whereClause = {
                 service_id: serviceId
@@ -180,7 +180,7 @@ class Feed {
                         orderBy: { id: 'asc' }, // 이미지 순서 보장
                     },
                     feedHearts: {
-                        select: { id: true }, // 좋아요 수 카운트용
+                        select: { id: true, service_id: true }, // 좋아요 수 카운트용
                     },
                     _count: {
                         select: { FeedComment: true, feedHearts: true },
@@ -191,11 +191,10 @@ class Feed {
             // 현재 사용자가 해당 피드에 '좋아요'를 눌렀는지 여부 판단 (추가 기능이라면)
             // 현재 로그인한 사용자의 serviceId를 받아와서 is_liked 필드를 추가할 수 있습니다.
             // 여기서는 일반 조회이므로 is_liked 로직은 빼거나, MypageService에서 처리하도록 합니다.
-
             const processedFeeds = feeds.map((feed) => {
                 const imageUrls = feed.FeedImage.map((img) => img.image_url)
                 const is_liked = feed.feedHearts.some(
-                    (heart) => heart.service_id === BigInt(serviceId)
+                    (heart) => heart.service_id === BigInt(authenticatedUserId)
                 );
                 return {
                     feed_id: feed.id,
