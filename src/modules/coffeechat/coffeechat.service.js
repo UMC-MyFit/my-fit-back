@@ -132,7 +132,7 @@ const coffeechatService = {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
                 detail_message: `${senderService.name}님이 커피챗 요청을 수락하였습니다!`,
-                type: 'SYSTEM'
+                type: 'COFFEECHAT'
             }
         })
 
@@ -197,7 +197,8 @@ const coffeechatService = {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
                 detail_message: `${senderService.name}님이 커피챗 요청을 거절하였습니다!`,
-                type: 'SYSTEM'
+                type: 'COFFEECHAT',
+                coffeechat_id: BigInt(coffeechat_id)
             }
         })
 
@@ -248,6 +249,40 @@ const coffeechatService = {
             }
         })
 
+        const senderService = await prisma.service.findUnique({
+            where: { id: BigInt(senderId) }
+        })
+
+        const systemMessage = await prisma.message.create({
+            data: {
+                chat_id: BigInt(chattingRoomId),
+                sender_id: BigInt(senderId),
+                detail_message: `${senderService.name}님이 커피챗 요청을 수정하였습니다.`,
+                type: 'COFFEECHAT',
+                coffeechat_id: BigInt(coffeechat_id)
+            }
+        })
+
+        // Redis 캐시 추가
+        try {
+            if (!redisClient.isOpen) {
+                await redisClient.connect()
+            }
+            const redisKey = `chat:room:${chattingRoomId}`
+            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
+            await redisClient.lTrim(redisKey, -20, -1)
+        } catch (error) {
+            console.log('Redis 저장 실패:', error)
+        }
+
+        // 소켓 전송
+        try {
+            const safeMsg = convertBigIntsToNumbers(systemMessage)
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+        } catch (error) {
+            console.log('소켓 전송 실패:', error)
+        }
+
         return {
             coffeechat_id: Number(updated.id),
             title: updated.title,
@@ -288,7 +323,8 @@ const coffeechatService = {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(serviceId),
                 detail_message: `${senderService.name}님이 커피챗 요청을 취소하였습니다.`,
-                type: 'SYSTEM'
+                type: 'SYSTEM',
+                coffeechat_id: BigInt(coffeechat_id)
             },
         })
 
