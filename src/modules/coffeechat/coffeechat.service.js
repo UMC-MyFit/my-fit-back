@@ -60,7 +60,8 @@ const coffeechatService = {
                     chat_id: BigInt(chattingRoomId),
                     sender_id: BigInt(senderId),
                     detail_message: '커피챗 요청이 도착했습니다.',
-                    type: 'COFFEECHAT'
+                    type: 'COFFEECHAT',
+                    coffeechat_id: newCoffeeChat.id
                 }
             })
             console.log('메시지 생성 완료')
@@ -97,11 +98,11 @@ const coffeechatService = {
         }
     },
 
-    acceptCoffeechat: async ({ chattingRoomId, coffeechatId, senderId }) => {
+    acceptCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId }) => {
 
         // 1. 커피챗 존재 확인
         const coffeechat = await prisma.coffeeChat.findUnique({
-            where: { id: BigInt(coffeechatId) }
+            where: { id: BigInt(coffeechat_id) }
         })
         if (!coffeechat) {
             throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
@@ -118,7 +119,7 @@ const coffeechatService = {
 
         // 3. 상태 업데이트
         await prisma.coffeeChat.update({
-            where: { id: BigInt(coffeechatId) },
+            where: { id: BigInt(coffeechat_id) },
             data: { status: 'ACCEPTED' }
         })
 
@@ -157,16 +158,16 @@ const coffeechatService = {
         }
 
         return {
-            coffeechat_id: Number(coffeechatId),
+            coffeechat_id: Number(coffeechat_id),
             status: 'ACCEPTED'
         }
     },
 
-    rejectCoffeechat: async ({ chattingRoomId, coffeechatId, senderId }) => {
+    rejectCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId }) => {
 
         // 1. 커피챗 존재 확인
         const coffeechat = await prisma.coffeeChat.findUnique({
-            where: { id: BigInt(coffeechatId) }
+            where: { id: BigInt(coffeechat_id) }
         })
         if (!coffeechat) {
             throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
@@ -183,7 +184,7 @@ const coffeechatService = {
 
         // 3. 상태 업데이트
         await prisma.coffeeChat.update({
-            where: { id: BigInt(coffeechatId) },
+            where: { id: BigInt(coffeechat_id) },
             data: { status: 'REJECTED' }
         })
 
@@ -222,14 +223,14 @@ const coffeechatService = {
         }
 
         return {
-            coffeechat_id: Number(coffeechatId),
+            coffeechat_id: Number(coffeechat_id),
             status: 'REJECTED'
         }
     },
-    updateCoffeechat: async ({ chattingRoomId, coffeechatId, senderId, title, scheduled_at, place }) => {
+    updateCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId, title, scheduled_at, place }) => {
 
         const coffeechat = await prisma.coffeeChat.findUnique({
-            where: { id: BigInt(coffeechatId) }
+            where: { id: BigInt(coffeechat_id) }
         })
         if (!coffeechat) {
             throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
@@ -239,7 +240,7 @@ const coffeechatService = {
         }
 
         const updated = await prisma.coffeeChat.update({
-            where: { id: BigInt(coffeechatId) },
+            where: { id: BigInt(coffeechat_id) },
             data: {
                 title,
                 scheduled_at: new Date(scheduled_at),
@@ -254,10 +255,10 @@ const coffeechatService = {
             place: updated.place
         }
     },
-    cancelCoffeechat: async ({ chattingRoomId, coffeechatId, serviceId }) => {
+    cancelCoffeechat: async ({ chattingRoomId, coffeechat_id, serviceId }) => {
 
         const coffeechat = await prisma.coffeeChat.findUnique({
-            where: { id: BigInt(coffeechatId) }
+            where: { id: BigInt(coffeechat_id) }
         })
         if (!coffeechat) {
             throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
@@ -273,7 +274,7 @@ const coffeechatService = {
 
         // 1. 상태 업데이트
         await prisma.coffeeChat.update({
-            where: { id: BigInt(coffeechatId) },
+            where: { id: BigInt(coffeechat_id) },
             data: { status: 'CANCELED' },
         })
 
@@ -314,7 +315,7 @@ const coffeechatService = {
         }
 
         return {
-            coffeechat_id: Number(coffeechatId),
+            coffeechat_id: Number(coffeechat_id),
             status: 'CANCELED',
         }
     },
