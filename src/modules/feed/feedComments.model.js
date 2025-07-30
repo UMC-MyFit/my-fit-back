@@ -26,6 +26,7 @@ class Comment {
         try {
             const baseCommentQueryOptions = {
                 where: {
+                    feed_id: BigInt(feedId),
                     high_comment_id: null,
                 },
                 select: {

@@ -255,7 +255,7 @@ const recruitmentService = {
             throw error
         }
     },
-    getTotalPage: async (highSector = null, lowSector = null, limit = 10) => {
+    getTotalPage: async (highSector = null, lowSector = null, subscribeServiceId = null, limit = 10) => {
         try {
             const totalCount = await prisma.RecruitingNotice.count({
                 where: {
@@ -264,6 +264,11 @@ const recruitmentService = {
                     },
                     low_sector: {
                         contains: lowSector !== null ? String(lowSector) : undefined
+                    },
+                    subscribedNotices: {
+                        some: {
+                            service_id: subscribeServiceId !== null ? BigInt(subscribeServiceId) : undefined
+                        }
                     }
                 }
             });
