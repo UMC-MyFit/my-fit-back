@@ -4,14 +4,10 @@ const prisma = new PrismaClient();
 
 export const validateChattingRoomParticipant = async (req, res, next) => {
     try {
-        console.log('req.params:', req.params);
-        console.log('req.body:', req.body);
-        console.log('req.url:', req.url);
         const rawId = req.params.chattingRoomId || req.body.chatting_room_id;
         if (!rawId) {
             throw new BadRequestError("chattingRoomId가 전달되지 않았습니다.");
         }
-        console.log('typeof rawId:', typeof rawId, 'value:', rawId);
 
         const chattingRoomId = BigInt(rawId);
         const serviceId = BigInt(req.user.service_id);
