@@ -37,7 +37,7 @@ class Comment {
                         select: {
                             id: true,
                             name: true,
-                            sector: true,
+                            high_sector: true,
                             profile_img: true
                         }
                     }
@@ -70,7 +70,7 @@ class Comment {
                             select: {
                                 id: true,
                                 name: true,
-                                sector: true,
+                                high_sector: true,
                                 profile_img: true
                             }
                         }
