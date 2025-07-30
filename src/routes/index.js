@@ -13,6 +13,7 @@ import chattingRouter from '../modules/chatting/chatting.routes.js'
 import coffeechatRouter from '../modules/coffeechat/coffeechat.routes.js'
 import relationshipsRouter from '../modules/relationships/relationships.routes.js'
 import settingRouter from '../modules/mypage/setting/setting.routes.js'
+import feedSearchRouter from '../modules/feed/search/feedSearch.routes.js'
 const router = express.Router()
 
 // 회원가입
@@ -23,6 +24,9 @@ router.use('/users', loginRouter)
 
 // 피드, 댓글
 router.use('/feeds', feedsRouter)
+
+// 피드 검색
+router.use('/feeds/search', feedSearchRouter)
 
 // 이력/활동 카드
 router.use('/cards', cardsRouter)

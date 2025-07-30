@@ -1,5 +1,5 @@
 import Search from './feedSearch.model.js'
-import { InternalServerError, NotFoundError, BadRequestError } from '../../middlewares/error.js';
+import { InternalServerError, NotFoundError, BadRequestError } from '../../../middlewares/error.js';
 
 class FeedSearchService {
     async searchProfile(name, lastProfileId, limit = 10) {
@@ -8,7 +8,7 @@ class FeedSearchService {
                 throw new BadRequestError({ message: '검색어는 필수입니다.' });
             }
 
-            const users = await Search.searchProfile(name, lastProfileId, limit);
+            const users = await Search.searchUsers(name, lastProfileId, limit);
 
             if (users.length === 0) {
                 throw new NotFoundError({ message: '검색 결과가 없습니다.' });

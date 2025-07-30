@@ -1,5 +1,5 @@
 import FeedSearchService from './feedSearch.service.js';
-import { BadRequestError, NotFoundError } from '../../middlewares/error.js';
+import { BadRequestError, NotFoundError } from '../../../middlewares/error.js';
 
 class FeedSearchController {
     async searchProfile(req, res, next) {
@@ -23,8 +23,8 @@ class FeedSearchController {
                 result: {
                     users,
                     pagination: {
-                        hasMore,
-                        nextCursorId
+                        has_next: hasMore,
+                        next_cursor: nextCursorId
                     }
                 }
             });

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js';
-import { NotFoundError, InternalServerError } from '../../middlewares/error.js';
+import { convertBigIntsToNumbers } from '../../../libs/dataTransformer.js';
+import { NotFoundError, InternalServerError } from '../../../middlewares/error.js';
 
 const prisma = new PrismaClient();
 
@@ -9,10 +9,8 @@ class Search {
         try {
             const searchQuery = {
                 where: {
-                    id: BigInt(serviceId),
                     name: {
                         contains: name,
-                        mode: 'insensitive'
                     }
                 },
                 select: {
@@ -20,7 +18,6 @@ class Search {
                     name: true,
                     low_sector: true,
                     profile_img: true
-                    // 나이를 어떻게 하지... 하...
                 },
                 orderBy: {
                     id: 'desc'
@@ -28,8 +25,8 @@ class Search {
                 take: limit,
             };
 
-            if (lastFeedId !== null) {
-                queryOptions.cursor = { id: BigInt(lastFeedId) };
+            if (lastProfileId !== null) {
+                queryOptions.cursor = { id: BigInt(lastProfileId) };
                 queryOptions.skip = 1;
             }
 
