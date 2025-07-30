@@ -28,7 +28,7 @@ const recruitmentController = {
             const pageNumber = req.query.page ? parseInt(req.query.page) : 1;
             const [recruitments, totalPage] = await Promise.all([
                 recruitmentService.getAllRecruitment(highSector, lowSector, pageNumber, limit),
-                recruitmentService.getTotalPage(highSector, lowSector, limit)
+                recruitmentService.getTotalPage(highSector, lowSector, null, limit)
             ]);
 
             res.success({

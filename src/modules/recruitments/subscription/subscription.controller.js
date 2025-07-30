@@ -45,7 +45,7 @@ class SubscriptionController {
             const pageNumber = req.query.page ? parseInt(req.query.page) : 1;
             const [subscribedRecruitments, totalPageNumber] = await Promise.all([
                 subscriptionService.getSubscribedRecruitments(serviceId, pageNumber, limit),
-                recruitmentService.getTotalPage(null, null, limit)
+                recruitmentService.getTotalPage(null, null, serviceId, limit)
             ]);
             res.success({
                 code: 200,
