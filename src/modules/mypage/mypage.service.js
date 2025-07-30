@@ -5,14 +5,12 @@ import { NotFoundError, InternalServerError, BadRequestError, CustomError } from
 
 class MypageService {
     /**
-     * @param {string} userId - 조회할 사용자의 ID (문자열 형태, BigInt로 변환 필요)
+     * @param {string} serviceId - 조회할 사용자의 서비스 ID (문자열 형태, BigInt로 변환 필요)
      * @returns {Promise<Object>} 사용자 프로필 정보 객체
-     * @throws {NotFoundError} 사용자를 찾을 수 없을 경우
-     * @throws {InternalServerError} 기타 예상치 못한 서버 오류 발생 시
      */
-    static async getUserProfileInfo(userId) {
+    static async getUserProfileInfo(serviceId) {
         try {
-            const userProfile = await MypageModel.findUserProfileById(BigInt(userId))
+            const userProfile = await MypageModel.findUserProfileById(BigInt(serviceId))
 
             if (!userProfile) {
                 throw new NotFoundError('사용자 프로필을 찾을 수 없습니다.')
@@ -24,7 +22,6 @@ class MypageService {
             return userProfile
         } catch (error) {
             console.error('MypageService - 사용자 프로필 조회 서비스 오류:', error)
-            // 이미 커스텀 에러라면 그대로 던지고, 아니면 InternalServerError로 변환
             if (error instanceof NotFoundError) {
                 throw error
             }
@@ -33,32 +30,22 @@ class MypageService {
     }
 
     /**
-     * @param {string} userId - 프로필 사진을 수정할 사용자의 ID
+     * @param {string} serviceId - 프로필 사진을 수정할 사용자의 ID
      * @param {string} profileImgUrl - 새로운 프로필 사진 URL
      * @returns {Promise<Object>} 업데이트된 사용자 프로필 정보
-     * @throws {NotFoundError}
-     * @throws {InternalServerError}
      */
-    static async updateProfilePicture(userId, profileImgUrl) {
+    static async updateProfilePicture(serviceId, profileImgUrl) {
         try {
             // 1. 사용자 존재 여부 확인
-            const existingUser = await MypageModel.findUserProfileById(BigInt(userId))
+            const existingUser = await MypageModel.findUserProfileById(BigInt(serviceId))
 
             if (!existingUser) {
                 throw new NotFoundError('사용자를 찾을 수 없습니다.');
             }
 
             // 2. 프로필 사진 업데이트
-            const updateUser = await MypageModel.updateProfilePicture(BigInt(userId), profileImgUrl)
-
-            if (!updateUser) {
-                throw new InternalServerError({ message: '프로필 사진 업데이트에 실패했습니다.' })
-            }
-
-            return {
-                user_id: updateUser.user_id,
-                profile_img: updateUser.profile_img,
-            }
+            const updated = await MypageModel.updateProfilePicture(BigInt(serviceId), profileImgUrl)
+            return updated
         } catch (error) {
             console.error('MypageService - 프로필 사진 업데이트 서비스 오류:', error)
             if (error instanceof CustomError) {

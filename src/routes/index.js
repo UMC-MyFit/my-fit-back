@@ -12,6 +12,7 @@ import mypageRouter from '../modules/mypage/mypage.routes.js'
 import chattingRouter from '../modules/chatting/chatting.routes.js'
 import coffeechatRouter from '../modules/coffeechat/coffeechat.routes.js'
 import relationshipsRouter from '../modules/relationships/relationships.routes.js'
+import settingRouter from '../modules/mypage/setting/setting.routes.js'
 const router = express.Router()
 
 // 회원가입
@@ -43,5 +44,8 @@ router.use('/chatting-rooms', coffeechatRouter)
 
 // 관계 설정 (관심, 네트워크, 차단 등)
 router.use('/relationships', relationshipsRouter)
+
+// 마이페이지 설정
+router.use('/settings', settingRouter)
 
 export default router
