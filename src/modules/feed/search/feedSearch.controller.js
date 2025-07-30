@@ -33,6 +33,31 @@ class FeedSearchController {
             next(error);
         }
     }
+    async searchFeedsByKeyword(req, res, next) {
+        try {
+            const limit = 100;
+            const { keyword } = req.query;
+            const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
+            const feeds = await FeedSearchService.searchFeedsByKeyword(keyword, lastFeedId, limit);
+            const hasMore = feeds.length === limit;
+            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].id : null;
+
+            return res.success({
+                code: 200,
+                message: '키워드로 피드 검색 결과를 성공적으로 조회했습니다.',
+                result: {
+                    feeds,
+                    pagination: {
+                        has_next: hasMore,
+                        next_cursor: nextCursorId
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('키워드로 피드 검색 중 오류:', error);
+            next(error);
+        }
+    }
 }
 
 export default new FeedSearchController();

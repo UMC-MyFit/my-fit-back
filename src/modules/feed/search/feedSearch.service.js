@@ -23,6 +23,28 @@ class FeedSearchService {
             throw new InternalServerError({ originalError: error.message });
         }
     }
+    async searchFeedsByKeyword(keyword, lastFeedId, limit = 100) {
+        try {
+            if (!keyword || typeof keyword !== 'string') {
+                throw new BadRequestError({ message: '검색어는 필수입니다.' });
+            }
+
+            const feeds = await Search.searchFeedsByKeyword(keyword, lastFeedId, limit);
+
+            if (feeds.length === 0) {
+                throw new NotFoundError({ message: '검색 결과가 없습니다.' });
+            }
+
+            return feeds;
+        } catch (error) {
+            console.error('피드 검색 오류:', error);
+            if (error instanceof NotFoundError || error instanceof BadRequestError) {
+                throw error;
+            }
+            throw new InternalServerError({ originalError: error.message });
+        }
+    }
+
 }
 
 export default new FeedSearchService();
