@@ -230,7 +230,7 @@ router.post('/:chattingRoomId/coffeechats', isAuthenticated, validateChattingRoo
 
 /**
  * @swagger
- * /api/chatting-rooms/{chattingRoomId}/coffeechats/{coffeechatId}/accept:
+ * /api/chatting-rooms/{chattingRoomId}/coffeechats/accept:
  *   patch:
  *     summary: 커피챗 요청 수락
  *     description: 커피챗 요청을 수락하고 메시지를 전송합니다. PENDING 상태일 때만 수락할 수 있습니다.
@@ -243,12 +243,18 @@ router.post('/:chattingRoomId/coffeechats', isAuthenticated, validateChattingRoo
  *         description: 채팅방 ID
  *         schema:
  *           type: integer
- *       - in: path
- *         name: coffeechatId
- *         required: true
- *         description: 커피챗 ID
- *         schema:
- *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - coffeechat_id
+ *             properties:
+ *               coffeechat_id:
+ *                 type: integer
+ *                 example: 123
  *     responses:
  *       200:
  *         description: 커피챗 수락 성공
@@ -313,11 +319,11 @@ router.post('/:chattingRoomId/coffeechats', isAuthenticated, validateChattingRoo
  */
 
 // 커피챗 수락
-router.patch('/:chattingRoomId/coffeechats/:coffeechatId/accept', isAuthenticated, validateChattingRoomParticipant, coffeechatController.acceptCoffeechat)
+router.patch('/:chattingRoomId/coffeechats/accept', isAuthenticated, validateChattingRoomParticipant, coffeechatController.acceptCoffeechat)
 
 /**
  * @swagger
- * /api/chatting-rooms/{chattingRoomId}/coffeechats/{coffeechatId}/reject:
+ * /api/chatting-rooms/{chattingRoomId}/coffeechats/reject:
  *   patch:
  *     summary: 커피챗 요청 거절
  *     description: 커피챗 요청을 거절하고 SYSTEM 메시지를 전송합니다. PENDING 상태일 때만 거절할 수 있습니다.
@@ -330,12 +336,18 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/accept', isAuthenticate
  *         description: 채팅방 ID
  *         schema:
  *           type: integer
- *       - in: path
- *         name: coffeechatId
- *         required: true
- *         description: 커피챗 ID
- *         schema:
- *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - coffeechat_id
+ *             properties:
+ *               coffeechat_id:
+ *                 type: integer
+ *                 example: 123
  *     responses:
  *       200:
  *         description: 커피챗 거절 성공
@@ -408,11 +420,11 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/accept', isAuthenticate
  */
 
 // 커피챗 거절
-router.patch('/:chattingRoomId/coffeechats/:coffeechatId/reject', isAuthenticated, validateChattingRoomParticipant, coffeechatController.rejectCoffeechat)
+router.patch('/:chattingRoomId/coffeechats/reject', isAuthenticated, validateChattingRoomParticipant, coffeechatController.rejectCoffeechat)
 
 /**
  * @swagger
- * /api/chatting-rooms/{chattingRoomId}/coffeechats/{coffeechatId}/update:
+ * /api/chatting-rooms/{chattingRoomId}/coffeechats/update:
  *   patch:
  *     summary: 커피챗 요청 수정
  *     description: 커피챗 요청자만 커피챗의 제목, 시간, 장소를 수정할 수 있습니다.
@@ -425,12 +437,6 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/reject', isAuthenticate
  *         description: 채팅방 ID
  *         schema:
  *           type: integer
- *       - in: path
- *         name: coffeechatId
- *         required: true
- *         description: 커피챗 ID
- *         schema:
- *           type: integer
  *     requestBody:
  *       required: true
  *       content:
@@ -438,6 +444,9 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/reject', isAuthenticate
  *           schema:
  *             type: object
  *             properties:
+ *               coffeechat_id:
+ *                 type: string
+ *                 example: 123
  *               title:
  *                 type: string
  *                 example: 만나서 이야기 나눠보고 싶어요!
@@ -511,11 +520,11 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/reject', isAuthenticate
  */
 
 // 커피챗 수정
-router.patch('/:chattingRoomId/coffeechats/:coffeechatId/update', isAuthenticated, validateChattingRoomParticipant, coffeechatController.updateCoffeechat)
+router.patch('/:chattingRoomId/coffeechats/update', isAuthenticated, validateChattingRoomParticipant, coffeechatController.updateCoffeechat)
 
 /**
  * @swagger
- * /api/chatting-rooms/{chattingRoomId}/coffeechats/{coffeechatId}/cancel:
+ * /api/chatting-rooms/{chattingRoomId}/coffeechats/cancel:
  *   patch:
  *     summary: 커피챗 요청 취소
  *     description: 커피챗 요청자 또는 수신자만 커피챗 요청을 취소할 수 있습니다. 모든 상태에서 취소할 수 있습니다.
@@ -528,12 +537,18 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/update', isAuthenticate
  *         description: 채팅방 ID
  *         schema:
  *           type: integer
- *       - in: path
- *         name: coffeechatId
- *         required: true
- *         description: 커피챗 ID
- *         schema:
- *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - coffeechat_id
+ *             properties:
+ *               coffeechat_id:
+ *                 type: integer
+ *                 example: 123
  *     responses:
  *       200:
  *         description: 커피챗 요청 취소 성공
@@ -595,7 +610,7 @@ router.patch('/:chattingRoomId/coffeechats/:coffeechatId/update', isAuthenticate
  */
 
 // 커피챗 취소
-router.patch('/:chattingRoomId/coffeechats/:coffeechatId/cancel', isAuthenticated, coffeechatController.cancelCoffeechat)
+router.patch('/:chattingRoomId/coffeechats/cancel', isAuthenticated, coffeechatController.cancelCoffeechat)
 
 /**
  * @swagger

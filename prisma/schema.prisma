@@ -337,6 +337,7 @@ model Message {
   detail_message String // 메시지 내용
   created_at     DateTime    @default(now()) // 전송 시간
   type           MessageType // 메시지 타입
+  coffeechat_id  BigInt? // 커피챗 메시지일 경우 커피챗 id
 
   // 관계
   chatRoom ChattingRoom @relation(fields: [chat_id], references: [id])

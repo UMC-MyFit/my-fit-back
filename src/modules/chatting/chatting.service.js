@@ -70,7 +70,6 @@ const chattingService = {
                 }
             }
         })
-        console.log('채팅방 생성:', newRoom)
         return convertBigIntsToNumbers(newRoom.id)
 
     },
@@ -96,6 +95,14 @@ const chattingService = {
         if (!isParticipant) {
             throw new BadRequestError('이 채팅방의 참여자가 아닙니다.')
         }
+
+        // 만약 is_visible이 false라면 true로 변경 (첫 메시지일 경우)
+        if (!chattingRoom.is_visible) {
+            await prisma.chattingRoom.update({
+                where: { id: BigInt(chattingRoomId) },
+                data: { is_visible: true }
+            })
+        }
         // 1. DB에 저장
         const message = await chattingModel.createMessage({
             chattingRoomId,
@@ -105,12 +112,10 @@ const chattingService = {
 
         })
 
-        console.log('DB에 저장 완료')
 
         // 2. Redis 캐시 (최근 메시지 목록 등)
         if (!redisClient.isOpen) {
             await redisClient.connect()
-            console.log('Redis 연결 완료')
         }
         const redisKey = `chat:room:${chattingRoomId}`
         const safeMessage = convertBigIntsToNumbers(message)
@@ -118,11 +123,9 @@ const chattingService = {
         // 최신 20개만 유지
         await redisClient.lTrim(redisKey, -20, -1)
 
-        console.log('Redis에 저장 완료')
 
         // 3. Socket.io로 해당 방에 전파 (emit은 socket.js에서 처리함)
         io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
-        console.log('소켓 emit 완료')
         return safeMessage
     },
     getMessages: async (chattingRoomId, cursor) => {
@@ -175,16 +178,16 @@ const chattingService = {
     },
     getChattingRooms: async (myServiceId, cursor) => {
         const take = 10 // 한 번에 10개씩
-        const whereClause = {
-            service_id: myServiceId,
-            ...(cursor && {
-                chat_id: { lt: cursor }, // cursor보다 작은 id만 조회
-            }),
-        }
 
         const chats = await prisma.chat.findMany({
-            where: whereClause,
-            orderBy: { chat_id: 'desc' }, // 최신 순
+            where: {
+                service_id: myServiceId,
+                chatRoom: {
+                    is_visible: true
+                },
+                ...(cursor && { chat_id: { lt: cursor } })
+            },
+            orderBy: { chat_id: 'desc' },
             take,
             include: {
                 chatRoom: {
@@ -194,9 +197,7 @@ const chattingService = {
                                 service: {
                                     include: {
                                         userDBs: {
-                                            include: {
-                                                user: true
-                                            }
+                                            include: { user: true }
                                         }
                                     }
                                 }
@@ -209,7 +210,7 @@ const chattingService = {
                     }
                 }
             }
-        })
+        });
         const myId = BigInt(myServiceId)
         const formatted = chats.map(chat => {
             const chatRoom = chat.chatRoom
