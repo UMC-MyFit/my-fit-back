@@ -191,6 +191,18 @@ const recruitmentService = {
                     }
                 }
             }
+            const isSubscribedQueryOptions = {
+                where: {
+                    service_recruiting_notice_id: {
+                        service_id: BigInt(serviceId),
+                        recruiting_notice_id: BigInt(recruitmentId)
+                    }
+                },
+                select: {
+                    id: true
+                }
+            }
+            const isSubscribed = await prisma.SubscribedNotice.findFirst(isSubscribedQueryOptions);
             const recruiment = await prisma.RecruitingNotice.findUnique(findOneRecruimentQueryOptions);
             if (!recruiment) {
                 throw new NotFoundError({
@@ -207,6 +219,7 @@ const recruitmentService = {
                 "work_type": recruiment.work_type,
                 "dead_line": recruiment.dead_line,
                 "recruiting_img": recruiment.recruiting_img,
+                "is_subscribed": isSubscribed ? true : false,
                 "writer": {
                     "id": recruiment.service.id,
                     "name": recruiment.service.name,

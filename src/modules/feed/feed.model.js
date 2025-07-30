@@ -194,6 +194,9 @@ class Feed {
 
             const processedFeeds = feeds.map((feed) => {
                 const imageUrls = feed.FeedImage.map((img) => img.image_url)
+                const is_liked = feed.feedHearts.some(
+                    (heart) => heart.service_id === BigInt(serviceId)
+                );
                 return {
                     feed_id: feed.id,
                     user: {
@@ -207,7 +210,7 @@ class Feed {
                     feed_text: feed.feed_text,
                     hashtags: feed.hashtag,
                     heart: feed._count.feedHearts,
-                    // is_liked: false, // 로그인 사용자의 좋아요 여부는 로그인 사용자 serviceId가 필요함
+                    is_liked: is_liked,
                     comment_count: feed._count.FeedComment,
                 }
             })
