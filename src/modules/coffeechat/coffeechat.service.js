@@ -404,7 +404,7 @@ const coffeechatService = {
                     name: opponent.name,
                     age: calcAge(opponent.userDBs[0]?.user.birth_date),
                     job: opponent.low_sector,
-                    profile_image: opponent.profile_img
+                    profile_img: opponent.profile_img
                 },
                 scheduled_at: chat.scheduled_at,
                 place: chat.place
@@ -467,7 +467,7 @@ const coffeechatService = {
                         name: opponent.name,
                         age: calcAge(opponent.userDBs[0]?.user.birth_date),
                         job: opponent.low_sector,
-                        profile_image: opponent.profile_img
+                        profile_img: opponent.profile_img
                     },
                     scheduled_at: chat.scheduled_at,
                     place: chat.place
@@ -495,6 +495,59 @@ const coffeechatService = {
         } catch (error) {
             console.error('커피챗 보관함 조회 실패:', error)
             throw error
+        }
+    },
+    getCoffeeChatDetail: async ({ chattingRoomId, coffeechatId, myServiceId }) => {
+        const coffeechat = await prisma.coffeeChat.findUnique({
+            where: { id: coffeechatId },
+            include: {
+                requester: {
+                    select: {
+                        id: true,
+                        name: true,
+                        profile_img: true
+                    }
+                },
+                receiver: {
+                    select: {
+                        id: true,
+                        name: true,
+                        profile_img: true
+                    }
+                }
+            }
+        })
+
+        if (!coffeechat) {
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+        }
+
+        if (
+            coffeechat.chat_id !== BigInt(chattingRoomId) ||
+            (coffeechat.requester_id !== BigInt(myServiceId) && coffeechat.receiver_id !== BigInt(myServiceId))
+        ) {
+            throw new UnauthorizedError('해당 커피챗에 접근할 권한이 없습니다.')
+        }
+
+        return {
+            coffeechat_id: Number(coffeechat.id),
+            chatting_room_id: Number(coffeechat.chat_id),
+            sender: {
+                id: Number(coffeechat.requester.id),
+                name: coffeechat.requester.name,
+                profile_img: coffeechat.requester.profile_img
+            },
+            receiver: {
+                id: Number(coffeechat.receiver.id),
+                name: coffeechat.receiver.name,
+                profile_img: coffeechat.receiver.profile_img
+            },
+            title: coffeechat.title,
+            place: coffeechat.place,
+            scheduled_at: coffeechat.scheduled_at,
+            status: coffeechat.status,
+            created_at: coffeechat.created_at,
+            accepted_at: coffeechat.accepted_at
         }
     }
 }

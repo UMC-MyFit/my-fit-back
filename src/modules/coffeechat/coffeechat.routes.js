@@ -83,6 +83,8 @@ const router = express.Router()
 // 커피챗 요청 미리보기 정보 조회
 router.get('/:chattingRoomId/coffeechats/preview', isAuthenticated, validateChattingRoomParticipant, coffeechatController.getCoffeeChatPreview)
 
+// 커피챗 상세 조회
+router.get('/:chattingRoomId/coffeechats/:coffeechatId', isAuthenticated, validateChattingRoomParticipant, coffeechatController.getCoffeeChatDetail)
 /**
  * @swagger
  * /api/chatting-rooms/{chattingRoomId}/coffeechats:

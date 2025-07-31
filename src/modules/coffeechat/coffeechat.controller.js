@@ -155,5 +155,25 @@ export const coffeechatController = {
         } catch (error) {
             next(error)
         }
+    },
+    getCoffeeChatDetail: async (req, res, next) => {
+        try {
+            const { chattingRoomId, coffeechatId } = req.params
+            const myServiceId = req.user.service_id
+
+            if (!chattingRoomId || !coffeechatId) {
+                throw new BadRequestError('채팅방 ID 혹은 커피챗 ID가 누락되었습니다.')
+            }
+
+            const result = await coffeechatService.getCoffeeChatDetail({ chattingRoomId, coffeechatId, myServiceId })
+
+            res.success({
+                code: 200,
+                message: '커피챗 상세 조회 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }
