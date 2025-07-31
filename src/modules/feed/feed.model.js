@@ -220,6 +220,29 @@ class Feed {
             throw error
         }
     }
+    static async uploadRecentHashtags(serviceId, hashtags) {
+        try {
+            const hashtagPromises = hashtags.map(async hashtag => {
+                const existingHashtag = await prisma.RecentHashtag.findFirst({
+                    where: {
+                        hashtag: hashtag,
+                    }
+                });
+                if (!existingHashtag) {
+                    await prisma.RecentHashtag.create({
+                        data: {
+                            hashtag: hashtag,
+                            service_id: BigInt(serviceId)
+                        }
+                    })
+                }
+            });
+            await Promise.all(hashtagPromises);
+        } catch (error) {
+            console.error('최근 해시태그 생성 중 오류:', error);
+            throw error;
+        }
+    }
 }
 
 export default Feed;

@@ -2,7 +2,7 @@ import Search from './feedSearch.model.js'
 import { InternalServerError, NotFoundError, BadRequestError } from '../../../middlewares/error.js';
 
 class FeedSearchService {
-    async searchProfile(name, lastProfileId, limit = 10) {
+    async searchProfile(name, lastProfileId, limit = 100) {
         try {
             if (!name || typeof name !== 'string') {
                 throw new BadRequestError({ message: '검색어는 필수입니다.' });

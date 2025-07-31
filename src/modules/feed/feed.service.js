@@ -7,8 +7,8 @@ import { listToString } from '../../libs/dataTransformer.js';
 class FeedService {
     async createFeed(feedData, serviceId) {
         try {
+            const uploadHashtagsPromises = Feed.uploadRecentHashtags(serviceId, feedData.hashtag);
             const processedHashtag = listToString(feedData.hashtag);
-
             const newFeedData = {
                 feed_text: feedData.feed_text,
                 hashtag: processedHashtag,
@@ -19,7 +19,7 @@ class FeedService {
             };
 
             const createdFeed = await Feed.create(newFeedData);
-
+            await uploadHashtagsPromises;
             return {
                 feed_id: createdFeed.id
             };
