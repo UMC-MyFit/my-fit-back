@@ -414,6 +414,86 @@ const coffeechatService = {
             next_cursor: nextCursor,
             has_next: !!nextCursor
         });
+    },
+    getCoffeeChatArchive: async (myServiceId, page) => {
+        const limit = 5
+        const skip = (page - 1) * limit
+        const now = new Date()
+
+        try {
+            const chats = await prisma.coffeeChat.findMany({
+                where: {
+                    status: 'ACCEPTED',
+                    scheduled_at: { lt: now },
+                    OR: [
+                        { requester_id: myServiceId },
+                        { receiver_id: myServiceId }
+                    ]
+                },
+                orderBy: {
+                    created_at: 'desc',
+                },
+                skip,
+                take: limit,
+                include: {
+                    requester: {
+                        include: {
+                            userDBs: {
+                                include: { user: true }
+                            }
+                        }
+                    },
+                    receiver: {
+                        include: {
+                            userDBs: {
+                                include: { user: true }
+                            }
+                        }
+                    }
+                }
+            })
+            console.log('목록 불러오기 성공')
+
+            const formatted = chats.map(chat => {
+                const isRequester = Number(chat.requester_id) === Number(myServiceId)
+                const opponent = isRequester ? chat.receiver : chat.requester
+
+                return {
+                    coffeechat_id: chat.id,
+                    opponent: {
+                        name: opponent.name,
+                        age: calcAge(opponent.userDBs[0]?.user.birth_date),
+                        job: opponent.low_sector,
+                        profile_image: opponent.profile_img
+                    },
+                    scheduled_at: chat.scheduled_at,
+                    place: chat.place
+                }
+            })
+
+            const totalCount = await prisma.coffeeChat.count({
+                where: {
+                    status: 'ACCEPTED',
+                    scheduled_at: { lt: now },
+                    OR: [
+                        { requester_id: myServiceId },
+                        { receiver_id: myServiceId },
+                    ],
+                },
+            })
+            console.log('totalCount 불러오기 성공')
+
+            const totalPages = Math.ceil(totalCount / limit)
+
+            return convertBigIntsToNumbers({
+                chats: formatted,
+                currentPage: page,
+                totalPages
+            })
+        } catch (error) {
+            console.error('커피챗 보관함 조회 실패:', error)
+            throw error
+        }
     }
 }
 

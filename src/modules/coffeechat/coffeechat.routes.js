@@ -718,4 +718,113 @@ router.patch('/:chattingRoomId/coffeechats/cancel', isAuthenticated, coffeechatC
 
 // 예정된 커피챗 조회
 router.get('/coffeechats', isAuthenticated, coffeechatController.getUpcomingCoffeechats)
+
+/**
+ * @swagger
+ * /api/chatting-rooms/coffeechats/archive:
+ *   get:
+ *     summary: 커피챗 보관함 조회
+ *     description: 과거에 진행된 커피챗을 페이지 단위로 조회합니다. (status가 ACCEPTED이고 scheduled_at이 과거인 커피챗만 포함)
+ *     tags: [CoffeeChat]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         required: true
+ *         description: 조회할 페이지 번호 (1부터 시작)
+ *     responses:
+ *       200:
+ *         description: 커피챗 보관함 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 커피챗 보관함 조회 성공
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     chats:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           coffeechat_id:
+ *                             type: integer
+ *                             example: 9
+ *                           opponent:
+ *                             type: object
+ *                             properties:
+ *                               name:
+ *                                 type: string
+ *                                 example: 이미뇽
+ *                               age:
+ *                                 type: integer
+ *                                 example: 24
+ *                               job:
+ *                                 type: string
+ *                                 example: 백엔드 개발자
+ *                               profile_image:
+ *                                 type: string
+ *                                 format: uri
+ *                                 example: https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/recruit/보노보노.jpeg
+ *                           scheduled_at:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2025-07-30T00:00:00.000Z
+ *                           place:
+ *                             type: string
+ *                             example: 공차 광운대점
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 1
+ *       401:
+ *         description: 로그인되지 않은 유저의 요청
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 401
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요한 요청입니다.
+ *       500:
+ *         description: 서버 내부 오류 발생
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: integer
+ *                   example: 500
+ *                 message:
+ *                   type: string
+ *                   example: 서버 내부 오류 발생
+ */
+
+// 커피챗 보관함
+router.get('/coffeechats/archive', isAuthenticated, coffeechatController.getCoffeeChatArchive)
 export default router
