@@ -139,5 +139,21 @@ export const coffeechatController = {
         } catch (error) {
             next(error)
         }
+    },
+    getCoffeeChatArchive: async (req, res, next) => {
+        try {
+            const myServiceId = req.user.service_id
+            const page = parseInt(req.query.page) || 1
+
+            const result = await coffeechatService.getCoffeeChatArchive(myServiceId, page)
+
+            res.success({
+                code: 200,
+                message: '커피챗 보관함 조회 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }

@@ -1,6 +1,7 @@
 import express from 'express'
 import chattingController from './chatting.controller.js'
 import { isAuthenticated } from '../../middlewares/auth.js'
+import { validateChattingRoomParticipant } from '../../middlewares/validateParticipant.js'
 const router = express.Router()
 
 /**
@@ -144,7 +145,7 @@ router.post('/check-or-create', isAuthenticated, chattingController.checkOrCreat
  */
 // 메시지 전송
 router.post(
-    '/:chattingRoomId/messages', isAuthenticated, chattingController.sendMessage
+    '/:chattingRoomId/messages', isAuthenticated, validateChattingRoomParticipant, chattingController.sendMessage
 )
 
 /**
@@ -187,7 +188,7 @@ router.post(
  *               has_next: true
  */
 // 메시지 조회
-router.get('/:chattingRoomId/messages', isAuthenticated, chattingController.getMessages)
+router.get('/:chattingRoomId/messages', isAuthenticated, validateChattingRoomParticipant, chattingController.getMessages)
 
 
 export default router
