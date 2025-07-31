@@ -50,7 +50,8 @@ const coffeechatService = {
                     receiver_id: BigInt(receiver_id),
                     title,
                     scheduled_at: new Date(scheduled_at),
-                    place
+                    place,
+                    chatting_room_id: chattingRoomId
                 }
             })
 
@@ -397,6 +398,7 @@ const coffeechatService = {
 
             return {
                 coffeechat_id: chat.id,
+                chatting_room_id: chat.chat_id,
                 opponent: {
                     name: opponent.name,
                     age: calcAge(opponent.userDBs[0]?.user.birth_date),
@@ -452,7 +454,6 @@ const coffeechatService = {
                     }
                 }
             })
-            console.log('목록 불러오기 성공')
 
             const formatted = chats.map(chat => {
                 const isRequester = Number(chat.requester_id) === Number(myServiceId)
@@ -460,6 +461,7 @@ const coffeechatService = {
 
                 return {
                     coffeechat_id: chat.id,
+                    chatting_room_id: chat.chat_id,
                     opponent: {
                         name: opponent.name,
                         age: calcAge(opponent.userDBs[0]?.user.birth_date),
@@ -481,7 +483,6 @@ const coffeechatService = {
                     ],
                 },
             })
-            console.log('totalCount 불러오기 성공')
 
             const totalPages = Math.ceil(totalCount / limit)
 

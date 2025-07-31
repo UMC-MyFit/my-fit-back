@@ -616,7 +616,7 @@ router.patch('/:chattingRoomId/coffeechats/cancel', isAuthenticated, coffeechatC
  * @swagger
  * /api/chatting-rooms/coffeechats:
  *   get:
- *     summary: 예정된 커피챗 목록 조회 (무한 스크롤)
+ *     summary: 예정된 커피챗 목록 조회
  *     tags: [CoffeeChat]
  *     description: 로그인된 사용자의 예정된 커피챗 목록을 조회합니다.
  *     parameters:
@@ -651,6 +651,9 @@ router.patch('/:chattingRoomId/coffeechats/cancel', isAuthenticated, coffeechatC
  *                         type: object
  *                         properties:
  *                           coffeechat_id:
+ *                             type: integer
+ *                             example: 4
+ *                           chatting_room_id:
  *                             type: integer
  *                             example: 4
  *                           opponent:
@@ -762,6 +765,9 @@ router.get('/coffeechats', isAuthenticated, coffeechatController.getUpcomingCoff
  *                           coffeechat_id:
  *                             type: integer
  *                             example: 9
+*                           chatting_room_id:
+ *                             type: integer
+ *                             example: 4
  *                           opponent:
  *                             type: object
  *                             properties:
