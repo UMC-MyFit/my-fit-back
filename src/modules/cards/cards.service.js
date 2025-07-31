@@ -105,7 +105,7 @@ const cardsService = {
             writer: {
                 id: card.service.id,
                 name: card.service.name,
-                sector: card.service.sector,
+                sector: card.service.low_sector,
                 profile_img_url: card.service.profile_img,
             },
         }
@@ -133,7 +133,9 @@ const cardsService = {
                 whereClause.service = {
                     userAreas: {
                         some: {
-                            high_area_id: parseInt(area),
+                            high_area: {
+                                equals: area,
+                            }
                         },
                     },
                 }
@@ -210,7 +212,7 @@ const cardsService = {
                     service_id: { in: serviceIds },
                     ...(hope_job && {
                         service: {
-                            sector: {
+                            low_sector: {
                                 contains: hope_job,
                             },
                         },
@@ -232,7 +234,7 @@ const cardsService = {
             const serviceIdToSector = {}
             userDBs.forEach((udb) => {
                 serviceIdToSector[udb.service_id] =
-                    udb.service?.sector || '직무 미입력'
+                    udb.service?.low_sector || '직무 미입력'
             })
 
             // 7. 최종 필터링 + 포맷팅
@@ -273,7 +275,11 @@ const cardsService = {
             if (area) {
                 whereClause.service = {
                     userAreas: {
-                        some: { high_area_id: parseInt(area) },
+                        some: {
+                            high_area: {
+                                equals: area,
+                            }
+                        },
                     },
                 }
             }
@@ -330,7 +336,7 @@ const cardsService = {
                     service_id: { in: serviceIds },
                     ...(hope_job && {
                         service: {
-                            sector: {
+                            low_sector: {
                                 contains: hope_job,
                             },
                         },
