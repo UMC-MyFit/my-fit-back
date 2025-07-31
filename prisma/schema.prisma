@@ -315,8 +315,9 @@ model ChattingRoom {
   created_at DateTime @default(now()) // 생성 시간
   is_visible Boolean  @default(false) // 첫 메시지 전송 여부
 
-  chats    Chat[] // 참여자들과의 관계
-  messages Message[] // 메시지들
+  chats      Chat[] // 참여자들과의 관계
+  messages   Message[] // 메시지들
+  CoffeeChat CoffeeChat[] // 커피챗
 }
 
 model Chat {
@@ -353,18 +354,19 @@ enum MessageType {
 }
 
 model CoffeeChat {
-  id           BigInt     @id @default(autoincrement()) // 커피챗 ID
+  id           BigInt       @id @default(autoincrement()) // 커피챗 ID
   requester_id BigInt // 요청한 유저
   receiver_id  BigInt // 요청받은 유저
-  title        String     @db.VarChar(255) // 커피챗 제목
+  title        String       @db.VarChar(255) // 커피챗 제목
   scheduled_at DateTime // 약속 시간
-  place        String     @db.Text // 약속 장소
-  status       ChatStatus @default(PENDING) // 상태 (PENDING, ACCEPTED, REJECTED, CANCELED)
-  created_at   DateTime   @default(now()) // 생성 시간
-
+  place        String       @db.Text // 약속 장소
+  status       ChatStatus   @default(PENDING) // 상태 (PENDING, ACCEPTED, REJECTED, CANCELED)
+  created_at   DateTime     @default(now()) // 생성 시간
+  chat_id      BigInt // 연결된 채팅방 ID
   // 관계
-  requester Service @relation("RequestedChats", fields: [requester_id], references: [id])
-  receiver  Service @relation("ReceivedChats", fields: [receiver_id], references: [id])
+  requester    Service      @relation("RequestedChats", fields: [requester_id], references: [id])
+  receiver     Service      @relation("ReceivedChats", fields: [receiver_id], references: [id])
+  chatRoom     ChattingRoom @relation(fields: [chat_id], references: [id])
 
   @@index([requester_id, scheduled_at])
   @@index([receiver_id, scheduled_at])
