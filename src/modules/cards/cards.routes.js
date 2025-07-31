@@ -74,7 +74,7 @@ const router = express.Router()
  */
 
 // 이력/활동 카드 등록
-router.post('/', cardsController.createCard)
+router.post('/', isAuthenticated, cardsController.createCard)
 
 /**
  * @swagger
@@ -95,7 +95,7 @@ router.post('/', cardsController.createCard)
  *         schema:
  *           type: string
  *         required: false
- *         description: "활동 지역 ID (high_area_id)"
+ *         description: "활동 지역"
  *       - in: query
  *         name: status
  *         schema:
@@ -183,7 +183,7 @@ router.post('/', cardsController.createCard)
  */
 
 // 이력/활동 카드 스와이프 조회
-router.get('/swipe', cardsController.getFilteredCards)
+router.get('/swipe', isAuthenticated, cardsController.getFilteredCards)
 
 /**
  * @swagger
@@ -203,9 +203,9 @@ router.get('/swipe', cardsController.getFilteredCards)
  *       - in: query
  *         name: area
  *         schema:
- *           type: integer
+ *           type: string
  *         required: false
- *         description: "활동 지역 ID (예시: 1)"
+ *         description: "활동 지역 (예시: 서울)"
  *       - in: query
  *         name: status
  *         schema:
@@ -272,7 +272,7 @@ router.get('/swipe', cardsController.getFilteredCards)
  *                   message: 서버에 오류가 발생하였습니다.
  */
 
-router.get('/grid', cardsController.getCardgrid)
+router.get('/grid', isAuthenticated, cardsController.getCardgrid)
 
 /**
  * @swagger
@@ -358,6 +358,6 @@ router.get('/grid', cardsController.getCardgrid)
  */
 
 // 이력/활동 카드 상세 조회
-router.get('/:card_id', cardsController.getCardById)
+router.get('/:card_id', isAuthenticated, cardsController.getCardById)
 
 export default router
