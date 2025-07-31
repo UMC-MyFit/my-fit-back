@@ -98,11 +98,19 @@ class MypageController {
 
             const feeds = await MypageService.getUserFeeds(BigInt(service_id), authenticatedUserId, limit, cursor)
 
+            const next_cursor = feeds.length === limit ? feeds[feeds.length - 1].feed_id : null
+
             return res.success({
                 code: 200,
                 message: '사용자 피드 목록을 성공적으로 조회했습니다.',
-                result: feeds,
-            });
+                result: {
+                    feeds,
+                    pagination: {
+                        next_cursor,
+                        has_next: !!next_cursor
+                    }
+                },
+            })
         } catch (error) {
             next(error)
         }
@@ -110,24 +118,32 @@ class MypageController {
 
     static async getUserCards(req, res, next) {
         try {
-            const { service_id } = req.params;
-            // cursor, limit 등 페이징 파라미터도 추가할 수 있습니다.
-            // const limit = parseInt(req.query.limit) || 10;
-            // const cursor = req.query.cursor ? BigInt(req.query.cursor) : null;
+            const { service_id } = req.params
+            const limit = parseInt(req.query.limit) || 10
+            const cursor = req.query.cursor ? BigInt(req.query.cursor) : null
 
             if (!service_id || isNaN(service_id)) {
                 throw new BadRequestError({ field: 'service_id', message: '유효한 서비스 ID가 필요합니다.' });
             }
 
-            const cards = await MypageService.getUserCards(BigInt(service_id)); // limit, cursor 전달
+            // const cards = await MypageService.getUserCards(BigInt(service_id)); 
+            const cards = await MypageService.getUserCards(BigInt(service_id), limit, cursor)
+
+            const next_cursor = cards.length === limit ? cards[cards.length - 1].id : null
 
             return res.success({
                 code: 200,
                 message: '사용자 이력/활동 카드 목록을 성공적으로 조회했습니다.',
-                result: cards,
-            });
+                result: { 
+                    cards,
+                    pagination: {
+                        next_cursor,
+                        has_next: !!next_cursor
+                    }
+                }
+            })
         } catch (error) {
-            next(error);
+            next(error)
         }
     }
 }
