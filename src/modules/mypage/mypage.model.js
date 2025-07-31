@@ -116,7 +116,7 @@ class MypageModel {
             })
 
         } catch (error) {
-            console.error(`MypageModel - 사용자 ID ${userId}의 recruiting_status 업데이트 중 오류:`, error);
+            console.error(`MypageModel - 사용자 ID ${serviceId}의 recruiting_status 업데이트 중 오류:`, error);
             throw error;
         }
     }
