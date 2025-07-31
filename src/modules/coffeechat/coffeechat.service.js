@@ -51,7 +51,7 @@ const coffeechatService = {
                     title,
                     scheduled_at: new Date(scheduled_at),
                     place,
-                    chatting_room_id: chattingRoomId
+                    chat_id: chattingRoomId
                 }
             })
 
@@ -83,8 +83,9 @@ const coffeechatService = {
 
             return { coffeechat: newCoffeeChat, message: newMessage }
         })
+        const { coffeechat, message } = tx
 
-        const safeMessage = convertBigIntsToNumbers(tx.message)
+        const safeMessage = convertBigIntsToNumbers(message)
         try {
             io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
         } catch (error) {
@@ -92,7 +93,7 @@ const coffeechatService = {
         }
         return {
             chatting_room_id: Number(chattingRoomId),
-            coffeechat_id: Number(tx.coffeechat.id),
+            coffeechat_id: Number(coffeechat.id),
             sender_id: Number(senderId),
             receiver_id: Number(receiver_id),
             created_at: tx.coffeechat.created_at
