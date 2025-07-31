@@ -2,13 +2,14 @@
 
 import Feed from './feed.model.js';
 import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../middlewares/error.js';
-import { listToString } from '../../libs/dataTransformer.js';
+import { listToString, stringToList } from '../../libs/dataTransformer.js';
 
 class FeedService {
     async createFeed(feedData, serviceId) {
         try {
-            const uploadHashtagsPromises = Feed.uploadRecentHashtags(serviceId, feedData.hashtag);
-            const processedHashtag = listToString(feedData.hashtag);
+            const processedHashtag = await listToString(feedData.hashtag);
+            const processedHashtagToList = await stringToList(processedHashtag);
+            const uploadHashtagsPromises = Feed.uploadRecentHashtags(serviceId, processedHashtagToList);
             const newFeedData = {
                 feed_text: feedData.feed_text,
                 hashtag: processedHashtag,

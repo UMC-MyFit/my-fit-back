@@ -47,7 +47,6 @@ export const listToString = (list) => {
 }
 
 export const stringToList = (string) => {
-    console.log("stringToList called with:", string)
     const listResult = string.split(", ").map(item => item.trim())
     return listResult
 }

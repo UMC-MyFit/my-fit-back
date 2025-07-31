@@ -40,7 +40,7 @@ class FeedSearchController {
             const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
             const feeds = await FeedSearchService.searchFeedsByKeyword(keyword, lastFeedId, limit);
             const hasMore = feeds.length === limit;
-            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].id : null;
+            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].feed_id : null;
 
             return res.success({
                 code: 200,
@@ -58,6 +58,57 @@ class FeedSearchController {
             next(error);
         }
     }
+    async searchFeedsByHashtag(req, res, next) {
+        try {
+            const limit = 30;
+            const { hashtag } = req.query;
+            const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
+            const feeds = await FeedSearchService.searchFeedsByHashtag(hashtag, lastFeedId, limit);
+            const hasMore = feeds.length === limit;
+            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].feed_id : null;
+
+            return res.success({
+                code: 200,
+                message: '해시태그로 피드 검색 결과를 성공적으로 조회했습니다.',
+                result: {
+                    feeds,
+                    pagination: {
+                        has_next: hasMore,
+                        next_cursor: nextCursorId
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('해시태그로 피드 검색 중 오류:', error);
+            next(error);
+        }
+    }
+    async searchSimilarHashtags(req, res, next) {
+        try {
+            const limit = 10;
+            const { keyword } = req.query;
+            const lastHashtagId = req.query.last_hashtag_id ? parseInt(req.query.last_hashtag_id) : null;
+            const hashtags = await FeedSearchService.searchSimilarHashtags(keyword, lastHashtagId, limit);
+            const hasMore = hashtags.length === limit;
+            const nextCursorId = hasMore && hashtags.length > 0 ? hashtags[hashtags.length - 1].id : null;
+
+            return res.success({
+                code: 200,
+                message: '유사한 해시태그 검색 결과를 성공적으로 조회했습니다.',
+                result: {
+                    hashtags,
+                    pagination: {
+                        has_next: hasMore,
+                        next_cursor: nextCursorId
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('유사한 해시태그 검색 중 오류:', error);
+            next(error);
+        }
+    }
+
 }
 
 export default new FeedSearchController();

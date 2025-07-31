@@ -47,8 +47,7 @@ class FeedController {
             const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
             const feeds = await feedService.getAllFeeds(serviceId, lastFeedId, limit);
             const hasMore = feeds.length === limit;
-            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].id : null;
-
+            const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].feed_id : null;
             return res.success({
                 code: 200,
                 message: '전체 피드 목록을 성공적으로 조회했습니다.',
