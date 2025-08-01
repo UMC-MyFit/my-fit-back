@@ -154,7 +154,8 @@ class Feed {
     static async findFeedsByServiceId(serviceId, authenticatedUserId, limit = 10, cursor = null) {
         try {
             const whereClause = {
-                service_id: serviceId
+                service_id: serviceId,
+                is_visible: true
             }
 
             if (cursor) {
