@@ -40,46 +40,60 @@ const router = express.Router()
  *                 result:
  *                   type: object
  *                   properties:
- *                     id:
- *                       type: string
- *                       example: "123456789012345678"
- *                     name:
- *                       type: string
- *                       example: "김철수"
- *                     one_line_profile:
- *                       type: string
- *                       example: "열정적인 개발자입니다."
- *                     birth_date:
- *                       type: string
- *                       format: date-time
- *                       example: "1990-01-01T00:00:00.000Z"
- *                     Highest_grade:
- *                       type: string
- *                       nullable: true
- *                       example: "대학교 졸업"
- *                     link:
- *                       type: string
- *                       nullable: true
- *                       example: "https://myportfolio.com"
- *                     division:
- *                       type: string
- *                       nullable: true
- *                       example: "개인"
- *                     grade_status:
- *                       type: string
- *                       nullable: true
- *                       example: "졸업"
- *                     created_at:
- *                       type: string
- *                       format: date-time
- *                       example: "2023-01-01T00:00:00.000Z"
- *                     updated_at:
- *                       type: string
- *                       format: date-time
- *                       example: "2023-01-01T00:00:00.000Z"
- *                     is_profile_completed:
- *                       type: boolean
- *                       example: true
+ *                     userProfile:
+ *                       type: object
+ *                       description: 사용자 및 서비스 프로필 정보
+ *                       properties:
+ *                         service:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                               example: "123456789"
+ *                             recruiting_status:
+ *                               type: string
+ *                               example: "구직 중"
+ *                             profile_img:
+ *                               type: string
+ *                               example: "https://cdn.com/p.png"
+ *                             high_sector:
+ *                               type: string
+ *                               example: "백엔드"
+ *                             low_sector:
+ *                               type: string
+ *                               example: "Node.js"
+ *                             userAreas:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   high_area:
+ *                                     type: string
+ *                                     example: "서울"
+ *                                   low_area:
+ *                                     type: string
+ *                                     example: "강남구"
+ *                         user:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                               example: "11"
+ *                             name:
+ *                               type: string
+ *                               example: "홍길동"
+ *                             one_line_profile:
+ *                               type: string
+ *                               example: "열정 가득 백엔드"
+ *                             Highest_grade:
+ *                               type: string
+ *                               example: "대학교 졸업"
+ *                     interest_count:
+ *                       type: integer
+ *                       example: 3
+ *                     network_count:
+ *                       type: integer
+ *                       example: 5
  *       400:
  *         description: "잘못된 요청 (유효하지 않은 사용자 ID)"
  *         content:
@@ -255,13 +269,18 @@ router.patch('/profile_pic', isAuthenticated, MypageController.updateProfilePict
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - recruiting_status
+ *             required: [recruiting_status, params]
  *             properties:
  *               recruiting_status:
  *                 type: string
- *                 enum: ['현재 구직 중!', '현재 구인 중!', '구인 협의 중', '네트워킹 환영', '해당 없음']
- *                 example: "현재 구직 중!"
+ *                 example: "구직 중"
+ *               params:
+ *                 type: object
+ *                 required: [service_id]
+ *                 properties:
+ *                   service_id:
+ *                     type: string
+ *                     example: "1234567890"
  *     responses:
  *       200:
  *         description: 유저의 현재 구인/구직 상태 업데이트 성공
