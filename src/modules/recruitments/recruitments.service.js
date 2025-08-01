@@ -181,6 +181,7 @@ const recruitmentService = {
                     require: true,
                     work_type: true,
                     dead_line: true,
+                    salary: true,
                     recruiting_img: true,
                     service: {
                         select: {
