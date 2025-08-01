@@ -16,13 +16,11 @@ class MypageService {
                 throw new NotFoundError('사용자 프로필을 찾을 수 없습니다.')
             }
 
-            // 필요하다면 여기서 추가적인 데이터 가공 로직을 수행할 수 있음.
-            // 예: birth_date를 특정 포맷으로 변환 등.
-
             return userProfile
         } catch (error) {
             console.error('MypageService - 사용자 프로필 조회 서비스 오류:', error)
             if (error instanceof NotFoundError) {
+                console.log(error)
                 throw error
             }
             throw new InternalServerError({ message: '프로필 정보를 가져오는 중 서버 오류가 발생했습니다.', originalError: error.message })
