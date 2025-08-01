@@ -23,7 +23,7 @@ class MypageService {
             ])
 
             return {
-                userProfile,
+                ...userProfile,
                 interest_count: interestCount,
                 network_count: networkCount
             }
