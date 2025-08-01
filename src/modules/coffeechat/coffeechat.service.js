@@ -42,7 +42,8 @@ const coffeechatService = {
     requestCoffeechat: async ({ chattingRoomId, senderId, receiver_id, title, scheduled_at, place }) => {
 
         const tx = await prisma.$transaction(async tx => {
-            console.log(chattingRoomId, senderId, receiver_id, title, scheduled_at, place)
+            console.log("📥 requestCoffeechat 진입", { chattingRoomId, senderId, receiver_id, title, scheduled_at, place });
+
             // 1. 커피챗 생성
             const newCoffeeChat = await tx.coffeeChat.create({
                 data: {
@@ -53,66 +54,83 @@ const coffeechatService = {
                     place,
                     chat_id: chattingRoomId
                 }
-            })
+            });
+            console.log("✅ 커피챗 생성 완료", newCoffeeChat);
 
-            // 2. 메시지 생성및 Redis 캐시 (type: COFFEECHAT)
+
+            // 2. 메시지 생성 및 Redis 캐시 (type: COFFEECHAT)
             const newMessage = await tx.message.create({
                 data: {
                     chat_id: BigInt(chattingRoomId),
                     sender_id: BigInt(senderId),
-                    detail_message: '커피챗 요청이 도착했습니다.',
+                    detail_message: '님이 커피챗 요청을 수락하였습니다!',
                     type: 'COFFEECHAT',
                     coffeechat_id: newCoffeeChat.id
                 }
-            })
-            console.log('메시지 생성 완료')
+            });
+            console.log("✅ 메시지 생성 완료", newMessage);
 
-            // 3. ChattingRoom의 is_visible이 false면 true로 변경
+            // 3. ChattingRoom is_visible 처리
             const chattingRoom = await tx.chattingRoom.findUnique({
                 where: { id: BigInt(chattingRoomId) }
-            })
+            });
             if (!chattingRoom) {
-                throw new NotFoundError('채팅방이 존재하지 않습니다.')
+                console.log("❌ 채팅방이 존재하지 않음");
+                throw new NotFoundError('채팅방이 존재하지 않습니다.');
             }
+
             if (!chattingRoom.is_visible) {
                 await tx.chattingRoom.update({
                     where: { id: BigInt(chattingRoomId) },
                     data: { is_visible: true }
-                })
+                });
+                console.log("✅ 채팅방 is_visible true로 수정됨");
             }
-            // Redis 캐시
+
+            // Redis 캐시 처리
             try {
                 if (!redisClient.isOpen) {
-                    await redisClient.connect()
-                    console.log('Redis 연결 완료')
+                    await redisClient.connect();
+                    console.log("✅ Redis 연결 완료");
                 }
-                const redisKey = `chat:room:${chattingRoomId}`
-                const safeNewMessage = convertBigIntsToNumbers(newMessage)
-                await redisClient.rPush(redisKey, JSON.stringify(safeNewMessage))
-                //최신 20개만 유지
-                await redisClient.lTrim(redisKey, -20, -1)
+
+                const redisKey = `chat:room:${chattingRoomId}`;
+                const safeNewMessage = convertBigIntsToNumbers(newMessage);
+                await redisClient.rPush(redisKey, JSON.stringify(safeNewMessage));
+                await redisClient.lTrim(redisKey, -20, -1);
+                console.log("✅ Redis 캐시 저장 및 트리밍 완료");
             } catch (error) {
-                throw new Error('redis 연결 실패', error)
+                console.error("❌ Redis 연결 실패", error);
+                throw new Error('redis 연결 실패', error);
             }
 
-            return { coffeechat: newCoffeeChat, message: newMessage }
-        })
-        const { coffeechat, message } = tx
+            return { coffeechat: newCoffeeChat, message: newMessage };
+        });
 
-        const safeMessage = convertBigIntsToNumbers(message)
+        const { coffeechat, message } = tx;
+        const safeMessage = convertBigIntsToNumbers(message);
+
         try {
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
+            const senderService = await tx.service.findUnique({
+                where: { id: BigInt(senderId) },
+                select: { name: true }
+            })
+            console.log("📤 emit 실행 준비 완료");
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', { ...safeMessage, name: senderService.name });
+            console.log("📤 emit 실행됨: ", safeMessage);
         } catch (error) {
-            console.log('소켓 통신 실패')
+            console.error("❌ 소켓 emit 실패", error);
         }
+
         return {
             chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(coffeechat.id),
             sender_id: Number(senderId),
             receiver_id: Number(receiver_id),
             created_at: tx.coffeechat.created_at
-        }
+        };
     },
+
 
     acceptCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId }) => {
 
