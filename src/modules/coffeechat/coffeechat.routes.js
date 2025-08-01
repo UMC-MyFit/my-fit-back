@@ -85,6 +85,131 @@ router.get('/:chattingRoomId/coffeechats/preview', isAuthenticated, validateChat
 
 /**
  * @swagger
+ * /api/chatting-rooms/{chatting_room_id}/coffeechats/{coffeechat_id}:
+ *   get:
+ *     summary: 커피챗 상세 조회
+ *     description: 커피챗 메시지를 클릭하면 해당 커피챗의 상세 정보를 반환합니다.
+ *     tags:
+ *       - CoffeeChat
+ *     parameters:
+ *       - in: path
+ *         name: chatting_room_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 조회할 채팅방 ID
+ *       - in: path
+ *         name: coffeechat_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 조회할 커피챗 ID
+ *     responses:
+ *       200:
+ *         description: 커피챗 상세 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 coffeechat_id:
+ *                   type: integer
+ *                   example: 9
+ *                 chatting_room_id:
+ *                   type: integer
+ *                   example: 42
+ *                 sender:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 3
+ *                     name:
+ *                       type: string
+ *                       example: 장예슬
+ *                     profile_image_url:
+ *                       type: string
+ *                       example: https://cdn.myfit.com/users/3.png
+ *                 receiver:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 7
+ *                     name:
+ *                       type: string
+ *                       example: 임호현
+ *                     profile_image_url:
+ *                       type: string
+ *                       example: https://cdn.myfit.com/users/7.png
+ *                 title:
+ *                   type: string
+ *                   example: 만나서 얘기해보면 더 재밌을 것 같아요
+ *                 place:
+ *                   type: string
+ *                   example: 서울시 용산구 마핏카페
+ *                 scheduled_at:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2025-05-21T15:30:00.000Z
+ *                 status:
+ *                   type: string
+ *                   enum: [PENDING, ACCEPTED, REJECTED, CANCELED]
+ *                   example: ACCEPTED
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2025-07-05T14:50:00Z
+ *                 accepted_at:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2025-07-06T14:20:00Z
+ *       401:
+ *         description: 로그인이 필요한 요청입니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 로그인이 필요한 요청입니다.
+ *       403:
+ *         description: 해당 커피챗에 접근할 권한이 없습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 해당 커피챗에 접근할 권한이 없습니다.
+ *       404:
+ *         description: 존재하지 않는 커피챗 요청입니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 존재하지 않는 커피챗 요청입니다.
+ *       500:
+ *         description: 서버에 오류가 발생하였습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 서버에 오류가 발생하였습니다.
+ */
+
+// 커피챗 상세 조회
+router.get('/:chattingRoomId/coffeechats/:coffeechatId', isAuthenticated, validateChattingRoomParticipant, coffeechatController.getCoffeeChatDetail)
+/**
+ * @swagger
  * /api/chatting-rooms/{chattingRoomId}/coffeechats:
  *   post:
  *     summary: 커피챗 요청
