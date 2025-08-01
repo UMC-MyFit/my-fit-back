@@ -36,6 +36,12 @@ class MypageModel {
                             profile_img: true,
                             high_sector: true,
                             low_sector: true,
+                            userAreas: {
+                                select: {
+                                    high_area: true,
+                                    low_area: true,
+                                }
+                            }
                         },
                     },
                 },
@@ -45,13 +51,12 @@ class MypageModel {
                 const serviceData = userDBEntry.service;
                 const userData = userDBEntry.user;
 
-                // 이제 serviceData와 userData 변수를 사용하여 필요한 작업을 수행할 수 있습니다.
-                // 예: 서비스 및 사용자 정보를 조합한 객체 반환
+                // 서비스 및 사용자 정보를 조합한 객체 반환
                 const combinedProfileData = {
                     service: serviceData,
                     user: userData
                 }
-                // console.log("Combined Profile Data:", combinedProfileData)
+
                 return convertBigIntsToNumbers(combinedProfileData)
 
             } else {

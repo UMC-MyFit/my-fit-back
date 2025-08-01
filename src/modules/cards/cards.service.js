@@ -396,38 +396,42 @@ const cardsService = {
         }
     },
 
-    getCardsByServiceId: async (serviceId) => { // limit, cursor 파라미터 추가 가능
+    getCardsByServiceId: async (serviceId, limit = 10, cursor = null) => { 
         try {
-            const cards = await prisma.activityCard.findMany({
+            const queryOptions = {
                 where: {
                     service_id: serviceId,
                 },
                 orderBy: {
-                    id: 'desc', // 최신 카드가 먼저 오도록 내림차순 정렬
+                    id: 'desc',
                 },
-                // include 또는 select를 사용하여 필요한 관계 데이터를 가져올 수 있습니다.
-                // 예: 키워드 정보가 필요하다면 include: { keywords: true }
+                take: limit,
                 include: {
-                    keywords: true, // ActivityCard와 연결된 키워드도 가져옵니다.
+                    keywords: true,
                 },
-                // take: limit, // 페이징을 위한 limit
-                // cursor: cursor ? { id: cursor } : undefined, // 페이징을 위한 cursor
-            })
+            }
 
-            // BigInt를 Number로 변환 (이미 convertBigIntsToNumbers 유틸리티가 있다면 활용)
+            if (cursor) {
+                queryOptions.cursor = { id: cursor }
+                queryOptions.skip = 1
+            }
+
+            const cards = await prisma.activityCard.findMany(queryOptions)
+
             const formattedCards = cards.map(card => ({
-                id: card.id.toString(), // ID를 문자열로 변환 (BigInt)
+                id: card.id.toString(),
                 card_img: card.card_img,
                 one_line_profile: card.one_line_profile,
                 detailed_profile: card.detailed_profile,
                 link: card.link,
                 created_at: card.created_at,
                 updated_at: card.updated_at,
-                // 키워드도 변환하여 포함
                 keywords: card.keywords.map(kw => kw.keyword_text),
             }))
 
-            return convertBigIntsToNumbers(formattedCards) // 모든 BigInt를 변환하는 유틸리티 사용
+            const nextCursor = cards.length === limit ? cards[cards.length - 1].id : null
+
+            return convertBigIntsToNumbers(formattedCards)
         } catch (error) {
             console.error('cardsService - 사용자 카드 조회 중 오류:', error)
             throw new InternalServerError({ message: '사용자 이력/활동 카드 조회 중 서버 오류가 발생했습니다.', originalError: error.message })

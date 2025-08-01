@@ -66,7 +66,7 @@ class MypageService {
      */
     static async updateRecruitingStatus(serviceId, newStatus) {
         // 허용되는 recruiting_status 값 목록 
-        const ALLOWED_STATUSES = ['현재 구직 중!', '현재 구인 중!', '구인 협의 중', '네트워킹 환영', '해당 없음']
+        const ALLOWED_STATUSES = ['구직 중', '구인 중', '구인 협의 중', '네트워킹 환영', '해당 없음']
 
         try {
             // 1. 유효성 검사: newStatus가 허용되는 값인지 확인
@@ -111,17 +111,13 @@ class MypageService {
         }
     }
 
-    static async getUserCards(serviceId) { // limit, cursor 파라미터 추가 가능
+    static async getUserCards(serviceId, limit, cursor) {
         try {
-            // CardsService에서 특정 service_id를 가진 카드를 조회하는 메서드 필요
-            const cards = await CardsService.getCardsByServiceId(serviceId); // limit, cursor 전달
-
-            // 필요한 경우 데이터 변환 (BigInt -> Number)
-            // return convertBigIntsToNumbers(cards);
-            return cards;
+            const result = await CardsService.getCardsByServiceId(serviceId, limit, cursor) 
+            return result
         } catch (error) {
             console.error('MypageService - 사용자 카드 조회 서비스 오류:', error);
-            throw new InternalServerError({ message: '사용자 이력/활동 카드 조회 중 서버 오류가 발생했습니다.', originalError: error.message });
+            throw new InternalServerError({ message: '사용자 이력/활동 카드 조회 중 서버 오류가 발생했습니다.', originalError: error.message })
         }
     }
 }
