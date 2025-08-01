@@ -7,7 +7,6 @@ class MypageController {
      */
     static async getUserProfileInfo(req, res, next) {
         try {
-            // const service_id = req.user.service_id
             const { service_id } = req.params
 
             if (!service_id || isNaN(service_id) || parseInt(service_id).toString() !== service_id.toString()) {
@@ -34,9 +33,8 @@ class MypageController {
      */
     static async updateProfilePicture(req, res, next) {
         try {
-            // const serviceId = req.user.service_id
             const { profile_img } = req.body
-            const { service_id } = req.body.params
+            const service_id = req.user.service_id
 
             if (!profile_img || typeof profile_img !== 'string') {
                 throw new BadRequestError({ field: 'profile_img', message: '유효한 프로필 사진 URL이 필요합니다.' })
@@ -62,9 +60,8 @@ class MypageController {
     // PUT /api/mypage/recruiting_status 요청을 처리하여 사용자 서비스의 recruiting_status를 업데이트
     static async updateRecruitingStatus(req, res, next) {
         try {
-            // const serviceId = req.user.service_id
             const { recruiting_status } = req.body
-            const { service_id } = req.body.params
+            const service_id = req.user.service_id
 
             /* 1. 입력값 유효성 검사
             if (!serviceId || isNaN(serviceId) || String(BigInt(serviceId)) !== serviceId) {

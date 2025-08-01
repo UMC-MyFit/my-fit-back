@@ -45,14 +45,14 @@ class MypageService {
     static async updateProfilePicture(serviceId, profileImgUrl) {
         try {
             // 1. 사용자 존재 여부 확인
-            const existingUser = await MypageModel.findUserProfileById(BigInt(serviceId))
+            const existingUser = await MypageModel.findUserProfileById(serviceId)
 
             if (!existingUser) {
                 throw new NotFoundError('사용자를 찾을 수 없습니다.');
             }
 
             // 2. 프로필 사진 업데이트
-            const updated = await MypageModel.updateProfilePicture(BigInt(serviceId), profileImgUrl)
+            const updated = await MypageModel.updateProfilePicture(serviceId, profileImgUrl)
             return updated
         } catch (error) {
             console.error('MypageService - 프로필 사진 업데이트 서비스 오류:', error)
@@ -74,7 +74,7 @@ class MypageService {
      */
     static async updateRecruitingStatus(serviceId, newStatus) {
         // 허용되는 recruiting_status 값 목록 
-        const ALLOWED_STATUSES = ['구직 중', '구인 중', '구인 협의 중', '네트워킹 환영', '해당 없음']
+        const ALLOWED_STATUSES = ['구직 중', '구인 중', '구직 협의 중', '구인 협의 중', '네트워킹 환영', '해당 없음']
 
         try {
             // 1. 유효성 검사: newStatus가 허용되는 값인지 확인

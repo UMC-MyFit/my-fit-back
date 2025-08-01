@@ -274,13 +274,6 @@ router.patch('/profile_pic', isAuthenticated, MypageController.updateProfilePict
  *               recruiting_status:
  *                 type: string
  *                 example: "구직 중"
- *               params:
- *                 type: object
- *                 required: [service_id]
- *                 properties:
- *                   service_id:
- *                     type: string
- *                     example: "1234567890"
  *     responses:
  *       200:
  *         description: 유저의 현재 구인/구직 상태 업데이트 성공
