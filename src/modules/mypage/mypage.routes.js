@@ -6,12 +6,20 @@ const router = express.Router()
 
 /**
  * @swagger
- * /api/mypage/profile_info:
+ * /api/mypage/{service_id}/profile_info:
  *   get:
  *     summary: 사용자 프로필 정보 조회
  *     description: 특정 사용자의 공개 프로필 정보를 조회합니다.
  *     tags:
  *       - Mypage
+ *     parameters:
+ *       - in: path
+ *         name: service_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: int64
+ *         description: 조회할 유저의 서비스 ID
  *     responses:
  *       200:
  *         description: 사용자 프로필 정보 조회 성공
@@ -133,7 +141,7 @@ const router = express.Router()
  *                   nullable: true
  *                   example: null
  */
-router.get('/profile_info', isAuthenticated, MypageController.getUserProfileInfo)
+router.get('/:service_id/profile_info', MypageController.getUserProfileInfo)
 
 // 사용자 프로필 사진 수정
 /**
