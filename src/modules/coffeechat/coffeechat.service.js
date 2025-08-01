@@ -66,6 +66,20 @@ const coffeechatService = {
                 }
             })
             console.log('메시지 생성 완료')
+
+            // 3. ChattingRoom의 is_visible이 false면 true로 변경
+            const chattingRoom = await tx.chattingRoom.findUnique({
+                where: { id: BigInt(chattingRoomId) }
+            })
+            if (!chattingRoom) {
+                throw new NotFoundError('채팅방이 존재하지 않습니다.')
+            }
+            if (!chattingRoom.is_visible) {
+                await tx.chattingRoom.update({
+                    where: { id: BigInt(chattingRoomId) },
+                    data: { is_visible: true }
+                })
+            }
             // Redis 캐시
             try {
                 if (!redisClient.isOpen) {
@@ -134,7 +148,8 @@ const coffeechatService = {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
                 detail_message: `${senderService.name}님이 커피챗 요청을 수락하였습니다!`,
-                type: 'COFFEECHAT'
+                type: 'COFFEECHAT',
+                coffeechat_id: BigInt(coffeechat_id)
             }
         })
 
