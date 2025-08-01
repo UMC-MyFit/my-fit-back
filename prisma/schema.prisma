@@ -40,7 +40,7 @@ model Service {
   low_sector        String   @default("") @db.VarChar(100) // 하위 직무
   is_inc_AuthN      Boolean  @default(false)
   recruiting_status String   @db.VarChar(100)
-  profile_img       String   @db.VarChar(100)
+  profile_img       String   @db.VarChar(500)
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
