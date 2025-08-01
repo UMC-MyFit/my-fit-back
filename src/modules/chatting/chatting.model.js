@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient()
 
 const chattingModel = {
-    createMessage: async ({ chattingRoomId, senderId, detail_message, type }) => {
+    createMessage: async ({ chattingRoomId, senderId, detail_message, type, sender_name }) => {
         try {
             return await prisma.message.create({
                 data: {
@@ -10,6 +10,7 @@ const chattingModel = {
                     sender_id: BigInt(senderId),
                     detail_message,
                     type,
+                    sender_name,
                 }
             })
         } catch (error) {

@@ -96,6 +96,16 @@ const chattingService = {
             throw new BadRequestError('이 채팅방의 참여자가 아닙니다.')
         }
 
+        // 사용자 이름 조회
+        const senderService = await prisma.service.findUnique({
+            where: { id: BigInt(senderId) },
+            select: { name: true }
+        })
+
+        if (!senderService) {
+            throw new BadRequestError('송신자 정보가 존재하지 않습니다.')
+        }
+
         // 만약 is_visible이 false라면 true로 변경 (첫 메시지일 경우)
         if (!chattingRoom.is_visible) {
             await prisma.chattingRoom.update({
@@ -109,6 +119,7 @@ const chattingService = {
             senderId,
             detail_message,
             type,
+            sender_name: senderService.name
 
         })
 

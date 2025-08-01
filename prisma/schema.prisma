@@ -335,6 +335,7 @@ model Message {
   id             BigInt      @id @default(autoincrement()) // 메시지 ID
   chat_id        BigInt // 채팅방 ID (FK)
   sender_id      BigInt // 송신자 서비스 ID (FK)
+  sender_name    String      @default("알 수 없음") @db.VarChar(50) // 송신자 이름
   detail_message String // 메시지 내용
   created_at     DateTime    @default(now()) // 전송 시간
   type           MessageType // 메시지 타입
