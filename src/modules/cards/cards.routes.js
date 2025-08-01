@@ -74,7 +74,7 @@ const router = express.Router()
  */
 
 // 이력/활동 카드 등록
-router.post('/', isAuthenticated, cardsController.createCard)
+router.post('/', cardsController.createCard)
 
 /**
  * @swagger

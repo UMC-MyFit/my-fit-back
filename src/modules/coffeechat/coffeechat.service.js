@@ -57,13 +57,18 @@ const coffeechatService = {
             });
             console.log("✅ 커피챗 생성 완료", newCoffeeChat);
 
+            const senderService = await tx.service.findUnique({
+                where: { id: BigInt(senderId) },
+                select: { name: true }
+            })
 
             // 2. 메시지 생성 및 Redis 캐시 (type: COFFEECHAT)
             const newMessage = await tx.message.create({
                 data: {
                     chat_id: BigInt(chattingRoomId),
                     sender_id: BigInt(senderId),
-                    detail_message: '님이 커피챗 요청을 수락하였습니다!',
+                    sender_name: senderService.name,
+                    detail_message: '님이 커피챗 요청을 요청하였습니다!',
                     type: 'COFFEECHAT',
                     coffeechat_id: newCoffeeChat.id
                 }
@@ -111,12 +116,9 @@ const coffeechatService = {
         const safeMessage = convertBigIntsToNumbers(message);
 
         try {
-            const senderService = await tx.service.findUnique({
-                where: { id: BigInt(senderId) },
-                select: { name: true }
-            })
+
             console.log("📤 emit 실행 준비 완료");
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', { ...safeMessage, name: senderService.name });
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage);
             console.log("📤 emit 실행됨: ", safeMessage);
         } catch (error) {
             console.error("❌ 소켓 emit 실패", error);
@@ -165,6 +167,7 @@ const coffeechatService = {
             data: {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
+                sender_name: senderService.name,
                 detail_message: `${senderService.name}님이 커피챗 요청을 수락하였습니다!`,
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
@@ -231,7 +234,8 @@ const coffeechatService = {
             data: {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
-                detail_message: `${senderService.name}님이 커피챗 요청을 거절하였습니다!`,
+                sender_name: senderService.name,
+                detail_message: '님이 커피챗 요청을 거절하였습니다!',
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             }
@@ -292,7 +296,8 @@ const coffeechatService = {
             data: {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
-                detail_message: `${senderService.name}님이 커피챗 요청을 수정하였습니다.`,
+                sender_name: senderService.name,
+                detail_message: `님이 커피챗 요청을 수정하였습니다.`,
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             }
@@ -357,7 +362,8 @@ const coffeechatService = {
             data: {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(serviceId),
-                detail_message: `${senderService.name}님이 커피챗 요청을 취소하였습니다.`,
+                sender_name: senderService.name,
+                detail_message: `님이 커피챗 요청을 취소하였습니다.`,
                 type: 'SYSTEM',
                 coffeechat_id: BigInt(coffeechat_id)
             },
