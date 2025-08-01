@@ -48,14 +48,20 @@ class MypageModel {
             })
 
             if (userDBEntry) {
-                const serviceData = userDBEntry.service;
-                const userData = userDBEntry.user;
+                const serviceData = userDBEntry.service
+                const userData = userDBEntry.user
 
-                // 서비스 및 사용자 정보를 조합한 객체 반환
+                const firstUserArea = serviceData.userAreas?.[0] || null
+
                 const combinedProfileData = {
-                    service: serviceData,
+                    service: {
+                    ...serviceData,
+                    userArea: firstUserArea 
+                    },
                     user: userData
                 }
+
+                delete combinedProfileData.service.userAreas // 원래 배열 제거
 
                 return convertBigIntsToNumbers(combinedProfileData)
 

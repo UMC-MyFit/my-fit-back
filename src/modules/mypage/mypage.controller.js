@@ -15,7 +15,7 @@ class MypageController {
             }
 
             const userProfile = await MypageService.getUserProfileInfo(service_id)
-            console.log('사용자 프로필 정보:', userProfile)
+            // console.log('사용자 프로필 정보:', userProfile)
 
             return res.success({
                 code: 200,
