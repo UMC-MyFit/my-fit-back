@@ -73,6 +73,22 @@ const chattingController = {
         } catch (error) {
             next(error)
         }
+    },
+    getChatPartner: async (req, res, next) => {
+        try {
+            const { chattingRoomId } = req.params
+            const myServiceId = req.user.service_id
+
+            const partnerInfo = await chattingService.getChatPartner(chattingRoomId, myServiceId)
+
+            res.success({
+                code: 200,
+                message: '상대방 정보 조회 성공',
+                result: partnerInfo,
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }
 

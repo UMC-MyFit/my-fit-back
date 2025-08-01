@@ -153,7 +153,7 @@ router.post(
  * /api/chatting-rooms/{chattingRoomId}/messages:
  *   get:
  *     summary: 메시지 목록 조회
- *     description: 지정된 채팅방의 최근 20개 메시지를 조회
+ *     description: 지정된 채팅방의 최근 20개 메시지를 조회 (cursor 방식 페이징)
  *     tags:
  *       - Chatting
  *     parameters:
@@ -162,6 +162,12 @@ router.post(
  *         required: true
  *         schema:
  *           type: integer
+ *       - in: query
+ *         name: cursor
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: 이전 요청의 마지막 메시지 ID (페이징용)
  *     responses:
  *       200:
  *         description: 메시지 조회 성공
@@ -172,23 +178,78 @@ router.post(
  *               code: 200
  *               message: 메시지 조회 성공
  *               result:
- *                 - id: 26
- *                   chat_id: 10
- *                   sender_id: 8
- *                   detail_message: 안녕하세요~
- *                   created_at: "2025-07-21T14:24:17.149Z"
- *                   type: TEXT
- *                 - id: 27
- *                   chat_id: 10
- *                   sender_id: 8
- *                   detail_message: 안녕하세요~
- *                   created_at: "2025-07-21T14:24:17.978Z"
- *                   type: TEXT
- *               next_cursor: 21,
- *               has_next: true
+ *                 chatting_room_id: 10
+ *                 messages:
+ *                   - id: 26
+ *                     chat_id: 10
+ *                     sender_id: 8
+ *                     detail_message: 안녕하세요~
+ *                     created_at: "2025-07-21T14:24:17.149Z"
+ *                     type: TEXT
+ *                   - id: 27
+ *                     chat_id: 10
+ *                     sender_id: 8
+ *                     detail_message: 안녕하세요~
+ *                     created_at: "2025-07-21T14:24:17.978Z"
+ *                     type: TEXT
+ *                 next_cursor: 21
+ *                 has_next: true
  */
 // 메시지 조회
 router.get('/:chattingRoomId/messages', isAuthenticated, validateChattingRoomParticipant, chattingController.getMessages)
 
+/**
+ * @swagger
+ * /api/chatting-rooms/{chattingRoomId}/partner:
+ *   get:
+ *     summary: 채팅방 상대방 프로필 정보 조회
+ *     description: 지정된 채팅방에서 상대방의 서비스 정보를 조회합니다.
+ *     tags:
+ *       - Chatting
+ *     parameters:
+ *       - in: path
+ *         name: chattingRoomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 채팅방 ID
+ *     responses:
+ *       200:
+ *         description: 상대방 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: true
+ *               code: 200
+ *               message: 상대방 정보 조회 성공
+ *               result:
+ *                 service_id: 3
+ *                 name: 이미뇽
+ *                 profile_img: "https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/recruit/보노보노.jpeg"
+ *       400:
+ *         description: 잘못된 요청 (존재하지 않는 채팅방 또는 상대방 없음)
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 400
+ *               message: 상대방 정보를 찾을 수 없습니다.
+ *               result: null
+ *       401:
+ *         description: 인증 실패 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: false
+ *               code: 401
+ *               message: 로그인이 필요한 요청입니다.
+ *               result:
+ *                 errorCode: A001
+ *                 data:
+ *                   message: 로그인이 필요한 요청입니다.
+ */
+
+// 채팅방 입장
+router.get('/:chattingRoomId/partner', isAuthenticated, validateChattingRoomParticipant, chattingController.getChatPartner)
 
 export default router
