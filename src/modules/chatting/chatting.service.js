@@ -254,6 +254,42 @@ const chattingService = {
             chatting_rooms: formatted,
             next_cursor: nextCursor,
         }
+    },
+    getChatPartner: async (chattingRoomId, myServiceId) => {
+        const chatRoom = await prisma.chattingRoom.findUnique({
+            where: { id: BigInt(chattingRoomId) },
+            include: {
+                chats: {
+                    include: {
+                        service: {
+                            include: {
+                                userDBs: {
+                                    include: { user: true }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        console.log('chatRoom 불러오기 성공')
+        if (!chatRoom) {
+            throw new BadRequestError('채팅방을 찾을 수 없습니다.')
+        }
+
+        const myId = BigInt(myServiceId)
+        const partnerChat = chatRoom.chats.find(c => c.service_id !== myId)
+        if (!partnerChat) {
+            throw new BadRequestError('상대방 정보를 찾을 수 없습니다.')
+        }
+        console.log('partnerChat 불러오기 성공')
+        const partnerService = partnerChat.service
+
+        return convertBigIntsToNumbers({
+            service_id: partnerChat.service_id,
+            name: partnerService.name,
+            profile_img: partnerService.profile_img
+        })
     }
 }
 
