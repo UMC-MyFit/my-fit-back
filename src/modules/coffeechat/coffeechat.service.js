@@ -196,8 +196,11 @@ const coffeechatService = {
         }
 
         return {
+            chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(coffeechat_id),
-            status: 'ACCEPTED'
+            sender_id: Number(senderId),
+            receiver_id: Number(coffeechat.requester_id),
+            created_at: coffeechat.created_at
         }
     },
 
@@ -263,8 +266,11 @@ const coffeechatService = {
         }
 
         return {
+            chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(coffeechat_id),
-            status: 'REJECTED'
+            sender_id: Number(senderId),
+            receiver_id: Number(coffeechat.requester_id),
+            created_at: coffeechat.created_at
         }
     },
     updateCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId, title, scheduled_at, place }) => {
@@ -324,10 +330,11 @@ const coffeechatService = {
         }
 
         return {
+            chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(updated.id),
-            title: updated.title,
-            scheduled_at: updated.scheduled_at,
-            place: updated.place
+            sender_id: Number(senderId),
+            receiver_id: Number(coffeechat.receiver_id),
+            created_at: updated.created_at
         }
     },
     cancelCoffeechat: async ({ chattingRoomId, coffeechat_id, serviceId }) => {
@@ -392,8 +399,11 @@ const coffeechatService = {
         }
 
         return {
+            chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(coffeechat_id),
-            status: 'CANCELED',
+            sender_id: Number(serviceId),
+            receiver_id: Number(isRequester ? coffeechat.receiver_id : coffeechat.requester_id),
+            created_at: coffeechat.created_at
         }
     },
     getUpcomingCoffeechats: async (myServiceId, cursor) => {
