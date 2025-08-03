@@ -39,23 +39,30 @@ const coffeechatService = {
             ]
         })
     },
-    requestCoffeechat: async ({ chattingRoomId, senderId, receiver_id, title, scheduled_at, place }) => {
+    requestCoffeechat: async ({ chattingRoomId, senderId, title, scheduled_at, place }) => {
 
         const tx = await prisma.$transaction(async tx => {
-            console.log("📥 requestCoffeechat 진입", { chattingRoomId, senderId, receiver_id, title, scheduled_at, place });
+            const chats = await tx.chat.findMany({
+                where: { chat_id: BigInt(chattingRoomId) },
+                select: { service_id: true }
+            })
 
+            const myId = BigInt(senderId)
+            const receiverId = chats.find(chat => chat.service_id != myId)?.service_id
+            if (!receiverId) {
+                throw new BadRequestError('상대방을 찾을 수 없습니다.')
+            }
             // 1. 커피챗 생성
             const newCoffeeChat = await tx.coffeeChat.create({
                 data: {
-                    requester_id: BigInt(senderId),
-                    receiver_id: BigInt(receiver_id),
+                    requester_id: BigInt(myId),
+                    receiver_id: BigInt(receiverId),
                     title,
                     scheduled_at: new Date(scheduled_at),
                     place,
                     chat_id: chattingRoomId
                 }
             });
-            console.log("✅ 커피챗 생성 완료", newCoffeeChat);
 
             const senderService = await tx.service.findUnique({
                 where: { id: BigInt(senderId) },
@@ -73,14 +80,12 @@ const coffeechatService = {
                     coffeechat_id: newCoffeeChat.id
                 }
             });
-            console.log("✅ 메시지 생성 완료", newMessage);
 
             // 3. ChattingRoom is_visible 처리
             const chattingRoom = await tx.chattingRoom.findUnique({
                 where: { id: BigInt(chattingRoomId) }
             });
             if (!chattingRoom) {
-                console.log("❌ 채팅방이 존재하지 않음");
                 throw new NotFoundError('채팅방이 존재하지 않습니다.');
             }
 
@@ -89,37 +94,30 @@ const coffeechatService = {
                     where: { id: BigInt(chattingRoomId) },
                     data: { is_visible: true }
                 });
-                console.log("✅ 채팅방 is_visible true로 수정됨");
             }
 
             // Redis 캐시 처리
             try {
                 if (!redisClient.isOpen) {
                     await redisClient.connect();
-                    console.log("✅ Redis 연결 완료");
                 }
 
                 const redisKey = `chat:room:${chattingRoomId}`;
                 const safeNewMessage = convertBigIntsToNumbers(newMessage);
                 await redisClient.rPush(redisKey, JSON.stringify(safeNewMessage));
                 await redisClient.lTrim(redisKey, -20, -1);
-                console.log("✅ Redis 캐시 저장 및 트리밍 완료");
             } catch (error) {
-                console.error("❌ Redis 연결 실패", error);
                 throw new Error('redis 연결 실패', error);
             }
 
-            return { coffeechat: newCoffeeChat, message: newMessage };
+            return { coffeechat: newCoffeeChat, message: newMessage, receiverId };
         });
 
-        const { coffeechat, message } = tx;
+        const { coffeechat, message, receiverId } = tx;
         const safeMessage = convertBigIntsToNumbers(message);
 
         try {
-
-            console.log("📤 emit 실행 준비 완료");
             io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage);
-            console.log("📤 emit 실행됨: ", safeMessage);
         } catch (error) {
             console.error("❌ 소켓 emit 실패", error);
         }
@@ -128,8 +126,8 @@ const coffeechatService = {
             chatting_room_id: Number(chattingRoomId),
             coffeechat_id: Number(coffeechat.id),
             sender_id: Number(senderId),
-            receiver_id: Number(receiver_id),
-            created_at: tx.coffeechat.created_at
+            receiver_id: Number(receiverId),
+            created_at: coffeechat.created_at
         };
     },
 

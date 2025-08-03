@@ -21,14 +21,14 @@ export const coffeechatController = {
     requestCoffeechat: async (req, res, next) => {
         try {
             const chattingRoomId = BigInt(req.params.chattingRoomId);
-            const { receiver_id, title, scheduled_at, place } = req.body;
+            const { title, scheduled_at, place } = req.body;
             const senderId = req.user.service_id;
 
             if (!chattingRoomId) {
                 throw new BadRequestError('chattingRoomId가 유효하지 않습니다.')
             }
             const result = await coffeechatService.requestCoffeechat({
-                chattingRoomId, senderId, receiver_id, title, scheduled_at, place
+                chattingRoomId, senderId, title, scheduled_at, place
             }
             )
 
