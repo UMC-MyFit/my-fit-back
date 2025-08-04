@@ -144,7 +144,7 @@ const recruitmentService = {
             }
 
             const recruitments = await prisma.RecruitingNotice.findMany(findAllRecruimentQueryOptions);
-            const processedRecruitments = recruitments.map(async (recruitment) => {
+            const processedPromises = recruitments.map(async (recruitment) => {
                 const lowSectorToList = await stringToList(recruitment.low_sector)
                 return {
                     "recruitment_id": recruitment.id,
@@ -160,6 +160,8 @@ const recruitmentService = {
                     }
                 };
             });
+            const processedRecruitments = await Promise.all(processedPromises);
+
             return convertBigIntsToNumbers(processedRecruitments);
         }
         catch (error) {
@@ -258,11 +260,6 @@ const recruitmentService = {
     },
     getTotalPage: async (highSector = null, lowSector = null, subscribeServiceId = null, limit = 10) => {
         try {
-            console.log("highSector : ", highSector)
-            console.log("lowSector : ", lowSector)
-            console.log("subscribeServiceId : ", subscribeServiceId)
-            console.log("limit : ", limit)
-
             const sectorQuery = {
                 where: {
                     high_sector: {
