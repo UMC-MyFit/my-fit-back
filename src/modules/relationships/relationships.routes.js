@@ -178,7 +178,7 @@ router.delete('/:recipient_id/interests', isAuthenticated, RelationshipsControll
  *                                 type: string
  *                               profile_image:
  *                                 type: string
- *                               description:
+ *                               low_sector:
  *                                 type: string
  *                     pagination:
  *                       type: object

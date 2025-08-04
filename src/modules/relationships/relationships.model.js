@@ -7,20 +7,6 @@ const { PrismaClient, NetworkStatus } = prismaPkg
 const prisma = new PrismaClient()
 
 class RelationshipsModel {
-    /**
-     * User ID로 해당 유저의 Service ID를 조회합니다.
-     * (첫 번째 서비스를 기본으로 반환)
-     * @param {BigInt} userId - User 테이블의 ID
-     * @returns {Promise<BigInt|null>} - 기본 Service ID 또는 null
-     
-    static async findServiceIdByUserId(userId) {
-        const userDB = await prisma.userDB.findFirst({
-            where: { user_id: userId },
-            select: { service_id: true }
-        })
-        return userDB?.service_id || null
-    } */
-
     static async isServiceExists(serviceId) {
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
@@ -172,7 +158,8 @@ class RelationshipsModel {
                     select: {
                         id: true,
                         name: true,
-                        profile_img: true
+                        profile_img: true,
+                        low_sector: true
                     }
                 }
             },
