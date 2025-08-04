@@ -230,15 +230,10 @@ router.get('/:chattingRoomId/coffeechats/:coffeechatId', isAuthenticated, valida
  *           schema:
  *             type: object
  *             required:
- *               - receiver_id
  *               - title
  *               - scheduled_at
  *               - place
  *             properties:
- *               receiver_id:
- *                 type: integer
- *                 description: 수신자 서비스 ID
- *                 example: 7
  *               title:
  *                 type: string
  *                 description: 커피챗 제목

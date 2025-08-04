@@ -53,7 +53,7 @@ router.get('/profiles', feedSearchController.searchProfile);
  *       200:
  *         description: 키워드 피드 검색 결과를 성공적으로 조회했습니다.
  */
-router.get('/keyword', feedSearchController.searchFeedsByKeyword);
+router.get('/keyword', isAuthenticated, feedSearchController.searchFeedsByKeyword);
 
 // GET api/feeds/search/hashtag
 /**
