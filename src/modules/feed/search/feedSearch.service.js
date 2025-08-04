@@ -45,13 +45,13 @@ class FeedSearchService {
         }
     }
 
-    async searchFeedsByHashtag(hashtag, lastFeedId, limit = 30) {
+    async searchFeedsByHashtag(hashtag, lastFeedId, serviceId, limit = 30) {
         try {
             if (!hashtag || typeof hashtag !== 'string') {
                 throw new BadRequestError({ message: '해시태그는 필수입니다.' });
             }
 
-            const feeds = await Search.searchFeedsByHashtag(hashtag, lastFeedId, limit);
+            const feeds = await Search.searchFeedsByHashtag(hashtag, lastFeedId, serviceId, limit);
 
             if (feeds.length === 0) {
                 throw new NotFoundError({ message: '검색 결과가 없습니다.' });

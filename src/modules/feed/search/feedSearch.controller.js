@@ -36,9 +36,10 @@ class FeedSearchController {
     async searchFeedsByKeyword(req, res, next) {
         try {
             const limit = 100;
+            const serviceId = req.user.service_id
             const { keyword } = req.query;
             const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
-            const feeds = await FeedSearchService.searchFeedsByKeyword(keyword, lastFeedId, limit);
+            const feeds = await FeedSearchService.searchFeedsByKeyword(keyword, lastFeedId, serviceId, limit);
             const hasMore = feeds.length === limit;
             const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].feed_id : null;
 
