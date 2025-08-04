@@ -144,8 +144,8 @@ const recruitmentService = {
             }
 
             const recruitments = await prisma.RecruitingNotice.findMany(findAllRecruimentQueryOptions);
-            const processedRecruitments = recruitments.map(recruitment => {
-                const lowSectorToList = stringToList(recruitment.low_sector)
+            const processedRecruitments = recruitments.map(async (recruitment) => {
+                const lowSectorToList = await stringToList(recruitment.low_sector)
                 return {
                     "recruitment_id": recruitment.id,
                     "title": recruitment.title,
