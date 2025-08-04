@@ -1,5 +1,6 @@
 import RelationshipsModel from './relationships.model.js'
 import { NotFoundError, InternalServerError, BadRequestError, CustomError, ForbiddenError, ConflictError } from '../../middlewares/error.js'
+import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 
 // PrismaClient와 NetworkStatus를 default export에서 구조 분해하여 가져옴 (이전 mypage.service.js에서 가져옴)
 import prismaPkg from '@prisma/client'
@@ -43,7 +44,7 @@ class RelationshipsService {
             }
 
             // 5. 관심 생성
-            await RelationshipsModel.createInterest(senderId, recipientId)
+            return await RelationshipsModel.createInterest(senderId, recipientId)
         } catch (error) {
             console.error('RelationshipsService - 관심 추가 서비스 오류:', error)
             if (error instanceof CustomError) {
@@ -77,6 +78,7 @@ class RelationshipsService {
 
     /**
      * 사용자가 관심 등록한 목록 조회
+     * GET /api/relationships/intersts
      */
     static async getInterestsByUser(senderId, page, limit) {
         try {
@@ -91,8 +93,18 @@ class RelationshipsService {
             // 총 페이지 수 계산
             const totalPages = Math.ceil(totalCount / limit)
 
+            const transformed = interests.map(interest => ({
+                id: interest.id.toString(),
+                sender_id: interest.sender_id.toString(),
+                recipient_id: interest.recipient_id.toString(),
+                created_at: interest.created_at,
+                recipient_service_name: interest.recipient.name,
+                recipient_profile_img: interest.recipient.profile_img,
+                recipient_service_sector: interest.recipient.low_sector,
+            }))
+
             return {
-                interests,
+                interests: transformed,
                 pagination: {
                     currentPage: page,
                     totalPages,
@@ -380,6 +392,7 @@ class RelationshipsService {
                 sender_profile_img: req.sender.profile_img,
                 status: req.status, // "PENDING"
                 requested_at: req.created_at, // 요청 시간
+
             }))
         } catch (error) {
             console.error('RelationshipsService - 받은 네트워크 요청 조회 오류:', error);
@@ -408,20 +421,30 @@ class RelationshipsService {
                 return 'NO_RELATION' // 관계 없음
             }
 
+            let status
             switch (network.status) {
                 case NetworkStatus.ACCEPTED:
-                    return 'CONNECTED'
+                    status = 'CONNECTED'
+                    break
                 case NetworkStatus.PENDING:
                     if (network.sender_id === myServiceId) {
-                        return 'PENDING_SENT' // 내가 요청을 보낸 상태
+                        status = 'PENDING_SENT' // 내가 요청을 보낸 상태
+                        break
                     } else {
-                        return 'PENDING_RECEIVED' // 내가 요청을 받은 상태
+                        status = 'PENDING_RECEIVED' // 내가 요청을 받은 상태
+                        break
                     }
                 case NetworkStatus.REJECTED:
                     // 거절 상태는 관계가 없는 것으로 간주하거나, 별도 메시지 필요에 따라 처리
-                    return 'REJECTED' // 또는 'NO_RELATION'으로 간주
+                    status = 'REJECTED' // 또는 'NO_RELATION'으로 간주
+                    break
                 default:
-                    return 'UNKNOWN'
+                    status = 'UNKNOWN'
+            }
+
+            return {
+                status,
+                network_id: network.id.toString() || null // Network ID
             }
         } catch (error) {
             console.error('RelationshipsService - 네트워크 상태 확인 오류:', error);

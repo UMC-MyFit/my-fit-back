@@ -76,12 +76,13 @@ class RelationshipsController {
             const parsedSenderId = BigInt(senderId)
             
             const result = await RelationshipsService.getInterestsByUser(parsedSenderId, parsedPage, parsedLimit)
-            console.log('관심 목록 조회 결과:', result)
+            console.log('관심 목록 조회 결과:', JSON.stringify(result, null, 2))
+
 
             return res.success({
                 code: 200,
                 message: '관심 목록 조회가 성공적으로 완료되었습니다.',
-                data: result
+                data: { result: result }
             })
         } catch (error) {
             next(error)
@@ -352,12 +353,16 @@ class RelationshipsController {
                 throw new BadRequestError({ field: 'target_service_id', message: '유효한 대상 서비스 ID가 필요합니다.' })
             }
 
-            const status = await RelationshipsService.getNetworkStatusWithUser(BigInt(myServiceId), BigInt(target_service_id))
+            // const status = await RelationshipsService.getNetworkStatusWithUser(BigInt(myServiceId), BigInt(target_service_id))
+            const { status, network_id } = await RelationshipsService.getNetworkStatusWithUser(
+                BigInt(myServiceId),
+                BigInt(target_service_id)
+            );
 
             return res.success({
                 code: 200,
                 message: '네트워크 상태를 성공적으로 조회했습니다.',
-                result: { status: status },
+                result: { status, network_id }
             })
         } catch (error) {
             console.error('RelationshipsController - 네트워크 상태 조회 중 오류:', error)
