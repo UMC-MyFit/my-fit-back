@@ -127,7 +127,7 @@ class Search {
             throw new InternalServerError({ originalError: error.message });
         }
     }
-    static async searchFeedsByHashtag(keyword, lastFeedId, limit = 30) {
+    static async searchFeedsByHashtag(keyword, lastFeedId, serviceId, limit = 30) {
         try {
             console.log("Searching feeds by hashtag:", keyword);
             const searchQuery = {
@@ -139,12 +139,34 @@ class Search {
                 },
                 select: {
                     id: true,
+                    created_at: true,
+                    feed_text: true,
                     hashtag: true,
+
                     FeedImage: {
                         select: {
                             image_url: true
                         }
                     },
+                    service: {
+                        select: {
+                            id: true,
+                            name: true,
+                            low_sector: true,
+                            profile_img: true
+                        }
+                    },
+                    feedHearts: {
+                        select: {
+                            service_id: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            FeedComment: true,
+                            feedHearts: true
+                        }
+                    }
                 },
                 orderBy: {
                     id: 'desc'
@@ -161,9 +183,26 @@ class Search {
             const processedFeeds = feeds.map(async feed => {
                 const listHashtags = stringToList(feed.hashtag);
                 if (listHashtags.includes(keyword)) {
+                    const imageUrls = feed.FeedImage.map(image => image.image_url)
+                    const is_liked = feed.feedHearts.some(
+                        (heart) => heart.service_id === BigInt(serviceId)
+                    );
+                    const hashtags = stringToList(feed.hashtag);
                     return {
-                        feed_id: feed.id,
-                        images: feed.FeedImage ? feed.FeedImage.map(image => image.image_url) : [] // FeedImage가 없을 경우를 대비
+                        "feed_id": feed.id,
+                        "user": {
+                            "id": feed.service.id,
+                            "name": feed.service.name,
+                            "sector": feed.service.low_sector,
+                            "profile_img": feed.service.profile_img
+                        },
+                        "created_at": feed.created_at,
+                        "images": imageUrls,
+                        "feed_text": feed.feed_text,
+                        "hashtags": hashtags,
+                        "heart": feed._count.feedHearts,
+                        "is_liked": is_liked,
+                        "comment_count": feed._count.FeedComment
                     };
                 }
                 return null;
