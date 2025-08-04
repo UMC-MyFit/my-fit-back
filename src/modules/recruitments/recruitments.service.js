@@ -258,7 +258,12 @@ const recruitmentService = {
     },
     getTotalPage: async (highSector = null, lowSector = null, subscribeServiceId = null, limit = 10) => {
         try {
-            const totalCount = await prisma.RecruitingNotice.count({
+            console.log("highSector : ", highSector)
+            console.log("lowSector : ", lowSector)
+            console.log("subscribeServiceId : ", subscribeServiceId)
+            console.log("limit : ", limit)
+
+            const sectorQuery = {
                 where: {
                     high_sector: {
                         contains: highSector !== null ? String(highSector) : undefined
@@ -266,13 +271,30 @@ const recruitmentService = {
                     low_sector: {
                         contains: lowSector !== null ? String(lowSector) : undefined
                     },
+
+                }
+            }
+            const subscribedQuery = {
+                where: {
                     subscribedNotices: {
                         some: {
                             service_id: subscribeServiceId !== null ? BigInt(subscribeServiceId) : undefined
                         }
                     }
                 }
-            });
+            }
+            let totalCount = 0
+            if (!subscribeServiceId) {
+                totalCount = await prisma.RecruitingNotice.count({
+                    ...sectorQuery
+                })
+            }
+            else {
+                totalCount = await prisma.RecruitingNotice.count({
+                    ...subscribedQuery
+                })
+            }
+            console.log("totalCount : ", totalCount)
             return Math.ceil(totalCount / limit);
         } catch (error) {
             console.error('총 페이지 수 조회 중 오류:', error);
