@@ -65,7 +65,7 @@ class FeedSearchController {
             const { hashtag } = req.query;
             const serviceId = req.user.service_id
             const lastFeedId = req.query.last_feed_id ? parseInt(req.query.last_feed_id) : null;
-            const feeds = await FeedSearchService.searchFeedsByHashtag(hashtag, lastFeedId, limit);
+            const feeds = await FeedSearchService.searchFeedsByHashtag(hashtag, lastFeedId, serviceId, limit);
             const hasMore = feeds.length === limit;
             const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].feed_id : null;
 
