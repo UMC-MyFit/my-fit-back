@@ -23,7 +23,6 @@ const router = express.Router();
  *             required:
  *               - feed_text
  *               - hashtag
- *               - service_id
  *             properties:
  *               images:
  *                 type: array
@@ -44,10 +43,6 @@ const router = express.Router();
  *                   type: string
  *                 description: 해시태그 배열
  *                 example: ["마케팅", "^-^미디어", "광고"]
- *               service_id:
- *                 type: integer
- *                 description: 피드를 올린 사람의 service_id
- *                 example: 3
  *     responses:
  *       200:
  *         description: 피드가 성공적으로 등록되었습니다.
@@ -199,6 +194,56 @@ router.get('/', isAuthenticated, feedController.getAllFeeds);
  *         description: 피드가 정상적으로 검색되었습니다
  */
 router.get('/:feedId', isAuthenticated, feedController.getFeedById);
+
+// PATCH /api/feeds/:feedId - 피드 수정
+/**
+ * @swagger
+ * /api/feeds/{feedId}:
+ *   patch:
+ *     summary: 아이디로 특정 피드 수정
+ *     description: 피드 번호로 특정 피드 정보를 수정합니다.
+ *     tags: [Feeds]
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 수정할 피드 번호
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - feed_text
+ *               - hashtag
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: uri
+ *                 description: 피드에 포함될 이미지 URL 배열
+ *                 example:
+ *                   - "https://cdn.myfit.com/feed/26_1.jpg"
+ *                   - "https://cdn.myfit.com/feed/26_2.jpg"
+ *               feed_text:
+ *                 type: string
+ *                 description: 피드 내용 텍스트
+ *                 example: "^-^ 마케팅 트렌드 정리 및 인사이트 공유!"
+ *               hashtag:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: 해시태그 배열
+ *                 example: ["마케팅", "^-^미디어", "광고"]
+ *     responses:
+ *       200:
+ *         description: 피드가 정상적으로 검색되었습니다
+ */
+router.patch('/:feedId', isAuthenticated, feedController.updateFeed);
 
 // DELETE /api/feeds/:feedId - 피드 삭제
 /**

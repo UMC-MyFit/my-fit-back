@@ -47,6 +47,65 @@ class Feed {
         }
     }
 
+    // 피드 수정
+    static async update(feedId, feedData, serviceId) {
+        try {
+            const feed = await prisma.feed.findUnique({
+                where: {
+                    id: BigInt(feedId)
+                },
+                select: {
+                    id: true,
+                    service_id: true
+                }
+            });
+            if (!feed) {
+                throw new NotFoundError({ message: '피드를 찾을 수 없습니다.' });
+            }
+            if (feed.service_id !== BigInt(serviceId)) {
+                throw new ForbiddenError({ message: '해당 피드를 수정할 권한이 없습니다.' });
+            }
+
+            const result = await prisma.$transaction(async (prisma) => {
+                const updatedFeed = await prisma.feed.update({
+                    where: {
+                        id: BigInt(feedId)
+                    },
+                    data: {
+                        feed_text: feedData.feed_text,
+                        hashtag: feedData.hashtag || '',
+                        updated_at: feedData.updated_at
+                    }
+                });
+                if (feedData.images && feedData.images.length > 0) {
+                    // 기존 이미지 삭제
+                    await prisma.FeedImage.deleteMany({
+                        where: {
+                            feed_id: updatedFeed.id
+                        }
+                    });
+                }
+                if (feedData.images && feedData.images.length > 0) {
+                    const imagePromises = feedData.images.map(imageUrl =>
+                        prisma.feedImage.create({
+                            data: {
+                                image_url: imageUrl,
+                                feed_id: updatedFeed.id
+                            }
+                        })
+                    );
+                    await Promise.all(imagePromises);
+                }
+                return convertBigIntsToNumbers({ id: updatedFeed.id });
+            });
+
+            return result;
+        } catch (error) {
+            console.error('피드 수정 중 데이터베이스 오류:', error);
+            throw error;
+        }
+    }
+
     // 전체 피드 목록 조회
     static async findAll(serviceId, lastFeedId = null, limit = 10) {
         try {

@@ -87,6 +87,36 @@ class FeedController {
         }
     }
 
+    async updateFeed(req, res, next) {
+        try {
+            const { feedId } = req.params;
+            const serviceId = req.user.service_id;
+            const feedData = req.body;
+            console.log('feedData:', feedData);
+            if (!feedId || isNaN(feedId)) {
+                throw new BadRequestError({ field: 'feedId', message: '유효한 피드 ID가 필요합니다.' });
+            }
+
+            const result = await feedService.updateFeed(feedId, feedData, serviceId);
+
+            return res.success({
+                code: 200,
+                message: '피드가 성공적으로 수정되었습니다.',
+                feed_id: result.feed_id
+            });
+        } catch (error) {
+            console.error('피드 수정 중 오류:', error);
+            if (error instanceof NotFoundError) {
+                return res.error({
+                    code: 404,
+                    message: '피드를 찾을 수 없습니다.',
+                    error: error.message
+                });
+            }
+            next(error);
+        }
+    }
+
     async deleteFeed(req, res, next) {
         try {
             const { feedId } = req.params;

@@ -69,6 +69,35 @@ class FeedService {
         }
     }
 
+    async updateFeed(feedId, feedData, serviceId) {
+        try {
+            const processedHashtag = await listToString(feedData.hashtag);
+            const processedHashtagToList = await stringToList(processedHashtag);
+            const uploadHashtagsPromises = Feed.uploadRecentHashtags(serviceId, processedHashtagToList);
+            const newFeedData = {
+                feed_text: feedData.feed_text,
+                hashtag: processedHashtag,
+                service_id: serviceId,
+                images: feedData.images || [],
+                updated_at: new Date()
+            };
+            const updatedFeed = await Feed.update(feedId, newFeedData, serviceId);
+            await uploadHashtagsPromises;
+            return {
+                feed_id: updatedFeed.id
+            };
+        } catch (error) {
+            console.error('피드 업데이트 중 오류:', error);
+            if (error.code === 'P2025') {
+                throw new NotFoundError({ message: '업데이트할 피드를 찾을 수 없습니다.' });
+            }
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new InternalServerError({ originalError: error.message });
+        }
+    }
+
     async deleteFeed(feedId) {
         try {
             const deletedFeed = await Feed.hide(feedId);
