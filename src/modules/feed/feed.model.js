@@ -7,7 +7,7 @@ TODO
 
 import { PrismaClient } from '@prisma/client';
 import { convertBigIntsToNumbers, stringToList } from '../../libs/dataTransformer.js';
-
+import { ForbiddenError } from '../../middlewares/error.js';
 const prisma = new PrismaClient();
 
 class Feed {
@@ -130,6 +130,45 @@ class Feed {
         }
     }
 
+    static async findById(serviceId, feedId) {
+        try {
+            const feed = await prisma.feed.findUnique({
+                where: {
+                    id: BigInt(feedId)
+                },
+                select: {
+                    id: true,
+                    created_at: true,
+                    feed_text: true,
+                    hashtag: true,
+                    service_id: true,
+
+                    FeedImage: {
+                        select: {
+                            image_url: true
+                        }
+                    },
+                },
+            });
+            if (feed.service_id !== BigInt(serviceId)) {
+                throw new ForbiddenError({
+                    message: '해당 피드를 조회할 권한이 없습니다.'
+                });
+            }
+            const processedFeed = {
+                "feed_id": feed.id,
+                "created_at": feed.created_at,
+                "feed_text": feed.feed_text,
+                "hashtags": stringToList(feed.hashtag),
+                "images": feed.FeedImage.map(image => image.image_url)
+            };
+            return convertBigIntsToNumbers(processedFeed);
+        }
+        catch (error) {
+            console.error('피드 조회 중 오류:', error);
+            throw error;
+        }
+    }
     // 피드 삭제 -> 소프트 삭제(숨김처리)
     static async hide(id) {
         try {

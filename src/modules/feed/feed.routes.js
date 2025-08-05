@@ -179,6 +179,27 @@ router.post('/', isAuthenticated, feedController.createFeed);
  */
 router.get('/', isAuthenticated, feedController.getAllFeeds);
 
+// GET /api/feeds/:feedId - 특정 피드 조회
+/**
+ * @swagger
+ * /api/feeds/{feedId}:
+ *   get:
+ *     summary: 아이디로 특정 피드 조회
+ *     description: 피드 번호로 특정 피드 정보를 조회합니다.
+ *     tags: [Feeds]
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 검색할 피드 번호
+ *     responses:
+ *       200:
+ *         description: 피드가 정상적으로 검색되었습니다
+ */
+router.get('/:feedId', isAuthenticated, feedController.getFeedById);
+
 // DELETE /api/feeds/:feedId - 피드 삭제
 /**
  * @swagger

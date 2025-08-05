@@ -55,6 +55,20 @@ class FeedService {
         }
     }
 
+    async getFeedById(serviceId, feedId) {
+        try {
+            const feed = await Feed.findById(serviceId, feedId);
+            if (!feed) {
+                throw new NotFoundError({ message: '아이디에 해당하는 피드가 없습니다' })
+            }
+            return feed;
+        }
+        catch (error) {
+            console.error('아이디에 해당하는 피드 검색 중 오류 : ', error)
+            throw error
+        }
+    }
+
     async deleteFeed(feedId) {
         try {
             const deletedFeed = await Feed.hide(feedId);

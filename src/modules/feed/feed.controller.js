@@ -65,6 +65,28 @@ class FeedController {
         }
     }
 
+    async getFeedById(req, res, next) {
+        try {
+            const feedId = req.params.feedId
+            const serviceId = req.user.service_id
+            if (!feedId) {
+                throw new BadRequestError({ field: 'feedId', message: '피드 ID는 필수입니다.' });
+            }
+            const feed = await feedService.getFeedById(serviceId, feedId)
+            return res.success({
+                code: 200,
+                message: '피드가 정상적으로 검색되었습니다',
+                result: {
+                    feed
+                }
+            });
+        }
+        catch (error) {
+            console.error('아이디로 피드 조회 중 오류:', error);
+            next(error);
+        }
+    }
+
     async deleteFeed(req, res, next) {
         try {
             const { feedId } = req.params;
