@@ -166,7 +166,7 @@ const coffeechatService = {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
                 sender_name: senderService.name,
-                detail_message: `${senderService.name}님이 커피챗 요청을 수락하였습니다!`,
+                detail_message: `님이 커피챗 요청을 수락하였습니다!`,
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             }
@@ -278,9 +278,6 @@ const coffeechatService = {
         })
         if (!coffeechat) {
             throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
-        }
-        if (coffeechat.requester_id !== BigInt(senderId)) {
-            throw new UnauthorizedError('커피챗 요청자만 변경할 수 있습니다.')
         }
 
         const updated = await prisma.coffeeChat.update({
