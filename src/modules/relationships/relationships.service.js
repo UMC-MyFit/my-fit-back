@@ -100,7 +100,7 @@ class RelationshipsService {
                 created_at: interest.created_at,
                 recipient_service_name: interest.recipient.name,
                 recipient_profile_img: interest.recipient.profile_img,
-                recipient_service_sector: interest.recipient.low_sector,
+                recipient_sector: interest.recipient.low_sector,
             }))
 
             return {
