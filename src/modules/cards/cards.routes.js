@@ -78,6 +78,104 @@ router.post('/', cardsController.createCard)
 
 /**
  * @swagger
+ * /api/cards/sector:
+ *   get:
+ *     summary: 직무 기반 카드 조회
+ *     description: high_sector와 low_sector와 일치하는 개인 유저의 이력 / 활동 카드를 조회합니다.
+ *     tags:
+ *       - Cards
+ *     parameters:
+ *       - in: query
+ *         name: high_sector
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: '상위 직무 (예: "개발/엔지니어링")'
+ *       - in: query
+ *         name: low_sector
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: '하위 직무 (예: "프론트엔드 개발자")'
+ *       - in: query
+ *         name: sort
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [latest, oldest]
+ *         description: '정렬 기준 ("latest"는 최신순, "oldest"는 오래된순). 기본값은 latest'
+ *       - in: query
+ *         name: cursor
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: '이전 요청에서 전달받은 next_cursor 값 (무한 스크롤을 위한 커서)'
+ *     responses:
+  *       200:
+ *         description: 직무 기반 활동 카드 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               isSuccess: true
+ *               code: 200
+ *               message: 직무 기반 카드 조회 성공
+ *               result:
+ *                 cards:
+ *                   - card_id: 21
+ *                     author_name: 시몬
+ *                     recruiting_status: 구직 중
+ *                     keywords:
+ *                       - HTML
+ *                       - Node.js
+ *                       - Spring Boot
+ *                     card_img: https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/cards/profile/59180575-497B-4BD3-A606-AE27
+ *                     one_line_profile: 포토그래퍼
+ *                   - card_id: 17
+ *                     author_name: 시몬
+ *                     recruiting_status: 구직 중
+ *                     keywords:
+ *                       - Node.js
+ *                       - Swift
+ *                       - GitHub
+ *                     card_img: https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/cards/profile/IMG_6259.JPG
+ *                     one_line_profile: 스페인을 사랑하는 사람
+ *                 next_cursor: null
+ *                 has_next: false
+ *       400:
+ *         description: 유효하지 않은 쿼리 파라미터 값
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 400
+ *                 message: '잘못된 요청입니다. 입력값을 확인해주세요.'
+ *                 result:
+ *                   errorCode: C001
+ *                   data:
+ *                     message: '잘못된 쿼리 파라미터가 포함되어 있습니다'
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 500
+ *                 message: 서버에 오류가 발생하였습니다.
+ *                 result:
+ *                   errorCode: S001
+ *                   data:
+ *                     message: 서버에 오류가 발생하였습니다.
+ */
+
+// 이력/활동 카드 - 직무 기반 조회
+router.get('/sector', isAuthenticated, cardsController.getCardBySector)
+
+/**
+ * @swagger
  * /api/cards/swipe:
  *   get:
  *     summary: 필터 조건에 따라 이력/활동 카드 스와이프 방식으로 조회

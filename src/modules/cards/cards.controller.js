@@ -44,6 +44,34 @@ const cardsController = {
         }
     },
 
+    getCardBySector: async (req, res, next) => {
+        try {
+            const { high_sector, low_sector, sort = 'latest', cursor } = req.query
+
+            if (!high_sector || !low_sector) {
+                throw new BadRequestError('high_sector와 low_sector는 필수입니다.')
+            }
+
+            if (!['latest', 'oldest'].includes(sort)) {
+                throw new BadRequestError('sort는 latest 또는 oldest 여야 합니다.')
+            }
+
+            const result = await cardsService.getCardBySector(
+                high_sector,
+                low_sector,
+                sort,
+                cursor ? BigInt(cursor) : null
+            )
+            res.success({
+                code: 200,
+                message: '직무 기반 카드 조회 성공',
+                result,
+            })
+        } catch (error) {
+            next(error)
+        }
+    },
+
     getCardById: async (req, res, next) => {
         try {
             console.log('카드 조회 controller 진입')
