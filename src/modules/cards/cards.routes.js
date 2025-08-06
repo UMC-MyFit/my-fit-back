@@ -179,6 +179,7 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  * /api/cards/swipe:
  *   get:
  *     summary: 필터 조건에 따라 이력/활동 카드 스와이프 방식으로 조회
+ *     description: 최신순으로 전체 이력/활동 카드 이미지를 조회합니다. 한 번에 최대 10개씩 불러오며, next_cursor를 기반으로 다음 데이터를 요청할 수 있습니다.
  *     tags:
  *       - Cards
  *     parameters:
@@ -217,13 +218,7 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  *           items:
  *             type: string
  *         description: "키워드 목록"
- *       - in: query
- *         name: sort
- *         schema:
- *           type: string
- *           enum: [latest, oldest]
- *         required: false
- *         description: "정렬 기준 (latest: 최신순, oldest: 오래된순)"
+
  *     responses:
  *       200:
  *         description: 카드 목록 필터 조회 성공

@@ -97,7 +97,6 @@ const cardsController = {
                 'status',
                 'hope_job',
                 'keywords',
-                'sort',
             ]
             const invalidParams = Object.keys(req.query).filter(
                 (key) => !allowedParams.includes(key)
@@ -109,7 +108,7 @@ const cardsController = {
                 })
             }
 
-            const { cursor, area, status, hope_job, keywords, sort } = req.query
+            const { cursor, area, status, hope_job, keywords } = req.query
 
             // keywords 파싱 (키워드를 무조건 배열 형태로 변환)
             const keywordArray = Array.isArray(keywords)
@@ -124,7 +123,6 @@ const cardsController = {
                 status,
                 hope_job,
                 keywords: keywordArray,
-                sort,
             })
 
             res.success({

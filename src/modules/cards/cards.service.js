@@ -182,7 +182,6 @@ const cardsService = {
         status,
         hope_job,
         keywords,
-        sort,
     }) => {
         try {
             console.log('service 진입')
@@ -233,14 +232,8 @@ const cardsService = {
 
             console.log('키워드 필터링 완료')
 
-            // 4. 정렬
-            // 정렬 조건
-            let orderBy
-            if (sort === 'oldest') {
-                orderBy = { id: 'asc' }
-            } else {
-                orderBy = { id: 'desc' }
-            }
+            // 4. 정렬 - 무조건 최신순
+            const orderBy = { id: 'desc' }
 
             console.log('정렬 필터링 완료')
 
@@ -260,7 +253,43 @@ const cardsService = {
 
             console.log('카드 가져오기 완료')
 
-            // 6. 
+            // 6. 전체 카드 개수 계산 (hope_job 필터링 제외)
+            const totalCards = await prisma.activityCard.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    service_id: true,
+                },
+            })
+
+            // 7. 작성자 직무 필터링을 위한 전체 서비스 ID 조회
+            const allServiceIds = totalCards.map((card) => card.service_id)
+            const allUserDBs = await prisma.userDB.findMany({
+                where: {
+                    service_id: { in: allServiceIds },
+                    ...(hope_job && {
+                        service: {
+                            low_sector: {
+                                contains: hope_job,
+                            },
+                        },
+                    }),
+                },
+                select: {
+                    service_id: true,
+                },
+            })
+
+            const allValidServiceIds = new Set(
+                allUserDBs.map((udb) => udb.service_id)
+            )
+
+            // 필터링 조건에 맞는 전체 카드 개수
+            const totalFilteredCount = totalCards.filter((card) =>
+                allValidServiceIds.has(card.service_id)
+            ).length
+
+            // 8. 현재 페이지용 서비스 ID
             const serviceIds = cards.map((card) => card.service_id)
             const userDBs = await prisma.userDB.findMany({
                 where: {
@@ -292,7 +321,7 @@ const cardsService = {
                     udb.service?.low_sector || '직무 미입력'
             })
 
-            // 7. 최종 필터링 + 포맷팅
+            // 9. 최종 필터링 + 포맷팅
             const filteredCards = cards.filter((card) =>
                 validServiceIds.has(card.service_id)
             )
@@ -313,7 +342,7 @@ const cardsService = {
 
             return convertBigIntsToNumbers({
                 cards: formatted,
-                total_count: formatted.length,
+                total_count: totalFilteredCount, // 필터링 조건에 맞는 전체 카드 개수
                 next_cursor,
                 has_next: !!next_cursor,
             })
@@ -372,6 +401,42 @@ const cardsService = {
             // 최신순 정렬
             const orderBy = { id: 'desc' }
 
+            // 전체 카드 개수 계산 (hope_job 필터링 제외)
+            const totalCards = await prisma.activityCard.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    service_id: true,
+                },
+            })
+
+            // 작성자 직무 필터링을 위한 전체 서비스 ID 조회
+            const allServiceIds = totalCards.map((card) => card.service_id)
+            const allUserDBs = await prisma.userDB.findMany({
+                where: {
+                    service_id: { in: allServiceIds },
+                    ...(hope_job && {
+                        service: {
+                            low_sector: {
+                                contains: hope_job,
+                            },
+                        },
+                    }),
+                },
+                select: {
+                    service_id: true,
+                },
+            })
+
+            const allValidServiceIds = new Set(
+                allUserDBs.map((udb) => udb.service_id)
+            )
+
+            // 필터링 조건에 맞는 전체 카드 개수
+            const totalFilteredCount = totalCards.filter((card) =>
+                allValidServiceIds.has(card.service_id)
+            ).length
+
             const cards = await prisma.activityCard.findMany({
                 where: whereClause,
                 select: {
@@ -423,7 +488,7 @@ const cardsService = {
 
             return convertBigIntsToNumbers({
                 cards: formatted,
-                total_count: formatted.length,
+                total_count: totalFilteredCount, // 필터링 조건에 맞는 전체 카드 개수
                 next_cursor,
                 has_next: !!next_cursor,
             })
