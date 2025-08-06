@@ -76,9 +76,72 @@ const cardsService = {
             })
         }
     },
+    getCardBySector: async (high_sector, low_sector, sort, cursor) => {
+        const TAKE_LIMIT = 20
+        try {
+            const order = sort === 'latest' ? 'desc' : 'asc'
 
+            const cards = await prisma.activityCard.findMany({
+                where: {
+                    id: cursor
+                        ? order === 'desc'
+                            ? { lt: BigInt(cursor) }
+                            : { gt: BigInt(cursor) }
+                        : undefined,
+                    service: {
+                        high_sector,
+                        low_sector,
+                    },
+                },
+                include: {
+                    keywords: {
+                        select: { keyword_text: true },
+                    },
+                    service: {
+                        include: {
+                            userDBs: {
+                                include: {
+                                    user: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: {
+                    created_at: order,
+                },
+                take: TAKE_LIMIT,
+            })
+
+            const filteredCards = cards.filter(card =>
+                card.service.userDBs.some(udb => udb.user.division === 'personal')
+            )
+
+            const hasNext = filteredCards.length === TAKE_LIMIT
+            const nextCursor = hasNext ? filteredCards[filteredCards.length - 1].id : null
+
+            return convertBigIntsToNumbers({
+                cards: filteredCards.map(card => ({
+                    card_id: card.id,
+                    author_name:
+                        card.service.userDBs.find(udb => udb.user.division === 'personal')?.user?.name ||
+                        '알 수 없음',
+                    recruiting_status: card.service.recruiting_status,
+                    keywords: card.keywords.map(k => k.keyword_text),
+                    card_img: card.card_img,
+                    one_line_profile: card.one_line_profile,
+
+
+                })),
+                next_cursor: nextCursor,
+                has_next: hasNext,
+            })
+        } catch (err) {
+            console.error('getCardBySector 에러:', err)
+            throw err
+        }
+    },
     getCardById: async (cardId) => {
-        console.log('service 진입')
         const card = await prisma.activityCard.findUnique({
             where: { id: cardId },
             include: {
@@ -396,7 +459,7 @@ const cardsService = {
         }
     },
 
-    getCardsByServiceId: async (serviceId, limit = 10, cursor = null) => { 
+    getCardsByServiceId: async (serviceId, limit = 10, cursor = null) => {
         try {
             const queryOptions = {
                 where: {
