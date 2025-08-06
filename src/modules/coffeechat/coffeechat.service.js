@@ -369,7 +369,7 @@ const coffeechatService = {
                 sender_id: BigInt(serviceId),
                 sender_name: senderService.name,
                 detail_message: `님이 커피챗 요청을 취소하였습니다.`,
-                type: 'SYSTEM',
+                type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             },
         })
