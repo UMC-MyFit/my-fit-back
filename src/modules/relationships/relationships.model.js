@@ -187,7 +187,8 @@ class RelationshipsModel {
                     select: {
                         id: true,
                         name: true,
-                        profile_img: true, 
+                        profile_img: true,
+                        low_sector: true,
                     },
                 },
             },
@@ -303,8 +304,8 @@ class RelationshipsModel {
                 ],
             },
             include: {
-                sender: { select: { id: true, name: true, profile_img: true } },
-                recipient: { select: { id: true, name: true, profile_img: true } },
+                sender: { select: { id: true, name: true, profile_img: true, low_sector: true } },
+                recipient: { select: { id: true, name: true, profile_img: true, low_sector: true } },
             },
         })
     }
@@ -360,6 +361,7 @@ class RelationshipsModel {
                         id: true,
                         name: true,
                         profile_img: true,
+                        low_sector: true,
                     },
                 },
             },

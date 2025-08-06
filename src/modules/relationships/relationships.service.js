@@ -86,7 +86,7 @@ class RelationshipsService {
 
             // 전체 개수 조회
             const totalCount = await RelationshipsModel.countSentInterests(senderId)
-            
+
             // 관심 목록 조회 (페이지네이션 적용)
             const interests = await RelationshipsModel.findInterestsBySender(senderId, limit, offset)
 
@@ -137,6 +137,7 @@ class RelationshipsService {
                 sender_id: interest.sender.id.toString(),
                 sender_name: interest.sender.name,
                 sender_profile_img: interest.sender.profile_img,
+                sender_sector: interest.sender.low_sector,
             }));
         } catch (error) {
             console.error('RelationshipsService - 받은 관심 조회 오류:', error);
@@ -220,7 +221,7 @@ class RelationshipsService {
 
             // 3. 이미 차단 관계인지 확인
             const isBlockedBySender = await RelationshipsModel.isBlocked(senderId, recipientId);
-            if (isBlockedBySender) { 
+            if (isBlockedBySender) {
                 throw new ForbiddenError({ message: '차단한 사용자에게는 네트워크 요청을 보낼 수 없습니다.' })
             }
             const isBlockedByRecipient = await RelationshipsModel.isBlocked(recipientId, senderId);
@@ -347,6 +348,7 @@ class RelationshipsService {
                     other_service_id: otherService.id.toString(),
                     other_service_name: otherService.name,
                     other_service_profile_img: otherService.profile_img,
+                    other_service_sector: otherService.low_sector,
                 }
             })
         } catch (error) {
@@ -392,6 +394,7 @@ class RelationshipsService {
                 sender_profile_img: req.sender.profile_img,
                 status: req.status, // "PENDING"
                 requested_at: req.created_at, // 요청 시간
+                sender_service_sector: req.sender.low_sector, // 서비스 섹터 정보
 
             }))
         } catch (error) {
@@ -576,7 +579,7 @@ class RelationshipsService {
         try {
             const blockedList = await RelationshipsModel.findBlockedUsers(blockerId)
             return blockedList.map(blockUser => ({
-                id: blockUser.id.toString(), 
+                id: blockUser.id.toString(),
                 blocked_id: blockUser.blocked.id.toString(),
                 blocked_name: blockUser.blocked.name,
                 blocked_profile_img: blockUser.blocked.profile_img,
