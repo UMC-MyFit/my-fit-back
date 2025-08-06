@@ -179,6 +179,7 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  * /api/cards/swipe:
  *   get:
  *     summary: 필터 조건에 따라 이력/활동 카드 스와이프 방식으로 조회
+ *     description: 최신순으로 전체 이력/활동 카드 이미지를 조회합니다. 한 번에 최대 10개씩 불러오며, next_cursor를 기반으로 다음 데이터를 요청할 수 있습니다.
  *     tags:
  *       - Cards
  *     parameters:
@@ -199,13 +200,13 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  *         schema:
  *           type: string
  *         required: false
- *         description: "활동 상태 (예: 이직 준비 중)"
+ *         description: "활동 상태 (예: 구직 중)"
  *       - in: query
  *         name: hope_job
  *         schema:
  *           type: string
  *         required: false
- *         description: "작성자의 희망 직무 (예: 백엔드 개발)"
+ *         description: "작성자의 희망 직무 (예: 백엔드 개발자)"
  *       - in: query
  *         name: keywords
  *         style: form
@@ -217,13 +218,7 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  *           items:
  *             type: string
  *         description: "키워드 목록"
- *       - in: query
- *         name: sort
- *         schema:
- *           type: string
- *           enum: [latest, oldest]
- *         required: false
- *         description: "정렬 기준 (latest: 최신순, oldest: 오래된순)"
+
  *     responses:
  *       200:
  *         description: 카드 목록 필터 조회 성공
@@ -243,7 +238,7 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  *                       one_line_profile: "사이드 프로젝트 매니아"
  *                       tags: ["사이드 프로젝트", "UI/UX", "React"]
  *                     - card_id: 4
- *                       title: "백엔드 개발"
+ *                       title: "백엔드 개발자"
  *                       image_url: "https://myfit.com/cards/4.jpg"
  *                       one_line_profile: "나는 백엔드 개발자"
  *                       tags: ["사이드_프로젝트", "node.js"]
@@ -285,6 +280,90 @@ router.get('/swipe', isAuthenticated, cardsController.getFilteredCards)
 
 /**
  * @swagger
+ * /api/cards/count:
+ *   get:
+ *     summary: 필터 조건에 따른 이력/활동 카드 개수 조회
+ *     description: 필터링 조건에 해당하는 이력/활동 카드의 총 개수를 반환합니다.
+ *     tags:
+ *       - Cards
+ *     parameters:
+ *       - in: query
+ *         name: area
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: "활동 지역 (예: 서울, 경기)"
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: "활동 상태 (예: 구직 중)"
+ *       - in: query
+ *         name: hope_job
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: "희망 직무 (예: 프론트엔드 개발자, 백엔드 개발자)"
+ *       - in: query
+ *         name: keywords
+ *         style: form
+ *         explode: true
+ *         required: false
+ *         collectionFormat: multi
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *         description: "키워드 목록 (예: React, 사이드프로젝트)"
+ *     responses:
+ *       200:
+ *         description: 필터링된 카드 개수 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: true
+ *                 code: 200
+ *                 message: "필터링된 카드 개수 조회 성공"
+ *                 result:
+ *                   count: 4
+ *       400:
+ *         description: 유효하지 않은 쿼리 파라미터
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 400
+ *                 message: "잘못된 요청입니다. 입력값을 확인해주세요."
+ *                 result:
+ *                   errorCode: "C001"
+ *                   data:
+ *                     message: "잘못된 쿼리 파라미터가 포함되어 있습니다:"
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 500
+ *                 message: "서버에 오류가 발생하였습니다."
+ *                 result:
+ *                   errorCode: "S001"
+ *                   data:
+ *                     message: "서버에 오류가 발생하였습니다."
+ */
+
+// 필터링된 카드 개수 조회
+router.get('/count', isAuthenticated, cardsController.getFilteredCardsCount)
+
+/**
+ * @swagger
  * /api/cards/grid:
  *   get:
  *     summary: 전체보기 카드 리스트 조회 (무한 스크롤)
@@ -309,13 +388,13 @@ router.get('/swipe', isAuthenticated, cardsController.getFilteredCards)
  *         schema:
  *           type: string
  *         required: false
- *         description: "활동 상태 (예시: 이직 준비 중)"
+ *         description: "활동 상태 (예시: 구직 중)"
  *       - in: query
  *         name: hope_job
  *         schema:
  *           type: string
  *         required: false
- *         description: "희망 직무 (예시: 프론트엔드 개발)"
+ *         description: "희망 직무 (예시: 프론트엔드 개발자)"
  *       - in: query
  *         name: keywords
  *         schema:

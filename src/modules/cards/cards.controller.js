@@ -97,7 +97,6 @@ const cardsController = {
                 'status',
                 'hope_job',
                 'keywords',
-                'sort',
             ]
             const invalidParams = Object.keys(req.query).filter(
                 (key) => !allowedParams.includes(key)
@@ -109,7 +108,7 @@ const cardsController = {
                 })
             }
 
-            const { cursor, area, status, hope_job, keywords, sort } = req.query
+            const { cursor, area, status, hope_job, keywords } = req.query
 
             // keywords 파싱 (키워드를 무조건 배열 형태로 변환)
             const keywordArray = Array.isArray(keywords)
@@ -118,18 +117,12 @@ const cardsController = {
                     ? [keywords]
                     : []
 
-            // 필터링 여부 판단 (하나라도 참이면 필터링 처리)
-            const isFiltered =
-                !!area || !!status || !!hope_job || keywordArray.length > 0
-
             const result = await cardsService.getFilteredCards({
                 cursor: cursor ? BigInt(cursor) : null,
                 area,
                 status,
                 hope_job,
                 keywords: keywordArray,
-                sort,
-                isFiltered,
             })
 
             res.success({
@@ -167,6 +160,51 @@ const cardsController = {
             })
         } catch (error) {
             console.log('카드 전체 보기 중 에러 발생')
+            next(error)
+        }
+    },
+
+    getFilteredCardsCount: async (req, res, next) => {
+        try {
+            const allowedParams = [
+                'area',
+                'status',
+                'hope_job',
+                'keywords',
+            ]
+            const invalidParams = Object.keys(req.query).filter(
+                (key) => !allowedParams.includes(key)
+            )
+
+            if (invalidParams.length > 0) {
+                throw new BadRequestError({
+                    message: `잘못된 쿼리 파라미터가 포함되어 있습니다: ${invalidParams.join(', ')}`,
+                })
+            }
+
+            const { area, status, hope_job, keywords } = req.query
+
+            // keywords 파싱 (키워드를 무조건 배열 형태로 변환)
+            const keywordArray = Array.isArray(keywords)
+                ? keywords
+                : keywords
+                    ? [keywords]
+                    : []
+
+            const result = await cardsService.getFilteredCardsCount({
+                area,
+                status,
+                hope_job,
+                keywords: keywordArray,
+            })
+
+            res.success({
+                code: 200,
+                message: '필터링된 카드 개수 조회 성공',
+                result,
+            })
+        } catch (error) {
+            console.log('카드 개수 조회 중 에러 발생')
             next(error)
         }
     },
