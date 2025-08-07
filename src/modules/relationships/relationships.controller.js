@@ -64,25 +64,24 @@ class RelationshipsController {
             // 페이지네이션 파라미터 검증
             const parsedPage = parseInt(page)
             const parsedLimit = parseInt(limit)
-            
+
             if (isNaN(parsedPage) || parsedPage < 1) {
                 throw new BadRequestError({ field: 'page', message: '페이지는 1 이상의 숫자여야 합니다.' })
             }
-            
+
             if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 50) {
                 throw new BadRequestError({ field: 'limit', message: '페이지 크기는 1-50 사이의 숫자여야 합니다.' })
             }
 
             const parsedSenderId = BigInt(senderId)
-            
+
             const result = await RelationshipsService.getInterestsByUser(parsedSenderId, parsedPage, parsedLimit)
             console.log('관심 목록 조회 결과:', JSON.stringify(result, null, 2))
-
 
             return res.success({
                 code: 200,
                 message: '관심 목록 조회가 성공적으로 완료되었습니다.',
-                data: { result: result }
+                result: result,
             })
         } catch (error) {
             next(error)
@@ -244,13 +243,13 @@ class RelationshipsController {
         try {
             const recipientId = req.user.service_id
             const { network_id } = req.params
-    
+
             if (!network_id || isNaN(network_id) || !/^\d+$/.test(network_id)) {
                 throw new BadRequestError({ field: 'network_id', message: '유효한 요청 ID가 필요합니다.' })
             }
-    
+
             await RelationshipsService.updateNetworkRequestStatus(BigInt(network_id), 'REJECTED', BigInt(recipientId))
-    
+
             return res.success({
                 code: 200,
                 message: '네트워크 요청이 성공적으로 거절되었습니다.',
