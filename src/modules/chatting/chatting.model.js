@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 const chattingModel = {
     createMessage: async ({ chattingRoomId, senderId, detail_message, type, sender_name }) => {
@@ -11,11 +11,20 @@ const chattingModel = {
                     detail_message,
                     type,
                     sender_name,
-                }
-            })
+                },
+                select: {
+                    id: true,
+                    chat_id: true,
+                    sender_id: true,
+                    sender_name: true,
+                    detail_message: true,
+                    type: true,
+                    created_at: true,
+                },
+            });
         } catch (error) {
-            console.error('prisma 메시지 생성 실패:', error)
-            throw error
+            console.error('prisma 메시지 생성 실패:', error);
+            throw error;
         }
     },
 
@@ -25,9 +34,9 @@ const chattingModel = {
             orderBy: { created_at: 'desc' },
             skip: offset,
             take: 20,
-        })
-        return messages || []
-    }
-}
+        });
+        return messages || [];
+    },
+};
 
-export default chattingModel
+export default chattingModel;

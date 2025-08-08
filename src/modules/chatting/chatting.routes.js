@@ -87,12 +87,48 @@ router.get('/', isAuthenticated, chattingController.getChattingRooms)
  *         description: 채팅방 확인 또는 생성 완료
  *         content:
  *           application/json:
- *             example:
- *               isSuccess: true
- *               code: 200
- *               message: 채팅방 확인 또는 생성 완료
- *               result:
- *                 chatting_room_id: 10
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 채팅방 확인 또는 생성 완료
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     chatting_room_id:
+ *                       type: integer
+ *                       description: 채팅방 ID
+ *                       example: 10
+ *                     is_new:
+ *                       type: boolean
+ *                       description: 새로 생성된 채팅방 여부 (true는 새로 생성, false는 기존 존재)
+ *                       example: false
+ *             examples:
+ *               existing_room:
+ *                 summary: 기존 채팅방이 존재하는 경우
+ *                 value:
+ *                   isSuccess: true
+ *                   code: 200
+ *                   message: 채팅방 확인 또는 생성 완료
+ *                   result:
+ *                     chatting_room_id: 10
+ *                     is_new: false
+ *               new_room:
+ *                 summary: 새로 생성된 채팅방인 경우
+ *                 value:
+ *                   isSuccess: true
+ *                   code: 200
+ *                   message: 채팅방 확인 또는 생성 완료
+ *                   result:
+ *                     chatting_room_id: 15
+ *                     is_new: true
  */
 // 채팅방 존재 여부 확인
 router.post('/check-or-create', isAuthenticated, chattingController.checkOrCreateRoom)
