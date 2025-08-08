@@ -328,6 +328,13 @@ const cardsService = {
                     udb.service?.name || '이름 미입력'
             })
 
+            // service_id -> recruiting_status 매핑
+            const serviceIdToRecruStatus = {}
+            userDBs.forEach((udb) => {
+                serviceIdToRecruStatus[udb.service_id] =
+                    udb.service?.recruiting_status || '구인 현황 미입력'
+            })
+
             // 9. 최종 필터링 + 포맷팅
             const filteredCards = cards.filter((card) =>
                 validServiceIds.has(card.service_id)
@@ -336,7 +343,8 @@ const cardsService = {
             const formatted = filteredCards.map((card) => ({
                 card_id: card.id,
                 title: serviceIdToSector[card.service_id], // 작성자의 직무
-                author_name: serviceIdToName[card.service_id] || '알 수 없음',
+                author_name: serviceIdToName[card.service_id],
+                recruiting_status: serviceIdToRecruStatus[card.service_id],
                 card_img: `https://myfit.com/cards/${card.id}.jpg`,
                 one_line_profile: card.one_line_profile, // 카드 소개글
                 keywords: card.keywords.map((kw) => kw.keyword_text),
