@@ -75,7 +75,7 @@ const coffeechatService = {
                     chat_id: BigInt(chattingRoomId),
                     sender_id: BigInt(senderId),
                     sender_name: senderService.name,
-                    detail_message: '님이 커피챗 요청을 요청하였습니다!',
+                    detail_message: '님이 커피챗을 요청하였습니다!',
                     type: 'COFFEECHAT',
                     coffeechat_id: newCoffeeChat.id
                 }
@@ -117,7 +117,10 @@ const coffeechatService = {
         const safeMessage = convertBigIntsToNumbers(message);
 
         try {
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage);
+            const roomName = `chat:${chattingRoomId}`
+            console.log(`소켓 전송 시도: ${roomName}`, safeMessage)
+            io.to(roomName).emit('receiveMessage', safeMessage);
+            console.log('소켓 전송 성공')
         } catch (error) {
             console.error("❌ 소켓 emit 실패", error);
         }
@@ -188,9 +191,12 @@ const coffeechatService = {
         // 6. 소켓 전송
         try {
             const safeMsg = convertBigIntsToNumbers(systemMessage)
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+            const roomName = `chat:${chattingRoomId}`
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
+            io.to(roomName).emit('receiveMessage', safeMsg)
+            console.log('소켓 전송 성공')
         } catch (error) {
-            console.log('소켓 전송 실패', error)
+            console.error('소켓 전송 실패', error)
         }
 
         return {
@@ -258,9 +264,12 @@ const coffeechatService = {
         // 6. 소켓 전송
         try {
             const safeMsg = convertBigIntsToNumbers(systemMessage)
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+            const roomName = `chat:${chattingRoomId}`
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
+            io.to(roomName).emit('receiveMessage', safeMsg)
+            console.log('소켓 전송 성공')
         } catch (error) {
-            console.log('소켓 전송 실패', error)
+            console.error('소켓 전송 실패', error)
         }
 
         return {
@@ -319,9 +328,12 @@ const coffeechatService = {
         // 소켓 전송
         try {
             const safeMsg = convertBigIntsToNumbers(systemMessage)
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+            const roomName = `chat:${chattingRoomId}`
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
+            io.to(roomName).emit('receiveMessage', safeMsg)
+            console.log('소켓 전송 성공')
         } catch (error) {
-            console.log('소켓 전송 실패:', error)
+            console.error('소켓 전송 실패:', error)
         }
 
         return {
@@ -387,10 +399,13 @@ const coffeechatService = {
         // 4. 소켓 전송
         try {
             const safeMsg = convertBigIntsToNumbers(systemMessage)
-            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMsg)
+            const roomName = `chat:${chattingRoomId}`
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
+            io.to(roomName).emit('receiveMessage', safeMsg)
+            console.log('소켓 전송 성공')
         }
         catch (error) {
-            console.log('소켓 전송 실패:', error)
+            console.error('소켓 전송 실패:', error)
         }
 
         return {

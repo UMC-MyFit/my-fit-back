@@ -5,12 +5,21 @@ import { BadRequestError } from '../../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import { io } from '../../socket/socket.js'
 import { calcAge } from '../../libs/calcAge.js'
+import { NotFoundError } from '../../middlewares/error.js'
 const prisma = new PrismaClient()
 
 const chattingService = {
     checkOrCreateRoom: async (myServiceId, target_service_id) => {
         if (myServiceId === target_service_id) {
             throw new BadRequestError('자기 자신과는 채팅할 수 없습니다.')
+        }
+
+        // 0. 상대방 서비스 존재 여부 확인
+        const targetService = await prisma.service.findUnique({
+            where: { id: BigInt(target_service_id) }
+        })
+        if (!targetService) {
+            throw new NotFoundError('존재하지 않는 service_id 입니다.')
         }
 
         // 1. 기존 채팅방 존재 확인
@@ -47,7 +56,10 @@ const chattingService = {
             existingRoom.chats.some(c => c.service_id === targetId)
         ) {
             console.log('이미 채팅장 존재')
-            return convertBigIntsToNumbers(existingRoom.id)
+            return {
+                chatting_room_id: convertBigIntsToNumbers(existingRoom.id),
+                is_new: false
+            }
         }
 
 
@@ -70,75 +82,78 @@ const chattingService = {
                 }
             }
         })
-        return convertBigIntsToNumbers(newRoom.id)
+        console.log('새로운 채팅방 생성')
+        return {
+            chatting_room_id: convertBigIntsToNumbers(newRoom.id),
+            is_new: true
+        }
 
     },
-    sendMessage: async ({ chattingRoomId, senderId, detail_message, type }) => {
-
-        // 0. 채팅방 존재 여부 및 참여자 확인
+    sendMessage: async ({ chattingRoomId, senderId, detail_message, type, tempId }) => {
         const chattingRoom = await prisma.chattingRoom.findUnique({
             where: { id: BigInt(chattingRoomId) },
-        })
+        });
 
         if (!chattingRoom) {
-            throw new BadRequestError('존재하지 않는 채팅방입니다.')
+            throw new BadRequestError('존재하지 않는 채팅방입니다.');
         }
 
         const isParticipant = await prisma.chat.findFirst({
             where: {
                 chat_id: BigInt(chattingRoomId),
                 service_id: BigInt(senderId),
-            }
-        })
-        console.log('채팅방 존재 여부 및 참여자 확인 완료')
+            },
+        });
 
         if (!isParticipant) {
-            throw new BadRequestError('이 채팅방의 참여자가 아닙니다.')
+            throw new BadRequestError('이 채팅방의 참여자가 아닙니다.');
         }
 
-        // 사용자 이름 조회
         const senderService = await prisma.service.findUnique({
             where: { id: BigInt(senderId) },
-            select: { name: true }
-        })
+            select: { name: true },
+        });
 
         if (!senderService) {
-            throw new BadRequestError('송신자 정보가 존재하지 않습니다.')
+            throw new BadRequestError('송신자 정보가 존재하지 않습니다.');
         }
 
-        // 만약 is_visible이 false라면 true로 변경 (첫 메시지일 경우)
         if (!chattingRoom.is_visible) {
             await prisma.chattingRoom.update({
                 where: { id: BigInt(chattingRoomId) },
-                data: { is_visible: true }
-            })
+                data: { is_visible: true },
+            });
         }
-        // 1. DB에 저장
+
         const message = await chattingModel.createMessage({
             chattingRoomId,
             senderId,
             detail_message,
             type,
-            sender_name: senderService.name
+            sender_name: senderService.name,
+        });
 
-        })
-
-
-        // 2. Redis 캐시 (최근 메시지 목록 등)
         if (!redisClient.isOpen) {
-            await redisClient.connect()
+            await redisClient.connect();
         }
-        const redisKey = `chat:room:${chattingRoomId}`
-        const safeMessage = convertBigIntsToNumbers(message)
-        await redisClient.rPush(redisKey, JSON.stringify(safeMessage))
-        // 최신 20개만 유지
-        await redisClient.lTrim(redisKey, -20, -1)
 
+        const redisKey = `chat:room:${chattingRoomId}`;
+        const safeMessage = convertBigIntsToNumbers(message);
+        await redisClient.rPush(redisKey, JSON.stringify(safeMessage));
+        await redisClient.lTrim(redisKey, -20, -1);
 
-        // 3. Socket.io로 해당 방에 전파 (emit은 socket.js에서 처리함)
-        io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage)
-        return safeMessage
+        try {
+            const roomName = `chat:${chattingRoomId}`;
+            console.log(`소켓 전송 시도: ${roomName}`, safeMessage);
+            io.to(roomName).emit('receiveMessage', safeMessage);
+            console.log('소켓 전송 성공');
+        } catch (error) {
+            console.error('소켓 전송 실패:', error);
+        }
+
+        return safeMessage;
     },
+
     getMessages: async (chattingRoomId, cursor) => {
         const TAKE_LIMIT = 20;
         const redisKey = `chat:room:${chattingRoomId}`

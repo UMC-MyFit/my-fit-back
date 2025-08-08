@@ -5,7 +5,7 @@ const chattingController = {
         try {
             const myServiceId = req.user.service_id
             const { service_id: target_service_id } = req.body
-            const roomId = await chattingService.checkOrCreateRoom(
+            const result = await chattingService.checkOrCreateRoom(
                 myServiceId,
                 target_service_id
             )
@@ -13,7 +13,7 @@ const chattingController = {
             res.success({
                 code: 200,
                 message: '채팅방 확인 또는 생성 완료',
-                result: { chatting_room_id: roomId }
+                result: result
             })
         } catch (error) {
             next(error)
@@ -23,13 +23,14 @@ const chattingController = {
         try {
             const { chattingRoomId } = req.params
             const senderId = req.user.service_id
-            const { detail_message, type } = req.body
+            const { detail_message, type, tempId } = req.body
             console.log(chattingRoomId)
             const message = await chattingService.sendMessage({
                 chattingRoomId,
                 senderId,
                 detail_message,
-                type
+                type,
+                tempId
 
             })
 
