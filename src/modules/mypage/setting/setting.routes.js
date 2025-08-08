@@ -297,4 +297,280 @@ router.get('/profile', isAuthenticated, SettingController.getProfile)
  */
 router.patch('/profile', isAuthenticated, SettingController.updateProfile)
 
+/**
+ * @swagger
+ * /api/settings/team-profile:
+ *   get:
+ *     summary: 팀 프로필 정보 조회
+ *     description: 현재 로그인된 팀 사용자의 프로필 정보를 조회합니다.
+ *     tags:
+ *       - Settings
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: 팀 프로필 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: number
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: 팀 프로필 정보를 성공적으로 조회했습니다.
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       example: "김철수"
+ *                     one_line_profile:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "열정적인 개발자입니다."
+ *                     team_division:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "스타트업"
+ *                     industry:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "IT 서비스"
+ *                     high_area:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "서울"
+ *                     low_area:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "강남구"
+ *                     recruiting_status:
+ *                       type: string
+ *                       example: "모집 중"
+ *                     link:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "https://example.com/team-profile"
+ *       401:
+ *         description: 인증되지 않은 요청 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       404:
+ *         description: 사용자를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: number
+ *                   example: 404
+ *                 message:
+ *                   type: string
+ *                   example: 사용자 프로필을 찾을 수 없습니다.
+ *                 result:
+ *                   type: object
+ *                   nullable: true
+ *                   example: null
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+router.get('/team-profile', isAuthenticated, SettingController.getTeamProfile)
+
+/**
+ * @swagger
+ * /api/settings/team-profile:
+ *   patch:
+ *     summary: 팀 프로필 수정
+ *     description: 현재 로그인된 사용자의 프로필 정보를 수정합니다.
+ *     tags:
+ *       - Settings
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: 사용자 이름
+ *                 example: "김철수"
+ *               one_line_profile:
+ *                 type: string
+ *                 description: 한줄 소개
+ *                 example: "열정적인 풀스택 개발자입니다."
+ *               team_division:
+ *                 type: string
+ *                 example: "스타트업"
+ *               industry:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "IT 서비스"
+ *               high_area:
+ *                 type: string
+ *                 nullable: true
+ *                 description: 상위 지역
+ *                 example: "서울"
+ *               low_area:
+ *                 type: string
+ *                 nullable: true
+ *                 description: 하위 지역
+ *                 example: "강남구"
+ *               recruiting_status:
+ *                 type: string
+ *                 description: 모집 상태
+ *                 example: "모집 중"
+ *               link:
+ *                 type: string
+ *                 nullable: true
+ *                 example: "https://example.com/team-profile"
+ *     responses:
+ *       200:
+ *         description: 프로필이 성공적으로 수정되었습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "프로필이 성공적으로 수정되었습니다."
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "123456789012345678"
+ *                     name:
+ *                       type: string
+ *                       example: "김철수"
+ *                     profile_img:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "https://example.com/new-profile.jpg"
+ *                     one_line_profile:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "열정적인 풀스택 개발자입니다."
+ *                     birth_date:
+ *                       type: string
+ *                       format: date-time
+ *                       nullable: true
+ *                       example: "1990-01-01T00:00:00.000Z"
+ *                     Highest_grade:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "대학교 졸업"
+ *                     link:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "https://github.com/kimchulsu"
+ *                     division:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "개인"
+ *                     grade_status:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "졸업"
+ *                     phone_number:
+ *                       type: string
+ *                       nullable: true
+ *                       example: "010-1234-5678"
+ *                     notification_enabled:
+ *                       type: boolean
+ *                       example: true
+ *                     updated_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-01-15T10:30:00.000Z"
+ *       400:
+ *         description: "잘못된 요청 (유효하지 않은 입력값)"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequestError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효하지 않은 프로필 정보입니다."
+ *       401:
+ *         description: 인증되지 않은 요청 (로그인 필요)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UnauthorizedError'
+ *       404:
+ *         description: 사용자를 찾을 수 없습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NotFoundError'
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "사용자를 찾을 수 없습니다."
+ *       422:
+ *         description: 유효성 검사 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: false
+ *                 code:
+ *                   type: number
+ *                   example: 422
+ *                 message:
+ *                   type: string
+ *                   example: "입력값 유효성 검사에 실패했습니다."
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     errors:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           field:
+ *                             type: string
+ *                             example: "email"
+ *                           message:
+ *                             type: string
+ *                             example: "유효한 이메일 형식이 아닙니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InternalServerError'
+ */
+router.patch('/team-profile', isAuthenticated, SettingController.updateTeamProfile)
+
 export default router
