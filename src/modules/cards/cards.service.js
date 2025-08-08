@@ -305,17 +305,14 @@ const cardsService = {
         try {
             const TAKE_LIMIT = 10;
 
-            /* ---------- 1. whereClause 구성 ---------- */
             const where = {};
 
-            // (1) 활동 지역
             if (area) {
                 where.service = {
                     userAreas: { some: { high_area: area } },
                 };
             }
 
-            // (2) 상태
             if (status) {
                 where.AND = where.AND || [];
                 where.AND.push({
@@ -323,7 +320,6 @@ const cardsService = {
                 });
             }
 
-            // (3) 키워드(모두 포함)
             if (keywords?.length) {
                 where.AND = where.AND || [];
                 keywords.forEach(kw =>
@@ -331,7 +327,6 @@ const cardsService = {
                 );
             }
 
-            // (4) hope_job ⇒ low_sector 쉼표 대응 OR
             if (hope_job) {
                 where.AND = where.AND || [];
                 where.AND.push({
@@ -345,25 +340,22 @@ const cardsService = {
                 });
             }
 
-            /* ---------- 2. 총 개수 ---------- */
             const total_count = await prisma.activityCard.count({ where });
 
-            /* ---------- 3. 페이지 데이터 ---------- */
             const cards = await prisma.activityCard.findMany({
                 where,
-                select: { id: true, card_img: true },      // card_img 바로 사용
+                select: { id: true, card_img: true },
                 take: TAKE_LIMIT,
                 ...(cursor && { skip: 1, cursor: { id: cursor } }),
                 orderBy: { id: 'desc' },
             });
 
-            /* ---------- 4. 응답 가공 ---------- */
             const next_cursor =
                 cards.length === TAKE_LIMIT ? cards[cards.length - 1].id : null;
 
             const formatted = cards.map(c => ({
                 card_id: c.id,
-                image_url: c.card_img,
+                card_img: c.card_img,
             }));
 
             return convertBigIntsToNumbers({

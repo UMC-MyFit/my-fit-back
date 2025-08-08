@@ -234,12 +234,12 @@ router.get('/sector', isAuthenticated, cardsController.getCardBySector)
  *                   cards:
  *                     - card_id: 23
  *                       title: "백엔드 개발"
- *                       image_url: "https://myfit.com/cards/23.jpg"
+ *                       card_img: "https://myfit.com/cards/23.jpg"
  *                       one_line_profile: "사이드 프로젝트 매니아"
  *                       tags: ["사이드 프로젝트", "UI/UX", "React"]
  *                     - card_id: 4
  *                       title: "백엔드 개발자"
- *                       image_url: "https://myfit.com/cards/4.jpg"
+ *                       card_img: "https://myfit.com/cards/4.jpg"
  *                       one_line_profile: "나는 백엔드 개발자"
  *                       tags: ["사이드_프로젝트", "node.js"]
  *                   total_count: 3
@@ -417,9 +417,9 @@ router.get('/count', isAuthenticated, cardsController.getFilteredCardsCount)
  *               result:
  *                 cards:
  *                   - card_id: 23
- *                     image_url: https://myfit.com/cards/23.jpg
+ *                     card_img: https://myfit.com/cards/23.jpg
  *                   - card_id: 3
- *                     image_url: https://myfit.com/cards/3.jpg
+ *                     card_img: https://myfit.com/cards/3.jpg
  *                 total_count: 2
  *                 next_cursor: null
  *                 has_next: false
