@@ -243,6 +243,7 @@ const chattingService = {
             const partnerChat = chatRoom.chats.find(c => c.service_id !== myId)
             const partner = chatRoom.chats.find(c => c.service_id !== myId)?.service
             const lastMessage = chatRoom.messages[0]
+            const userInfo = partner?.userDBs?.[0]?.user
 
             return convertBigIntsToNumbers({
                 chatting_room_id: chat.chat_id,
@@ -252,10 +253,13 @@ const chattingService = {
                     age: partner ? calcAge(partner.userDBs?.[0]?.user?.birth_date) : null,
                     low_sector: partner?.low_sector || '',
                     profile_image: partner?.profile_img || '',
+                    division: userInfo?.division
                 },
                 last_message: lastMessage
                     ? {
                         message: lastMessage.detail_message,
+                        sender_name: lastMessage.sender_name,
+                        type: lastMessage.type,
                         created_at: lastMessage.created_at,
                     }
                     : null,
