@@ -256,6 +256,7 @@ const chattingService = {
                 last_message: lastMessage
                     ? {
                         message: lastMessage.detail_message,
+                        type: lastMessage.type,
                         created_at: lastMessage.created_at,
                     }
                     : null,

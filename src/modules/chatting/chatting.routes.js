@@ -32,6 +32,7 @@ const router = express.Router()
  *                       profile_image: ""
  *                     last_message:
  *                       message: 체크체크
+ *                       type: TEXT
  *                       created_at: "2025-07-22T07:57:19.077Z"
  *                 next_cursor: null
  *       401:
