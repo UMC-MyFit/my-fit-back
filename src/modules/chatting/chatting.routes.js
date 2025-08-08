@@ -30,8 +30,10 @@ const router = express.Router()
  *                       age: 25
  *                       low_sector: UI/UX 개발자
  *                       profile_image: ""
+ *                       division: 'personal'
  *                     last_message:
  *                       message: 체크체크
+ *                       sender_name: 김철수
  *                       type: TEXT
  *                       created_at: "2025-07-22T07:57:19.077Z"
  *                 next_cursor: null
