@@ -20,7 +20,6 @@ const cardsService = {
         }
     ) => {
         try {
-            console.log(' service 접근')
             // 1. 활동 카드 생성
             const newCard = await prisma.activityCard.create({
                 data: {
@@ -77,22 +76,36 @@ const cardsService = {
         }
     },
     getCardBySector: async (high_sector, low_sector, sort, cursor) => {
-        const TAKE_LIMIT = 20
+        const TAKE_LIMIT = 20;
         try {
-            const order = sort === 'latest' ? 'desc' : 'asc'
+            const order = sort === 'latest' ? 'desc' : 'asc';
+
+            const whereClause = {
+                ...(cursor && {
+                    id: order === 'desc'
+                        ? { lt: BigInt(cursor) }
+                        : { gt: BigInt(cursor) },
+                }),
+
+                // 핵심!  하나의 service 필터 안에서 high-sector AND (OR-low-sector)
+                service: {
+                    AND: [
+                        { high_sector: high_sector },
+                        ...(low_sector
+                            ? [{
+                                OR: [
+                                    { low_sector: { contains: low_sector } },
+                                    { low_sector: { contains: `, ${low_sector}` } },
+                                    { low_sector: { contains: `${low_sector},` } },
+                                ],
+                            }]
+                            : []),
+                    ],
+                },
+            };
 
             const cards = await prisma.activityCard.findMany({
-                where: {
-                    id: cursor
-                        ? order === 'desc'
-                            ? { lt: BigInt(cursor) }
-                            : { gt: BigInt(cursor) }
-                        : undefined,
-                    service: {
-                        high_sector,
-                        low_sector,
-                    },
-                },
+                where: whereClause,
                 include: {
                     keywords: {
                         select: { keyword_text: true },
@@ -111,34 +124,36 @@ const cardsService = {
                     created_at: order,
                 },
                 take: TAKE_LIMIT,
-            })
+            });
 
             const filteredCards = cards.filter(card =>
-                card.service.userDBs.some(udb => udb.user.division === 'personal')
-            )
+                card.service.userDBs.some(
+                    udb => udb.user.division === 'personal'
+                )
+            );
 
-            const hasNext = filteredCards.length === TAKE_LIMIT
-            const nextCursor = hasNext ? filteredCards[filteredCards.length - 1].id : null
+            const hasNext = filteredCards.length === TAKE_LIMIT;
+            const nextCursor =
+                hasNext ? filteredCards[filteredCards.length - 1].id : null;
 
             return convertBigIntsToNumbers({
                 cards: filteredCards.map(card => ({
                     card_id: card.id,
                     author_name:
-                        card.service.userDBs.find(udb => udb.user.division === 'personal')?.user?.name ||
-                        '알 수 없음',
+                        card.service.userDBs.find(
+                            udb => udb.user.division === 'personal'
+                        )?.user?.name || '알 수 없음',
                     recruiting_status: card.service.recruiting_status,
                     keywords: card.keywords.map(k => k.keyword_text),
                     card_img: card.card_img,
                     one_line_profile: card.one_line_profile,
-
-
                 })),
                 next_cursor: nextCursor,
-                has_next: hasNext,
-            })
+                has_next: !!nextCursor,
+            });
         } catch (err) {
-            console.error('getCardBySector 에러:', err)
-            throw err
+            console.error('getCardBySector 에러:', err);
+            throw err;
         }
     },
     getCardById: async (cardId) => {
@@ -150,7 +165,6 @@ const cardsService = {
             },
         })
 
-        console.log(card)
 
         if (!card) {
             throw new NotFoundError({
@@ -176,32 +190,26 @@ const cardsService = {
         return convertBigIntsToNumbers(result)
     },
 
-    getFilteredCards: async ({
-        cursor,
-        area,
-        status,
-        hope_job,
-        keywords,
-    }) => {
+    getFilteredCards: async ({ cursor, area, status, hope_job, keywords }) => {
         try {
-            console.log('service 진입')
 
-            const whereClause = {}
             const TAKE_LIMIT = 10
 
-            // 1. 활동 지역
+            // 기본 whereClause 시작
+            const whereClause = {}
+
+            // 1. 활동 지역 필터링
             if (area) {
                 whereClause.service = {
                     userAreas: {
                         some: {
                             high_area: {
                                 equals: area,
-                            }
+                            },
                         },
                     },
                 }
             }
-            console.log('활동 지역 필터링 완료')
 
             // 2. 상태 필터링
             if (status) {
@@ -214,9 +222,8 @@ const cardsService = {
                     },
                 })
             }
-            console.log('상태 필터링 완료')
 
-            // 3. 키워드
+            // 3. 키워드 필터링
             if (keywords?.length > 0) {
                 whereClause.AND = whereClause.AND || []
                 keywords.forEach((keyword) => {
@@ -230,18 +237,27 @@ const cardsService = {
                 })
             }
 
-            console.log('키워드 필터링 완료')
+            // 4. hope_job 필터링 (low_sector에 부분 포함되도록 contains OR 조건 사용)
+            if (hope_job) {
+                whereClause.AND = whereClause.AND || []
+                whereClause.AND.push({
+                    OR: [
+                        { service: { low_sector: { contains: hope_job } } },
+                        { service: { low_sector: { contains: `, ${hope_job}` } } },
+                        { service: { low_sector: { contains: `${hope_job},` } } },
+                    ],
+                })
+            }
 
-            // 4. 정렬 - 무조건 최신순
+            // 5. 정렬
             const orderBy = { id: 'desc' }
 
-            console.log('정렬 필터링 완료')
-
-            // 5. 카드 가져오기
+            // 6. 카드 조회 (페이지네이션 포함)
             const cards = await prisma.activityCard.findMany({
                 where: whereClause,
                 include: {
                     keywords: true,
+                    service: true,
                 },
                 take: TAKE_LIMIT,
                 ...(cursor && {
@@ -251,114 +267,29 @@ const cardsService = {
                 orderBy,
             })
 
-            console.log('카드 가져오기 완료')
-
-            // 6. 전체 카드 개수 계산 (hope_job 필터링 제외)
-            const totalCards = await prisma.activityCard.findMany({
+            // 7. total count 계산 (whereClause와 동일 조건)
+            const totalFilteredCount = await prisma.activityCard.count({
                 where: whereClause,
-                select: {
-                    id: true,
-                    service_id: true,
-                },
             })
 
-            // 7. 작성자 직무 필터링을 위한 전체 서비스 ID 조회
-            const allServiceIds = totalCards.map((card) => card.service_id)
-            const allUserDBs = await prisma.userDB.findMany({
-                where: {
-                    service_id: { in: allServiceIds },
-                    ...(hope_job && {
-                        service: {
-                            low_sector: {
-                                contains: hope_job,
-                            },
-                        },
-                    }),
-                },
-                select: {
-                    service_id: true,
-                },
-            })
-
-            const allValidServiceIds = new Set(
-                allUserDBs.map((udb) => udb.service_id)
-            )
-
-            // 필터링 조건에 맞는 전체 카드 개수
-            const totalFilteredCount = totalCards.filter((card) =>
-                allValidServiceIds.has(card.service_id)
-            ).length
-
-            // 8. 현재 페이지용 서비스 ID
-            const serviceIds = cards.map((card) => card.service_id)
-            const userDBs = await prisma.userDB.findMany({
-                where: {
-                    service_id: { in: serviceIds },
-                    ...(hope_job && {
-                        service: {
-                            low_sector: {
-                                contains: hope_job,
-                            },
-                        },
-                    }),
-                },
-                include: {
-                    service: true,
-                },
-            })
-
-            console.log('작성자 직업 조회 완료')
-
-            // 필터링된 서비스 ID만 추출
-            const validServiceIds = new Set(
-                userDBs.map((udb) => udb.service_id)
-            )
-
-            // service_id → sector 매핑
-            const serviceIdToSector = {}
-            userDBs.forEach((udb) => {
-                serviceIdToSector[udb.service_id] =
-                    udb.service?.low_sector || '직무 미입력'
-            })
-
-            // service_id -> name 매핑
-            const serviceIdToName = {}
-            userDBs.forEach((udb) => {
-                serviceIdToName[udb.service_id] =
-                    udb.service?.name || '이름 미입력'
-            })
-
-            // service_id -> recruiting_status 매핑
-            const serviceIdToRecruStatus = {}
-            userDBs.forEach((udb) => {
-                serviceIdToRecruStatus[udb.service_id] =
-                    udb.service?.recruiting_status || '구인 현황 미입력'
-            })
-
-            // 9. 최종 필터링 + 포맷팅
-            const filteredCards = cards.filter((card) =>
-                validServiceIds.has(card.service_id)
-            )
-
-            const formatted = filteredCards.map((card) => ({
+            // 8. 최종 포맷팅
+            const formatted = cards.map((card) => ({
                 card_id: card.id,
-                title: serviceIdToSector[card.service_id], // 작성자의 직무
-                author_name: serviceIdToName[card.service_id],
-                recruiting_status: serviceIdToRecruStatus[card.service_id],
-                card_img: `https://myfit.com/cards/${card.id}.jpg`,
-                one_line_profile: card.one_line_profile, // 카드 소개글
+                title: card.service?.low_sector,
+                author_name: card.service?.name,
+                recruiting_status: card.service?.recruiting_status,
+                card_img: card.card_img,
+                one_line_profile: card.one_line_profile,
                 keywords: card.keywords.map((kw) => kw.keyword_text),
             }))
 
-            console.log('최종 필터링 완료')
-
-            // next_cursor는 필터링된 카드 개수로 계산
+            // 9. next_cursor 계산
             const next_cursor =
-                filteredCards.length === TAKE_LIMIT ? filteredCards[filteredCards.length - 1].id : null
+                cards.length === TAKE_LIMIT ? cards[cards.length - 1].id : null
 
             return convertBigIntsToNumbers({
                 cards: formatted,
-                total_count: totalFilteredCount, // 필터링 조건에 맞는 전체 카드 개수
+                total_count: totalFilteredCount,
                 next_cursor,
                 has_next: !!next_cursor,
             })
@@ -372,145 +303,78 @@ const cardsService = {
 
     getCardgrid: async ({ cursor, area, status, hope_job, keywords }) => {
         try {
-            const TAKE_LIMIT = 10
-            const whereClause = {}
+            const TAKE_LIMIT = 10;
 
-            // 1. 활동 지역
+            /* ---------- 1. whereClause 구성 ---------- */
+            const where = {};
+
+            // (1) 활동 지역
             if (area) {
-                whereClause.service = {
-                    userAreas: {
-                        some: {
-                            high_area: {
-                                equals: area,
-                            }
-                        },
-                    },
-                }
+                where.service = {
+                    userAreas: { some: { high_area: area } },
+                };
             }
 
-            // 2. 상태
+            // (2) 상태
             if (status) {
-                whereClause.AND = whereClause.AND || []
-                whereClause.AND.push({
+                where.AND = where.AND || [];
+                where.AND.push({
+                    service: { recruiting_status: { contains: status } },
+                });
+            }
+
+            // (3) 키워드(모두 포함)
+            if (keywords?.length) {
+                where.AND = where.AND || [];
+                keywords.forEach(kw =>
+                    where.AND.push({ keywords: { some: { keyword_text: kw } } }),
+                );
+            }
+
+            // (4) hope_job ⇒ low_sector 쉼표 대응 OR
+            if (hope_job) {
+                where.AND = where.AND || [];
+                where.AND.push({
                     service: {
-                        recruiting_status: {
-                            contains: status,
-                        },
+                        OR: [
+                            { low_sector: { contains: hope_job } },
+                            { low_sector: { contains: `, ${hope_job}` } },
+                            { low_sector: { contains: `${hope_job},` } },
+                        ],
                     },
-                })
+                });
             }
 
-            // 키워드 (모두 포함) - 다른 함수와 일관성 유지
-            if (keywords?.length > 0) {
-                whereClause.AND = whereClause.AND || []
-                keywords.forEach((kw) => {
-                    whereClause.AND.push({
-                        keywords: {
-                            some: {
-                                keyword_text: kw,
-                            },
-                        },
-                    })
-                })
-            }
+            /* ---------- 2. 총 개수 ---------- */
+            const total_count = await prisma.activityCard.count({ where });
 
-            // 최신순 정렬
-            const orderBy = { id: 'desc' }
-
-            // 전체 카드 개수 계산 (hope_job 필터링 제외)
-            const totalCards = await prisma.activityCard.findMany({
-                where: whereClause,
-                select: {
-                    id: true,
-                    service_id: true,
-                },
-            })
-
-            // 작성자 직무 필터링을 위한 전체 서비스 ID 조회
-            const allServiceIds = totalCards.map((card) => card.service_id)
-            const allUserDBs = await prisma.userDB.findMany({
-                where: {
-                    service_id: { in: allServiceIds },
-                    ...(hope_job && {
-                        service: {
-                            low_sector: {
-                                contains: hope_job,
-                            },
-                        },
-                    }),
-                },
-                select: {
-                    service_id: true,
-                },
-            })
-
-            const allValidServiceIds = new Set(
-                allUserDBs.map((udb) => udb.service_id)
-            )
-
-            // 필터링 조건에 맞는 전체 카드 개수
-            const totalFilteredCount = totalCards.filter((card) =>
-                allValidServiceIds.has(card.service_id)
-            ).length
-
+            /* ---------- 3. 페이지 데이터 ---------- */
             const cards = await prisma.activityCard.findMany({
-                where: whereClause,
-                select: {
-                    id: true,
-                    service_id: true,
-                },
+                where,
+                select: { id: true, card_img: true },      // card_img 바로 사용
                 take: TAKE_LIMIT,
-                ...(cursor && {
-                    skip: 1,
-                    cursor: { id: cursor },
-                }),
-                orderBy,
-            })
+                ...(cursor && { skip: 1, cursor: { id: cursor } }),
+                orderBy: { id: 'desc' },
+            });
 
-            // 작성자 직무 필터
-            const serviceIds = cards.map((card) => card.service_id)
-            const userDBs = await prisma.userDB.findMany({
-                where: {
-                    service_id: { in: serviceIds },
-                    ...(hope_job && {
-                        service: {
-                            low_sector: {
-                                contains: hope_job,
-                            },
-                        },
-                    }),
-                },
-                include: {
-                    service: true,
-                },
-            })
-
-            const validServiceIds = new Set(
-                userDBs.map((udb) => udb.service_id)
-            )
-
-            const filteredCards = cards.filter((card) =>
-                validServiceIds.has(card.service_id)
-            )
-
-            const formatted = filteredCards.map((card) => ({
-                card_id: card.id,
-                image_url: `https://myfit.com/cards/${card.id}.jpg`,
-            }))
-
-            // next_cursor는 필터링된 카드 개수로 계산
+            /* ---------- 4. 응답 가공 ---------- */
             const next_cursor =
-                filteredCards.length === TAKE_LIMIT ? filteredCards[filteredCards.length - 1].id : null
+                cards.length === TAKE_LIMIT ? cards[cards.length - 1].id : null;
+
+            const formatted = cards.map(c => ({
+                card_id: c.id,
+                image_url: c.card_img,
+            }));
 
             return convertBigIntsToNumbers({
                 cards: formatted,
-                total_count: totalFilteredCount, // 필터링 조건에 맞는 전체 카드 개수
+                total_count,
                 next_cursor,
                 has_next: !!next_cursor,
-            })
+            });
         } catch (error) {
-            console.log('service, 카드 전체 조회 실패:', error)
-            throw new BadRequestError({ message: '카드 전체 조회 실패' })
+            console.error('service, 카드 전체 조회 실패:', error);
+            throw new BadRequestError({ message: '카드 전체 조회 실패' });
         }
     },
 
@@ -579,7 +443,6 @@ const cardsService = {
 
     getFilteredCardsCount: async ({ area, status, hope_job, keywords }) => {
         try {
-            console.log('카드 개수 조회 서비스 진입')
 
             const whereClause = {}
 
@@ -658,7 +521,6 @@ const cardsService = {
                 validServiceIds.has(card.service_id)
             ).length
 
-            console.log('카드 개수 조회 완료:', filteredCardsCount)
 
             return convertBigIntsToNumbers({
                 count: filteredCardsCount,
