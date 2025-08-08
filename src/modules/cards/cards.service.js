@@ -321,6 +321,13 @@ const cardsService = {
                     udb.service?.low_sector || '직무 미입력'
             })
 
+            // service_id -> name 매핑
+            const serviceIdToName = {}
+            userDBs.forEach((udb) => {
+                serviceIdToName[udb.service_id] =
+                    udb.service?.name || '이름 미입력'
+            })
+
             // 9. 최종 필터링 + 포맷팅
             const filteredCards = cards.filter((card) =>
                 validServiceIds.has(card.service_id)
@@ -329,9 +336,10 @@ const cardsService = {
             const formatted = filteredCards.map((card) => ({
                 card_id: card.id,
                 title: serviceIdToSector[card.service_id], // 작성자의 직무
-                image_url: `https://myfit.com/cards/${card.id}.jpg`,
+                author_name: serviceIdToName[card.service_id] || '알 수 없음',
+                card_img: `https://myfit.com/cards/${card.id}.jpg`,
                 one_line_profile: card.one_line_profile, // 카드 소개글
-                tags: card.keywords.map((kw) => kw.keyword_text),
+                keywords: card.keywords.map((kw) => kw.keyword_text),
             }))
 
             console.log('최종 필터링 완료')

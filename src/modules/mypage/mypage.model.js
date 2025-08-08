@@ -3,6 +3,8 @@ const { PrismaClient, NetworkStatus } = prismaPkg;
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js';
 const prisma = new PrismaClient();
 
+// issue 2
+
 class MypageModel {
     /**
      * @param {BigInt} serviceId - 조회할 사용자의 ID (BigInt 타입)
@@ -10,7 +12,7 @@ class MypageModel {
      */
     static async findUserProfileById(serviceId) {
         try {
-           const userDBEntry = await prisma.userDB.findFirst({
+            const userDBEntry = await prisma.userDB.findFirst({
                 where: {
                     service_id: serviceId,
                 },
@@ -27,6 +29,7 @@ class MypageModel {
                             grade_status: true,
                             industry: true,
                             team_division: true,
+                            birth_date: true,
                         },
                     },
                     service: {
@@ -55,8 +58,8 @@ class MypageModel {
 
                 const combinedProfileData = {
                     service: {
-                    ...serviceData,
-                    userArea: firstUserArea 
+                        ...serviceData,
+                        userArea: firstUserArea
                     },
                     user: userData
                 }
@@ -84,7 +87,7 @@ class MypageModel {
         try {
             const updatedProfileImg = await prisma.service.update({
                 where: {
-                    id : serviceId
+                    id: serviceId
                 },
                 data: {
                     profile_img: profileImgUrl,
@@ -112,9 +115,9 @@ class MypageModel {
                 },
                 data: {
                     recruiting_status: newStatus,
-                    updated_at: new Date(), 
+                    updated_at: new Date(),
                 },
-                select: { 
+                select: {
                     id: true,
                     recruiting_status: true,
                 }

@@ -415,16 +415,24 @@ class RelationshipsService {
     static async getNetworkStatusWithUser(myServiceId, targetServiceId) {
         try {
             if (myServiceId === targetServiceId) {
-                return 'SELF'; // 자기 자신
+                return {
+                    status: 'SELF',
+                    network_id: null
+                } // 자기 자신
             }
 
             const network = await RelationshipsModel.findSpecificNetworkStatus(myServiceId, targetServiceId);
 
             if (!network) {
-                return 'NO_RELATION' // 관계 없음
+                return {
+                    status: 'NO_RELATION',
+                    network_id: null
+                } // 관계 없음
             }
 
             let status
+            console.log("test")
+            console.log('Network status:', network.status, 'Sender ID:', network.sender_id, 'Recipient ID:', network.recipient_id)
             switch (network.status) {
                 case NetworkStatus.ACCEPTED:
                     status = 'CONNECTED'

@@ -3,6 +3,8 @@ const { PrismaClient, NetworkStatus } = prismaPkg;
 import { convertBigIntsToNumbers } from '../../../libs/dataTransformer.js';
 const prisma = new PrismaClient();
 
+// issue1
+
 class SettingModel {
     static async getUserProfile(serviceId) {
         const service = await prisma.service.findUnique({
@@ -47,11 +49,11 @@ class SettingModel {
         const userUpdate = await prisma.user.update({
             where: { id: userId },
             data: {
-                name: data.nickname,
+                name: data.name,
                 one_line_profile: data.one_line_profile,
                 birth_date: data.birth_date ? new Date(data.birth_date) : undefined,
-                Highest_grade: data.highest_education,
-                grade_status: data.graduation_status,
+                Highest_grade: data.Highest_grade,
+                grade_status: data.grade_status,
             },
         })
         const userUpdateResult = convertBigIntsToNumbers(userUpdate)
@@ -59,13 +61,13 @@ class SettingModel {
         const userArea = await prisma.userArea.upsert({
             where: { id: serviceId },
             update: {
-                high_area: data.main_area,
-                low_area: data.sub_area,
+                high_area: data.high_area,
+                low_area: data.low_area,
             },
             create: {
                 service_id: serviceId,
-                high_area: data.main_area,
-                low_area: data.sub_area,
+                high_area: data.high_area,
+                low_area: data.low_area,
             },
         })
         const userAreaResult = convertBigIntsToNumbers(userArea)
@@ -73,8 +75,9 @@ class SettingModel {
         const service = await prisma.service.update({
             where: { id: serviceId },
             data: {
-                recruiting_status: data.job_status,
-                low_sector: data.desired_sector,
+                name: data.name,
+                recruiting_status: data.recruiting_status,
+                low_sector: data.low_sector,
             },
         })
         const serviceResult = convertBigIntsToNumbers(service)
