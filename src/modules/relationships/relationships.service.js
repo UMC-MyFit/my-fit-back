@@ -317,7 +317,7 @@ class RelationshipsService {
             }
 
             // ACCEPTED 상태인지 확인
-            if (network.status !== NetworkStatus.ACCEPTED) {
+            if (network.status !== NetworkStatus.ACCEPTED && network.status !== NetworkStatus.PENDING) {
                 throw new ConflictError({ message: '활성화된 네트워크 연결이 아닙니다. 끊을 수 없습니다.' });
             }
 
