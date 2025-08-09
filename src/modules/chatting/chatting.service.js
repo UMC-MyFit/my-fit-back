@@ -162,12 +162,33 @@ const chattingService = {
             await redisClient.connect()
         }
 
-        // 1. 최신 20개 (cursor가 없을 때만 Redis 캐시 사용)
-
+        // 1) 최신 20개 (cursor가 없을 때만 Redis 캐시 사용)
         if (!cursor) {
             const cached = await redisClient.lRange(redisKey, -TAKE_LIMIT, -1)
             if (cached.length) {
                 const msgs = cached.map(JSON.parse).reverse();
+
+                // Redis에 status가 없을 수 있으니 보충
+                const need = msgs.filter(m => m.type === 'COFFEECHAT' && !m.status && m.coffeechat_id)
+                if (need.length) {
+                    const ids = [...new Set(need.map(m => BigInt(m.coffeechat_id)))]
+                    const ccList = await prisma.coffeeChat.findMany({
+                        where: { id: { in: ids } },
+                        select: { id: true, status: true }
+                    })
+                    const statusMap = new Map(ccList.map(cc => [Number(cc.id), cc.status]))
+                    for (const m of msgs) {
+                        if (m.type === 'COFFEECHAT' && !m.status && m.coffeechat_id) {
+                            m.status = statusMap.get(Number(m.coffeechat_id)) ?? null
+                        } else if (m.type !== 'COFFEECHAT') {
+                            m.status = null
+                        }
+                    }
+                } else {
+                    // TEXT 등은 null 보장
+                    for (const m of msgs) if (m.type !== 'COFFEECHAT') m.status = null
+                }
+
                 const nextCursor = msgs.length === TAKE_LIMIT ? msgs[msgs.length - 1].id : null;
                 return convertBigIntsToNumbers({
                     chatting_room_id: Number(chattingRoomId),
@@ -178,7 +199,7 @@ const chattingService = {
             }
         }
 
-        // 2. MySQL에서 이후 메시지 가져오기
+        // 2) MySQL에서 이후 메시지 가져오기
         const whereClause = {
             chat_id: BigInt(chattingRoomId),
             ...(cursor && { id: { lt: BigInt(cursor) } })
@@ -192,12 +213,37 @@ const chattingService = {
 
         const formatted = dbMessages.map(convertBigIntsToNumbers)
 
-        // 3. 페이징 정보 계산
-        const nextCursor = formatted.length === TAKE_LIMIT ? formatted[formatted.length - 1].id : null;
+        // COFFEECHAT 메시지들의 상태 일괄 조회 후 매핑
+        const ccIds = [...new Set(
+            formatted
+                .filter(m => m.type === 'COFFEECHAT' && m.coffeechat_id)
+                .map(m => BigInt(m.coffeechat_id))
+        )]
+
+        let statusMap = new Map()
+        if (ccIds.length) {
+            const ccList = await prisma.coffeeChat.findMany({
+                where: { id: { in: ccIds } },
+                select: { id: true, status: true }
+            })
+            statusMap = new Map(ccList.map(cc => [Number(cc.id), cc.status]))
+        }
+
+        const withStatus = formatted.map(m => ({
+            ...m,
+            status: m.type === 'COFFEECHAT'
+                ? (statusMap.get(Number(m.coffeechat_id)) ?? null)
+                : null
+        }))
+
+        // 3) 페이징 정보 계산
+        const nextCursor = withStatus.length === TAKE_LIMIT
+            ? withStatus[withStatus.length - 1].id
+            : null;
 
         return {
             chatting_room_id: Number(chattingRoomId),
-            messages: formatted,
+            messages: withStatus,
             next_cursor: nextCursor,
             has_next: !!nextCursor
         }
