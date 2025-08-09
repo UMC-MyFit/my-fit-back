@@ -13,14 +13,10 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-    console.log(`✅ 소켓 연결됨: ${socket.id}`);
-    console.log("👉 현재 접속 중인 socket 수:", io.engine.clientsCount);
 
     socket.on("joinRoom", (roomId) => {
         const roomName = `chat:${roomId}`;
         socket.join(roomName);
-        console.log(`🚪 ${socket.id} → ${roomName} 참가`);
-        console.log("📦 현재 socket.rooms:", Array.from(socket.rooms));
     });
 
     socket.on("sendMessage", (data) => {
@@ -31,12 +27,10 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log(`❌ 소켓 연결 해제됨: ${socket.id}`);
     });
 });
 
 httpServer.listen(3000, "0.0.0.0", () => {
-    console.log("🚀 소켓 서버 실행 중: http://0.0.0.0:3000");
 });
 
 export { httpServer, io };
