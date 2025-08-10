@@ -40,36 +40,34 @@ const coffeechatService = {
         })
     },
     requestCoffeechat: async ({ chattingRoomId, senderId, title, scheduled_at, place }) => {
-
         const tx = await prisma.$transaction(async tx => {
             const chats = await tx.chat.findMany({
                 where: { chat_id: BigInt(chattingRoomId) },
                 select: { service_id: true }
-            })
+            });
 
-            const myId = BigInt(senderId)
-            const receiverId = chats.find(chat => chat.service_id != myId)?.service_id
-            if (!receiverId) {
-                throw new BadRequestError('상대방을 찾을 수 없습니다.')
-            }
-            // 1. 커피챗 생성
+            const myId = BigInt(senderId);
+            const receiverId = chats.find(chat => chat.service_id != myId)?.service_id;
+            if (!receiverId) throw new BadRequestError('상대방을 찾을 수 없습니다.');
+
+            // 1) 커피챗 생성
             const newCoffeeChat = await tx.coffeeChat.create({
                 data: {
-                    requester_id: BigInt(myId),
+                    requester_id: myId,
                     receiver_id: BigInt(receiverId),
                     title,
                     scheduled_at: new Date(scheduled_at),
                     place,
-                    chat_id: chattingRoomId
+                    chat_id: BigInt(chattingRoomId),
                 }
             });
 
             const senderService = await tx.service.findUnique({
                 where: { id: BigInt(senderId) },
                 select: { name: true }
-            })
+            });
 
-            // 2. 메시지 생성 및 Redis 캐시 (type: COFFEECHAT)
+            // 2) 메시지 생성
             const newMessage = await tx.message.create({
                 data: {
                     chat_id: BigInt(chattingRoomId),
@@ -81,48 +79,35 @@ const coffeechatService = {
                 }
             });
 
-            // 3. ChattingRoom is_visible 처리
-            const chattingRoom = await tx.chattingRoom.findUnique({
-                where: { id: BigInt(chattingRoomId) }
-            });
-            if (!chattingRoom) {
-                throw new NotFoundError('채팅방이 존재하지 않습니다.');
+            // 3) 첫 메시지시 방 보이게
+            const room = await tx.chattingRoom.findUnique({ where: { id: BigInt(chattingRoomId) } });
+            if (!room) throw new NotFoundError('채팅방이 존재하지 않습니다.');
+            if (!room.is_visible) {
+                await tx.chattingRoom.update({ where: { id: BigInt(chattingRoomId) }, data: { is_visible: true } });
             }
 
-            if (!chattingRoom.is_visible) {
-                await tx.chattingRoom.update({
-                    where: { id: BigInt(chattingRoomId) },
-                    data: { is_visible: true }
-                });
-            }
-
-            // Redis 캐시 처리
+            // 4) Redis 캐시
             try {
-                if (!redisClient.isOpen) {
-                    await redisClient.connect();
-                }
-
+                if (!redisClient.isOpen) await redisClient.connect();
                 const redisKey = `chat:room:${chattingRoomId}`;
-                const safeNewMessage = convertBigIntsToNumbers(newMessage);
-                await redisClient.rPush(redisKey, JSON.stringify(safeNewMessage));
+                const payload = { ...convertBigIntsToNumbers(newMessage), status: newCoffeeChat.status };
+                await redisClient.rPush(redisKey, JSON.stringify(payload));
                 await redisClient.lTrim(redisKey, -20, -1);
-            } catch (error) {
-                throw new Error('redis 연결 실패', error);
+            } catch (e) {
+                throw new Error('redis 연결 실패', e);
             }
 
-            return { coffeechat: newCoffeeChat, message: newMessage, receiverId };
+            return { coffeechat: newCoffeeChat, message: newMessage, receiverId, status: newCoffeeChat.status };
         });
 
-        const { coffeechat, message, receiverId } = tx;
-        const safeMessage = convertBigIntsToNumbers(message);
+        const { coffeechat, message, receiverId, status } = tx;
+        const safeMessage = { ...convertBigIntsToNumbers(message), status };
 
+        // 소켓 emit
         try {
-            const roomName = `chat:${chattingRoomId}`
-            console.log(`소켓 전송 시도: ${roomName}`, safeMessage)
-            io.to(roomName).emit('receiveMessage', safeMessage);
-            console.log('소켓 전송 성공')
-        } catch (error) {
-            console.error("❌ 소켓 emit 실패", error);
+            io.to(`chat:${chattingRoomId}`).emit('receiveMessage', safeMessage);
+        } catch (e) {
+            console.error('❌ 소켓 emit 실패', e);
         }
 
         return {
@@ -140,30 +125,29 @@ const coffeechatService = {
         // 1. 커피챗 존재 확인
         const coffeechat = await prisma.coffeeChat.findUnique({
             where: { id: BigInt(coffeechat_id) }
-        })
-        if (!coffeechat) {
-            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
-        }
+        });
+        if (!coffeechat) throw new NotFoundError('존재하지 않는 커피챗 요청입니다.');
 
         if (coffeechat.status !== 'PENDING') {
-            throw new BadRequestError('이미 처리된 커피챗입니다.')
+            throw new BadRequestError('이미 처리된 커피챗입니다.');
         }
 
         // 2. 수락자 검증
         if (coffeechat.receiver_id !== BigInt(senderId)) {
-            throw new UnauthorizedError('해당 커피챗 요청의 수락자가 아닙니다.')
+            throw new UnauthorizedError('해당 커피챗 요청의 수락자가 아닙니다.');
         }
 
         // 3. 상태 업데이트
-        await prisma.coffeeChat.update({
+        const updatedCoffeechat = await prisma.coffeeChat.update({
             where: { id: BigInt(coffeechat_id) },
             data: { status: 'ACCEPTED' }
-        })
+        });
 
         // 4. 메시지 생성
         const senderService = await prisma.service.findUnique({
             where: { id: BigInt(senderId) }
-        })
+        });
+
         const systemMessage = await prisma.message.create({
             data: {
                 chat_id: BigInt(chattingRoomId),
@@ -173,30 +157,33 @@ const coffeechatService = {
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             }
-        })
+        });
+
+
+        const safeMsg = {
+            ...convertBigIntsToNumbers(systemMessage),
+            status: updatedCoffeechat.status
+        };
 
         // 5. Redis 캐시 추가
         try {
-            if (!redisClient.isOpen) {
-                await redisClient.connect()
-            }
-            const redisKey = `chat:room:${chattingRoomId}`
-            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
-            // Redis에 20개만 저장
-            await redisClient.lTrim(redisKey, -20, -1)
+            if (!redisClient.isOpen) await redisClient.connect();
+
+            const redisKey = `chat:room:${chattingRoomId}`;
+            await redisClient.rPush(redisKey, JSON.stringify(safeMsg));
+            await redisClient.lTrim(redisKey, -20, -1); // 최근 20개 유지
         } catch (error) {
-            console.log('Redis 캐시 저장 실패', error)
+            console.log('Redis 캐시 저장 실패', error);
         }
 
         // 6. 소켓 전송
         try {
-            const safeMsg = convertBigIntsToNumbers(systemMessage)
-            const roomName = `chat:${chattingRoomId}`
-            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
-            io.to(roomName).emit('receiveMessage', safeMsg)
-            console.log('소켓 전송 성공')
+            const roomName = `chat:${chattingRoomId}`;
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg);
+            io.to(roomName).emit('receiveMessage', safeMsg);
+            console.log('소켓 전송 성공');
         } catch (error) {
-            console.error('소켓 전송 실패', error)
+            console.error('소켓 전송 실패', error);
         }
 
         return {
@@ -205,38 +192,36 @@ const coffeechatService = {
             sender_id: Number(senderId),
             receiver_id: Number(coffeechat.requester_id),
             created_at: coffeechat.created_at
-        }
+        };
     },
 
     rejectCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId }) => {
-
-        // 1. 커피챗 존재 확인
+        // 1) 존재 확인
         const coffeechat = await prisma.coffeeChat.findUnique({
             where: { id: BigInt(coffeechat_id) }
-        })
-        if (!coffeechat) {
-            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
-        }
+        });
+        if (!coffeechat) throw new NotFoundError('존재하지 않는 커피챗 요청입니다.');
 
         if (coffeechat.status !== 'PENDING') {
-            throw new BadRequestError('이미 처리된 커피챗입니다.')
+            throw new BadRequestError('이미 처리된 커피챗입니다.');
         }
 
-        // 2. 수락자 검증
+        // 2) 수락자 검증
         if (coffeechat.receiver_id !== BigInt(senderId)) {
-            throw new UnauthorizedError('해당 커피챗 요청의 수락자가 아닙니다.')
+            throw new UnauthorizedError('해당 커피챗 요청의 수락자가 아닙니다.');
         }
 
-        // 3. 상태 업데이트
-        await prisma.coffeeChat.update({
+        // 3) 상태 업데이트 -> REJECTED
+        const updatedCoffeechat = await prisma.coffeeChat.update({
             where: { id: BigInt(coffeechat_id) },
             data: { status: 'REJECTED' }
-        })
+        });
 
-        // 4. 메시지 생성
+        // 4) 시스템 메시지 생성
         const senderService = await prisma.service.findUnique({
             where: { id: BigInt(senderId) }
-        })
+        });
+
         const systemMessage = await prisma.message.create({
             data: {
                 chat_id: BigInt(chattingRoomId),
@@ -246,30 +231,32 @@ const coffeechatService = {
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             }
-        })
+        });
 
-        // 5. Redis 캐시 추가
+        // 5) Redis/소켓
+        const safeMsg = {
+            ...convertBigIntsToNumbers(systemMessage),
+            status: updatedCoffeechat.status // 'REJECTED'
+        };
+
+        // 6) Redis 캐시
         try {
-            if (!redisClient.isOpen) {
-                await redisClient.connect()
-            }
-            const redisKey = `chat:room:${chattingRoomId}`
-            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
-            // Redis에 20개만 저장
-            await redisClient.lTrim(redisKey, -20, -1)
+            if (!redisClient.isOpen) await redisClient.connect();
+            const redisKey = `chat:room:${chattingRoomId}`;
+            await redisClient.rPush(redisKey, JSON.stringify(safeMsg));
+            await redisClient.lTrim(redisKey, -20, -1);
         } catch (error) {
-            console.log('Redis 캐시 저장 실패', error)
+            console.log('Redis 캐시 저장 실패', error);
         }
 
-        // 6. 소켓 전송
+        // 7) 소켓 전송
         try {
-            const safeMsg = convertBigIntsToNumbers(systemMessage)
-            const roomName = `chat:${chattingRoomId}`
-            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
-            io.to(roomName).emit('receiveMessage', safeMsg)
-            console.log('소켓 전송 성공')
+            const roomName = `chat:${chattingRoomId}`;
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg);
+            io.to(roomName).emit('receiveMessage', safeMsg);
+            console.log('소켓 전송 성공');
         } catch (error) {
-            console.error('소켓 전송 실패', error)
+            console.error('소켓 전송 실패', error);
         }
 
         return {
@@ -278,99 +265,102 @@ const coffeechatService = {
             sender_id: Number(senderId),
             receiver_id: Number(coffeechat.requester_id),
             created_at: coffeechat.created_at
-        }
+        };
     },
     updateCoffeechat: async ({ chattingRoomId, coffeechat_id, senderId, title, scheduled_at, place }) => {
-
         const coffeechat = await prisma.coffeeChat.findUnique({
             where: { id: BigInt(coffeechat_id) }
-        })
+        });
         if (!coffeechat) {
-            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.');
         }
 
-        const updated = await prisma.coffeeChat.update({
+        // 내용 변경
+        const updatedCoffeechat = await prisma.coffeeChat.update({
             where: { id: BigInt(coffeechat_id) },
             data: {
                 title,
                 scheduled_at: new Date(scheduled_at),
                 place
             }
-        })
+        });
 
         const senderService = await prisma.service.findUnique({
             where: { id: BigInt(senderId) }
-        })
+        });
 
+        // 시스템 메시지 생성
         const systemMessage = await prisma.message.create({
             data: {
                 chat_id: BigInt(chattingRoomId),
                 sender_id: BigInt(senderId),
                 sender_name: senderService.name,
-                detail_message: `님이 커피챗 요청을 수정하였습니다.`,
+                detail_message: '님이 커피챗 요청을 수정하였습니다.',
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             }
-        })
+        });
+
+        // Redis/소켓
+        const safeMsg = {
+            ...convertBigIntsToNumbers(systemMessage),
+            status: updatedCoffeechat.status
+        };
 
         // Redis 캐시 추가
         try {
-            if (!redisClient.isOpen) {
-                await redisClient.connect()
-            }
-            const redisKey = `chat:room:${chattingRoomId}`
-            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
-            await redisClient.lTrim(redisKey, -20, -1)
+            if (!redisClient.isOpen) await redisClient.connect();
+            const redisKey = `chat:room:${chattingRoomId}`;
+            await redisClient.rPush(redisKey, JSON.stringify(safeMsg));
+            await redisClient.lTrim(redisKey, -20, -1);
         } catch (error) {
-            console.log('Redis 저장 실패:', error)
+            console.log('Redis 저장 실패:', error);
         }
 
         // 소켓 전송
         try {
-            const safeMsg = convertBigIntsToNumbers(systemMessage)
-            const roomName = `chat:${chattingRoomId}`
-            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
-            io.to(roomName).emit('receiveMessage', safeMsg)
-            console.log('소켓 전송 성공')
+            const roomName = `chat:${chattingRoomId}`;
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg);
+            io.to(roomName).emit('receiveMessage', safeMsg);
+            console.log('소켓 전송 성공');
         } catch (error) {
-            console.error('소켓 전송 실패:', error)
+            console.error('소켓 전송 실패:', error);
         }
 
         return {
             chatting_room_id: Number(chattingRoomId),
-            coffeechat_id: Number(updated.id),
+            coffeechat_id: Number(updatedCoffeechat.id),
             sender_id: Number(senderId),
             receiver_id: Number(coffeechat.receiver_id),
-            created_at: updated.created_at
-        }
+            created_at: updatedCoffeechat.created_at
+        };
     },
     cancelCoffeechat: async ({ chattingRoomId, coffeechat_id, serviceId }) => {
-
         const coffeechat = await prisma.coffeeChat.findUnique({
             where: { id: BigInt(coffeechat_id) }
-        })
+        });
         if (!coffeechat) {
-            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.')
+            throw new NotFoundError('존재하지 않는 커피챗 요청입니다.');
         }
 
         // 커피챗 송신자, 수신자만 취소 가능
-        const isRequester = coffeechat.requester_id === BigInt(serviceId)
-        const isReceiver = coffeechat.receiver_id === BigInt(serviceId)
+        const isRequester = coffeechat.requester_id === BigInt(serviceId);
+        const isReceiver = coffeechat.receiver_id === BigInt(serviceId);
 
         if (!isRequester && !isReceiver) {
-            throw new UnauthorizedError('해당 커피챗 요청자 또는 수신자만 취소할 수 있습니다.')
+            throw new UnauthorizedError('해당 커피챗 요청자 또는 수신자만 취소할 수 있습니다.');
         }
 
         // 1. 상태 업데이트
-        await prisma.coffeeChat.update({
+        const updatedCoffeechat = await prisma.coffeeChat.update({
             where: { id: BigInt(coffeechat_id) },
             data: { status: 'CANCELED' },
-        })
+        });
 
         // 2. 시스템 메시지 생성
         const senderService = await prisma.service.findUnique({
             where: { id: BigInt(serviceId) }
-        })
+        });
 
         const systemMessage = await prisma.message.create({
             data: {
@@ -381,31 +371,33 @@ const coffeechatService = {
                 type: 'COFFEECHAT',
                 coffeechat_id: BigInt(coffeechat_id)
             },
-        })
+        });
+
+        const safeMsg = {
+            ...convertBigIntsToNumbers(systemMessage),
+            status: updatedCoffeechat.status
+        };
 
         // 3. Redis 캐시
         try {
             if (!redisClient.isOpen) {
-                await redisClient.connect()
+                await redisClient.connect();
             }
-            const redisKey = `chat:room:${chattingRoomId}`
-            await redisClient.rPush(redisKey, JSON.stringify(convertBigIntsToNumbers(systemMessage)))
-            await redisClient.lTrim(redisKey, -20, -1)
-        }
-        catch (error) {
-            console.log('Redis 저장 실패:', error)
+            const redisKey = `chat:room:${chattingRoomId}`;
+            await redisClient.rPush(redisKey, JSON.stringify(safeMsg));
+            await redisClient.lTrim(redisKey, -20, -1);
+        } catch (error) {
+            console.log('Redis 저장 실패:', error);
         }
 
         // 4. 소켓 전송
         try {
-            const safeMsg = convertBigIntsToNumbers(systemMessage)
-            const roomName = `chat:${chattingRoomId}`
-            console.log(`소켓 전송 시도: ${roomName}`, safeMsg)
-            io.to(roomName).emit('receiveMessage', safeMsg)
-            console.log('소켓 전송 성공')
-        }
-        catch (error) {
-            console.error('소켓 전송 실패:', error)
+            const roomName = `chat:${chattingRoomId}`;
+            console.log(`소켓 전송 시도: ${roomName}`, safeMsg);
+            io.to(roomName).emit('receiveMessage', safeMsg);
+            console.log('소켓 전송 성공');
+        } catch (error) {
+            console.error('소켓 전송 실패:', error);
         }
 
         return {
@@ -414,7 +406,7 @@ const coffeechatService = {
             sender_id: Number(serviceId),
             receiver_id: Number(isRequester ? coffeechat.receiver_id : coffeechat.requester_id),
             created_at: coffeechat.created_at
-        }
+        };
     },
     getUpcomingCoffeechats: async (myServiceId, cursor) => {
 
