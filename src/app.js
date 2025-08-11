@@ -17,7 +17,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // 공통 미들웨어
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://my-fit-test.netlify.app'],
+    origin: ['http://localhost:5173', 'https://myfit-official.netlify.app'],
     credentials: true
 }))
 app.use(morgan('dev'))

@@ -6,7 +6,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
-        origin: ["http://localhost:5173", "https://my-fit-test.netlify.app"],
+        origin: ["http://localhost:5173", "https://myfit-official.netlify.app"],
         methods: ["GET", "POST"],
         credentials: true,
     },
