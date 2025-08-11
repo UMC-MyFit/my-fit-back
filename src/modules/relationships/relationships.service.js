@@ -3,7 +3,7 @@ import { NotFoundError, InternalServerError, BadRequestError, CustomError, Forbi
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 
 // PrismaClient와 NetworkStatus를 default export에서 구조 분해하여 가져옴 (이전 mypage.service.js에서 가져옴)
-import prismaPkg from '@prisma/client'
+import prismaPkg, { NotificationType } from '@prisma/client'
 const { PrismaClient, NetworkStatus } = prismaPkg
 
 // 트랜잭션 사용을 위해 서비스 계층에서 PrismaClient 인스턴스 유지
@@ -246,6 +246,26 @@ class RelationshipsService {
 
             // 5. 네트워크 요청 생성
             await RelationshipsModel.createNetworkRequest(senderId, recipientId)
+
+            // 6. 알림 생성
+            try {
+                const sender = await prisma.service.findUnique({
+                    where: { id: senderId },
+                    select: { name: true }
+                })
+                const message = `${sender?.name}님이 네트워크 관계를 요청했어요.`
+
+                await RelationshipsModel.createNotification({
+                    receiverId: recipientId,
+                    senderId,
+                    type: NotificationType.NETWORK,
+                    feedId: null,
+                    message,
+                })
+            }
+            catch (error) {
+                console.log('알림 생성 실패', error)
+            }
         } catch (error) {
             console.error('RelationshipsService - 네트워크 요청 전송 오류:', error)
             if (error instanceof CustomError) {

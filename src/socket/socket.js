@@ -25,12 +25,7 @@ io.on("connection", (socket) => {
         io.to(roomName).emit("receiveMessage", data);
 
     });
-
-    socket.on("disconnect", () => {
-    });
 });
 
-httpServer.listen(3000, "0.0.0.0", () => {
-});
 
 export { httpServer, io };

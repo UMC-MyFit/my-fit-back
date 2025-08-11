@@ -1,10 +1,40 @@
 import Comment from './feedComments.model.js'
 import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../middlewares/error.js';
 
+import prismaPkg from '@prisma/client'
+const { PrismaClient, NotificationType } = prismaPkg
+const prisma = new PrismaClient()
+
 class CommentService {
     async createComment(commentData, serviceId, feedId) {
         try {
-            const createComment = Comment.create(commentData, serviceId, feedId)
+            const createComment = await Comment.create(commentData, serviceId, feedId)
+
+            // 댓글 알림 추가
+            try {
+                const feed = await prisma.feed.findUnique({
+                    where: { id: BigInt(feedId) },
+                    select: { service_id: true }
+                })
+                if (feed && feed.service_id !== BigInt(serviceId)) {
+                    const sender = await prisma.service.findUnique({
+                        where: { id: BigInt(serviceId) },
+                        select: { name: true }
+                    })
+
+                    await prisma.notification.create({
+                        data: {
+                            receiver_id: feed.service_id,
+                            sender_id: BigInt(serviceId),
+                            type: NotificationType.FEED,
+                            feed_id: BigInt(feedId),
+                            message: `${sender?.name}님이 회원님의 게시글에 댓글을 남겼어요.`
+                        }
+                    })
+                }
+            } catch (error) {
+                console.log('댓글 알림 생성 실패', error)
+            }
             return createComment
         }
         catch (error) {
