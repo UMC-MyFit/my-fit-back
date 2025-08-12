@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import {
     BadRequestError,
+    ForbiddenError,
     InternalServerError,
     NotFoundError,
 } from '../../middlewares/error.js'
@@ -523,6 +524,38 @@ const cardsService = {
                 message: '카드 개수 조회에 오류가 발생하였습니다.',
             })
         }
+    },
+    deleteCard: async (cardId, myServiceId) => {
+
+        // 1. 카드 존재/소유자 확인
+        const card = await prisma.activityCard.findUnique({
+            where: { id: cardId },
+            select: { id: true, service_id: true },
+        })
+
+        if (!card) {
+            throw new NotFoundError('존재하지 않는 활동 카드입니다.')
+        }
+
+        const myId = BigInt(myServiceId)
+        if (card.service_id !== myId) {
+            throw new ForbiddenError('해당 이력/활동 카드를 삭제할 권한이 없습니다.')
+        }
+
+        // 2. 키워드 -> 카드 순서대로 삭제
+        await prisma.$transaction(async (tx) => {
+            await tx.keyword.deleteMany({
+                where: { card_id: cardId },
+            })
+            await tx.activityCard.delete({
+                where: { id: cardId },
+            })
+        })
+
+        return convertBigIntsToNumbers({
+            deleted_card_id: cardId,
+        })
+
     }
 }
 

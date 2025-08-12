@@ -537,4 +537,71 @@ router.get('/grid', isAuthenticated, cardsController.getCardgrid)
 // 이력/활동 카드 상세 조회
 router.get('/:card_id', isAuthenticated, cardsController.getCardById)
 
+/**
+ * @swagger
+ * /api/cards/{card_id}:
+ *   delete:
+ *     summary: 이력/활동 카드 삭제
+ *     description: 지정한 card_id의 이력/활동 카드를 삭제합니다. 삭제는 해당 카드를 소유한 사용자만 가능합니다.
+ *     tags:
+ *       - Cards
+ *     parameters:
+ *       - in: path
+ *         name: card_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           format: int64
+ *         description: 삭제할 이력/활동 카드 ID
+ *     responses:
+ *       200:
+ *         description: 이력/활동 카드 삭제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: true
+ *                 code: 200
+ *                 message: "이력/활동 카드 삭제 성공"
+ *                 result:
+ *                   deleted_card_id: 55
+ *       403:
+ *         description: 자신의 이력/활동 카드가 아닐 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 403
+ *                 message: "해당 요청에 대한 권한이 없습니다."
+ *                 result:
+ *                   errorCode: "A002"
+ *                   data: "해당 이력/활동 카드를 삭제할 권한이 없습니다."
+ *       404:
+ *         description: 이력/활동 카드가 존재하지 않을 경우
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 404
+ *                 message: "존재하지 않는 활동 카드입니다."
+ *                 result:
+ *                   errorCode: "C002"
+ *                   data: null
+ *       500:
+ *         description: 서버 오류 발생
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 message: "서버에 오류가 발생하였습니다."
+ */
+
+// 이력/활동 카드 삭제
+router.delete('/:card_id', isAuthenticated, cardsController.deleteCard)
 export default router
