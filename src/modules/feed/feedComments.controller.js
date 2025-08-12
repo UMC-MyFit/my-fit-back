@@ -41,7 +41,7 @@ class CommentController {
         try {
             const feedId = req.params.feedId;
             const limit = 10
-            const lastCommentId = req.query.last_comment_id ? parseInt(req.query.last_feed_id) : null;
+            const lastCommentId = req.query.last_comment_id ? parseInt(req.query.last_comment_id) : null;
             const feeds = await CommentService.getAllComment(feedId, lastCommentId, limit);
             const hasMore = feeds.length === limit;
             const nextCursorId = hasMore && feeds.length > 0 ? feeds[feeds.length - 1].id : null;
