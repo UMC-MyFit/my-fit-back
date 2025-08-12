@@ -99,7 +99,7 @@ const usersService = {
                 high_sector,
                 low_sector,
                 recruiting_status,
-                profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_profile2.svg', // 일단 빈 문자열
+                profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_profile3.svg',
             },
         })
         console.log('Service 생성 완료')
@@ -214,7 +214,7 @@ const usersService = {
                 high_sector: '',
                 low_sector: '',
                 recruiting_status,
-                profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_profile2.svg',
+                profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_profile3.svg',
             }
         })
 
