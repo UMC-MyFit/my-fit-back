@@ -249,57 +249,62 @@ const chattingService = {
         }
     },
     getChattingRooms: async (myServiceId, cursor) => {
-        const take = 10 // 한 번에 10개씩
+        const take = 10;
 
-        const chats = await prisma.chat.findMany({
+        // 1) DB에선 일단 방을 "id desc"로, 나에게 보이는 방만 가져온다
+        const rooms = await prisma.chattingRoom.findMany({
             where: {
-                service_id: myServiceId,
-                chatRoom: {
-                    is_visible: true
-                },
-                ...(cursor && { chat_id: { lt: cursor } })
+                is_visible: true,
+                chats: { some: { service_id: BigInt(myServiceId) } },
+                ...(cursor ? { id: { lt: BigInt(cursor) } } : {}),
             },
-            orderBy: { chat_id: 'desc' },
-            take,
+            orderBy: { id: 'desc' },
+            take: 50,
             include: {
-                chatRoom: {
+                chats: {
                     include: {
-                        chats: {
+                        service: {
                             include: {
-                                service: {
-                                    include: {
-                                        userDBs: {
-                                            include: { user: true }
-                                        }
-                                    }
-                                }
-                            }
+                                userDBs: { include: { user: true } },
+                            },
                         },
-                        messages: {
-                            orderBy: { created_at: 'desc' },
-                            take: 1,
-                        }
-                    }
-                }
-            }
+                    },
+                },
+                messages: {
+                    orderBy: { created_at: 'desc' },
+                    take: 1,
+                },
+            },
         });
-        const myId = BigInt(myServiceId)
-        const formatted = chats.map(chat => {
-            const chatRoom = chat.chatRoom
-            const partnerChat = chatRoom.chats.find(c => c.service_id !== myId)
-            const partner = chatRoom.chats.find(c => c.service_id !== myId)?.service
-            const lastMessage = chatRoom.messages[0]
-            const userInfo = partner?.userDBs?.[0]?.user
+
+        const myId = BigInt(myServiceId);
+
+        // 2) JS에서 최근메시지 시간으로 정렬
+        rooms.sort((a, b) => {
+            const aTime = a.messages[0]?.created_at ? new Date(a.messages[0].created_at).getTime() : 0;
+            const bTime = b.messages[0]?.created_at ? new Date(b.messages[0].created_at).getTime() : 0;
+            return bTime - aTime;
+        });
+
+        // 3) 실제로 반환할 10개만 자르기
+        const picked = rooms.slice(0, take);
+
+        // 4) 변환
+        const result = picked.map((room) => {
+            const partnerChat = room.chats.find((c) => c.service_id !== myId);
+            const partner = partnerChat?.service;
+            const userInfo = partner?.userDBs?.[0]?.user;
+            const lastMessage = room.messages?.[0] || null;
 
             return convertBigIntsToNumbers({
-                chatting_room_id: chat.chat_id,
+                chatting_room_id: room.id,
                 partner: {
-                    service_id: partnerChat?.service_id || null,
-                    name: partner?.name || '',
-                    age: partner ? calcAge(partner.userDBs?.[0]?.user?.birth_date) : null,
-                    low_sector: partner?.low_sector || '',
-                    profile_image: partner?.profile_img || '',
-                    division: userInfo?.division
+                    service_id: partnerChat?.service_id ?? null,
+                    name: partner?.name ?? '',
+                    age: partner ? calcAge(userInfo?.birth_date) : null,
+                    low_sector: partner?.low_sector ?? '',
+                    profile_image: partner?.profile_img ?? '',
+                    division: userInfo?.division ?? null,
                 },
                 last_message: lastMessage
                     ? {
@@ -309,16 +314,16 @@ const chattingService = {
                         created_at: lastMessage.created_at,
                     }
                     : null,
-            })
-        })
+            });
+        });
 
-        // next_cursor 설정
-        const nextCursor = chats.length === take ? chats[chats.length - 1].chat_id : null
+        // 5) next_cursor는 마지막으로 반환한 방의 id (id 기반 커서)
+        const nextCursor = picked.length === take ? Number(picked[picked.length - 1].id) : null;
 
         return {
-            chatting_rooms: formatted,
+            chatting_rooms: result,
             next_cursor: nextCursor,
-        }
+        };
     },
     getChatPartner: async (chattingRoomId, myServiceId) => {
         const chatRoom = await prisma.chattingRoom.findUnique({
