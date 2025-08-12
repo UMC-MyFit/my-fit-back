@@ -14,6 +14,8 @@ import coffeechatRouter from '../modules/coffeechat/coffeechat.routes.js'
 import relationshipsRouter from '../modules/relationships/relationships.routes.js'
 import settingRouter from '../modules/mypage/setting/setting.routes.js'
 import feedSearchRouter from '../modules/feed/search/feedSearch.routes.js'
+import notificationRouter from '../modules/notification/notification.routes.js'
+
 const router = express.Router()
 
 // 회원가입
@@ -51,5 +53,8 @@ router.use('/relationships', relationshipsRouter)
 
 // 마이페이지 설정
 router.use('/settings', settingRouter)
+
+// 알림
+router.use('/notifications', notificationRouter)
 
 export default router

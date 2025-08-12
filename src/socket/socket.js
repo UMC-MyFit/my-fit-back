@@ -50,9 +50,6 @@ io.on("connection", (socket) => {
         io.to(roomName).emit("receiveMessage", data);
 
     });
-
-    socket.on("disconnect", () => {
-    });
 });
 
 export { httpServer, io };
