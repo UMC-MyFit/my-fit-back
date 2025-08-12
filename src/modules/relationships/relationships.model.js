@@ -252,6 +252,19 @@ class RelationshipsModel {
         })
     }
 
+    // 알림 생성
+    static async createNotification({ receiverId, senderId, type, feedId = null, message = null }) {
+        return prisma.notification.create({
+            data: {
+                receiver_id: receiverId,
+                sender_id: senderId,
+                type,
+                feed_id: feedId,
+                message,
+            }
+        })
+    }
+
     /**
      * 특정 네트워크 요청을 ID로 조회합니다.
      * @param {BigInt} requestId - Network 테이블의 ID

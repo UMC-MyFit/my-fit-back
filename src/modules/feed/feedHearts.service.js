@@ -1,10 +1,40 @@
 import Heart from './feedHearts.model.js'
 import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../middlewares/error.js';
+import { NotificationType, PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient()
 
 class HeartService {
     async createHeart(serviceId, feedId) {
         try {
             await Heart.create(serviceId, feedId)
+
+            // 알림 생성
+            try {
+                const feed = await prisma.feed.findUnique({
+                    where: { id: BigInt(feedId) },
+                    select: { service_id: true },
+                })
+                if (!feed) return
+                if (feed.service_id === BigInt(serviceId)) return // 자기 글이면 알림 X
+
+                const sender = await prisma.service.findUnique({
+                    where: { id: BigInt(serviceId) },
+                    select: { name: true }
+                })
+
+                await prisma.notification.create({
+                    data: {
+                        receiver_id: feed.service_id,
+                        sender_id: BigInt(serviceId),
+                        type: NotificationType.FEED,
+                        feed_id: BigInt(feedId),
+                        message: `${sender?.name}님이 회원님의 글을 좋아합니다.`
+                    }
+                })
+            } catch (error) {
+                console.log('좋아요 알림 생성 실패', error)
+            }
             return
         }
         catch (error) {
