@@ -208,6 +208,21 @@ const cardsController = {
             next(error)
         }
     },
+    deleteCard: async (req, res, next) => {
+        try {
+            const cardId = req.params.card_id
+            const myServiceId = req.user?.service_id
+            const result = await cardsService.deleteCard(BigInt(cardId), BigInt(myServiceId))
+
+            res.success({
+                code: 200,
+                message: '이력/활동 카드 삭제 성공',
+                result
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
 }
 
 export default cardsController
