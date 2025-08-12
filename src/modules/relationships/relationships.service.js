@@ -44,7 +44,28 @@ class RelationshipsService {
             }
 
             // 5. 관심 생성
-            return await RelationshipsModel.createInterest(senderId, recipientId)
+            const created = await RelationshipsModel.createInterest(senderId, recipientId)
+
+            // 6. 알림 생성
+            try {
+                const sender = await prisma.service.findUnique({
+                    where: { id: senderId },
+                    select: { name: true }
+                })
+                const message = `${sender?.name}님이 회원님께 관심을 보냈어요.`
+
+                await RelationshipsModel.createNotification({
+                    receiverId: recipientId,
+                    senderId,
+                    type: NotificationType.NETWORK,
+                    feedId: null,
+                    message,
+                })
+            } catch (error) {
+                console.log(error)
+            }
+            return created
+
         } catch (error) {
             console.error('RelationshipsService - 관심 추가 서비스 오류:', error)
             if (error instanceof CustomError) {
