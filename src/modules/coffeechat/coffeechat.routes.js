@@ -791,6 +791,9 @@ router.patch('/:chattingRoomId/coffeechats/cancel', isAuthenticated, coffeechatC
  *                               profile_image:
  *                                 type: string
  *                                 example: ""
+ *                               division:
+ *                                 type: string
+ *                                 example: personal
  *                           scheduled_at:
  *                             type: string
  *                             format: date-time
@@ -904,6 +907,9 @@ router.get('/coffeechats', isAuthenticated, coffeechatController.getUpcomingCoff
  *                                 type: string
  *                                 format: uri
  *                                 example: https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/recruit/보노보노.jpeg
+ *                               division:
+ *                                 type: string
+ *                                 example: personal
  *                           scheduled_at:
  *                             type: string
  *                             format: date-time

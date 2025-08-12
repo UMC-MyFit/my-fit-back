@@ -455,7 +455,8 @@ const coffeechatService = {
                     name: opponent.name,
                     age: calcAge(opponent.userDBs[0]?.user.birth_date),
                     job: opponent.low_sector,
-                    profile_img: opponent.profile_img
+                    profile_img: opponent.profile_img,
+                    divison: opponent.userDBs[0]?.user.division
                 },
                 scheduled_at: chat.scheduled_at,
                 place: chat.place
@@ -518,7 +519,8 @@ const coffeechatService = {
                         name: opponent.name,
                         age: calcAge(opponent.userDBs[0]?.user.birth_date),
                         job: opponent.low_sector,
-                        profile_img: opponent.profile_img
+                        profile_img: opponent.profile_img,
+                        division: opponent.userDBs[0]?.user.division
                     },
                     scheduled_at: chat.scheduled_at,
                     place: chat.place
