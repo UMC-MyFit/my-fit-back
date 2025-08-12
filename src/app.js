@@ -10,7 +10,12 @@ import morgan from 'morgan'
 import router from './routes/index.js'
 import { responseHandler } from './middlewares/responseHandler.js'
 import { errorHandler } from './middlewares/errorHandler.js'
+import path from 'path'
+import { fileURLToPath } from 'url';
 const app = express()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 // swagger 설정
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
@@ -36,9 +41,10 @@ app.use(
         }
     })
 )
+
 app.use(passport.initialize())
 app.use(passport.session()) // 세션 연결
-
+app.use('/.well-known', express.static(path.join(__dirname, '..', '.well-known')))
 // 응답 헬퍼 등록
 app.use(responseHandler)
 
