@@ -8,14 +8,15 @@ import redisClient from '../../libs/redisClient.js'
 const usersController = {
     updateBusinessLicense: async (req, res, next) => {
         try {
-            const userId = req.user.service_id
-            if (!userId) {
+            const serviceId = req.user.service_id
+            if (!serviceId) {
                 throw new UnauthorizedError()
             }
 
+
             const { inc_AuthN_file } = req.body
             const result = await usersService.updateBusinessLicense(
-                userId,
+                serviceId,
                 inc_AuthN_file
             )
 
@@ -89,11 +90,12 @@ const usersController = {
     },
     verifyUser: async (req, res, next) => {
         try {
-            const { email, password } = req.body
-            if (!email || !password) {
-                throw new BadRequestError('이메일과 비밀번호를 모두 입력해주세요')
+            const { email, password, authCode } = req.body
+            if (!email || !password || !authCode) {
+                throw new BadRequestError('이메일, 비밀번호, 인증코드를 모두 입력해주세요')
             }
-            await usersService.verifyUser(email, password)
+
+            await usersService.verifyUser(email, password, authCode)
 
             res.success({
                 code: 200,

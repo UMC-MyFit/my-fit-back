@@ -7,54 +7,52 @@ import {
     NotFoundError,
 } from '../../middlewares/error.js'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
 const usersService = {
-    updateBusinessLicense: async (userId, inc_AuthN_file) => {
-        // 1. 유저 존재 확인
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-        })
-
-        if (!user) {
-            throw new NotFoundError({ message: '유저를 찾을 수 없습니다.' })
-        }
-
-        // 2. 기업 회원인지 확인
-        if (user.division !== 'team') {
-            throw new BadRequestError({
-                message: '사업자 등록증은 기업 회원만 등록할 수 있습니다.',
-            })
-        }
-
-        // 3. inc_AuthN_file 업데이트
-        await prisma.user.update({
-            where: { id: userId },
-            data: { inc_AuthN_file },
-        })
-
-        // 4. userDB 조회
+    updateBusinessLicense: async (serviceId, inc_AuthN_file) => {
+        // 1. UserDB 찾기
         const userDB = await prisma.userDB.findFirst({
-            where: { user_id: userId },
+            where: { service_id: BigInt(serviceId) },
+            select: { user_id: true, service_id: true },
         })
-
         if (!userDB) {
-            throw new NotFoundError({
-                message: '해당 유저의 userDB가 존재하지 않습니다.',
-            })
+            throw new NotFoundError('해당 서비스의 사용자를 찾을 수 없습니다.')
         }
 
-        // 5. 해당 유저의 is_inc_AuthN을 true로 변경
+        // 2. 유저 존재 확인
+        const user = await prisma.user.findUnique({
+            where: { id: userDB.user_id },
+            select: { id: true, division: true }
+        })
+        if (!user) {
+            throw new NotFoundError('유저를 찾을 수 없습니다.')
+        }
+
+        // 3. 기업 회원인지 확인
+        if (user.division !== 'team') {
+            throw new BadRequestError('사업자 등록증은 기업 회원만 등록할 수 있습니다.')
+        }
+
+        // 4. inc_AuthN_file 업데이트
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { inc_AuthN_file }
+        })
+
+        // 5. 해당 서비스의 is_inc_AuthN을 true로 변경
         await prisma.service.update({
             where: { id: userDB.service_id },
             data: { is_inc_AuthN: true },
         })
 
         return convertBigIntsToNumbers({
-            service_id: userId,
+            service_id: userDB.service_id,
             inc_AuthN_file,
         })
+
     },
 
     resetPassword: async ({ email, authCode, newPassword }) => {
@@ -91,10 +89,11 @@ const usersService = {
             throw new BadRequestError('비밀번호는 최소 6자 이상이어야 합니다.')
         }
 
+        const hashedPassword = await bcrypt.hash(newPassword, 12)
         // 4. 비밀번호 재설정 (나중에 bcrpt 적용 예정)
         await prisma.user.update({
             where: { id: user.id },
-            data: { password: newPassword },
+            data: { password: hashedPassword },
         })
 
         // 5. Redis에서 인증번호 삭제
@@ -108,26 +107,45 @@ const usersService = {
             throw new BadRequestError('인증코드가 유효하지 않습니다.')
         }
     },
-    verifyUser: async (email, password) => {
-        // 이메일 형식 검증
+    verifyUser: async (email, password, authCode) => {
+        // 1. 이메일 형식 검증
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email)) {
             throw new BadRequestError('유효하지 않은 이메일 형식입니다.')
         }
 
-        // 비밀번호 길이 검증
+        // 2. 비밀번호 길이 검증
         if (password.length < 6) {
             throw new BadRequestError('비밀번호가 유효하지 않습니다.')
         }
 
-        // 이메일 중복 확인
+        // 3. Redis 연결 및 인증코드 검증
+        if (!redisClient.isOpen) {
+            try {
+                await redisClient.connect()
+            } catch (error) {
+                console.log('Redis 연결 실패:', error)
+                throw new InternalServerError('redis 연결 실패')
+            }
+        }
+
+        const storedCode = await redisClient.get(`authCode:${email}`)
+        if (!storedCode || storedCode !== authCode) {
+            throw new BadRequestError('인증코드가 유효하지 않습니다.')
+        }
+
+        // 4. 이메일 중복 확인
         const existingUser = await prisma.user.findUnique({
             where: { email },
         })
         if (existingUser) {
             throw new ConflictError('이미 회원가입된 이메일입니다.')
         }
-        console.log('이메일 중복 확인 완료')
+
+        // 5. 인증코드 삭제
+        await redisClient.del(`authCode:${email}`)
+
+        console.log('이메일/비밀번호/인증코드 검증 완료')
     }
 }
 

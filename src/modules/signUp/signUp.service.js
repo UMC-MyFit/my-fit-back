@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js'
 import redisClient from '../../libs/redisClient.js'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -78,10 +79,12 @@ const usersService = {
         console.log('이메일 중복 검사 완료')
         // 2. User 생성
 
+        const hashedPassword = await bcrypt(password, 12)
+
         const newUser = await prisma.user.create({
             data: {
                 email,
-                password,
+                password: hashedPassword,
                 name,
                 one_line_profile,
                 birth_date: new Date(birth_date),
@@ -112,7 +115,6 @@ const usersService = {
                 service_id: newService.id,
             },
         })
-        console.log('UserDB 생성 완료')
 
         // 5. UserArea 생성 (Service와 활동지역 연결)
 
@@ -123,7 +125,6 @@ const usersService = {
                 low_area,
             },
         })
-        console.log('UserArea 생성 완료')
 
         return convertBigIntsToNumbers({
             user_id: newUser.id,
@@ -190,11 +191,13 @@ const usersService = {
             throw new ConflictError({ message: '이미 존재하는 이메일입니다.' })
         }
 
+        const hashedPassword = await bcrypt.hash(password, 12)
+
         // 2. 유저 생성
         const newUser = await prisma.user.create({
             data: {
                 email,
-                password,
+                password: hashedPassword,
                 name,
                 one_line_profile,
                 birth_date: new Date(),
@@ -260,11 +263,9 @@ const usersService = {
             }
         }
         const authCode = generateAuthCode()
-        console.log('인증코드:', authCode)
 
         // 이메일로 인증코드 전송
         await sendAuthCodeEmail(email, authCode)
-        console.log('보내기 성공')
 
         try {
             // Redis에 인증코드 저장

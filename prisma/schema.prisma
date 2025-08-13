@@ -20,7 +20,7 @@ model User {
   platform             String   @default("local") // local, kakao, google, naver 중 하나
   is_email_AuthN       Boolean  @default(false) // 이메일 인증 여부
   inc_AuthN_file       String?  @db.VarChar(100) // 사업자 등록 파일 (nullable)
-  password             String   @db.VarChar(50) // 비밀번호
+  password             String   @db.VarChar(100) // 비밀번호
   division             String   @db.VarChar(100) // 구분 (개인/팀/기업 등)
   team_division        String?  @db.VarChar(100) // 팀 구분 (스타트업 / 창업팀 / 예비창업팀) (nullable)
   industry             String?  @db.VarChar(100) // 업종 (nullable)
