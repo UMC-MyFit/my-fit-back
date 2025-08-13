@@ -146,7 +146,144 @@ const usersService = {
         await redisClient.del(`authCode:${email}`)
 
         console.log('이메일/비밀번호/인증코드 검증 완료')
-    }
+    },
+    deleteUser: async (myServiceId) => {
+        return prisma.$transaction(async (tx) => {
+            const svcId = BigInt(myServiceId)
+
+            // 0) 기본 정보
+            const myUserDB = await tx.userDB.findFirst({
+                where: { service_id: svcId },
+                select: { id: true, user_id: true },
+            })
+            if (!myUserDB) {
+                throw new Error('UserDB가 존재하지 않습니다')
+            }
+            const myUserId = myUserDB.user_id
+
+            // 1) 내가 가진 피드들 ID
+            const myFeeds = await tx.feed.findMany({
+                where: { service_id: svcId },
+                select: { id: true },
+            })
+            const myFeedIds = myFeeds.map((f) => f.id)
+
+            // 2) 내 피드에 달린 모든 댓글/하트/이미지 삭제
+            if (myFeedIds.length > 0) {
+                await tx.feedComment.deleteMany({ where: { feed_id: { in: myFeedIds } } })
+                await tx.feedHeart.deleteMany({ where: { feed_id: { in: myFeedIds } } })
+                await tx.feedImage.deleteMany({ where: { feed_id: { in: myFeedIds } } })
+            }
+
+            // 3) 내가 남의 피드에 단 댓글 + 그 대댓글 삭제
+            const myComments = await tx.feedComment.findMany({
+                where: { service_id: svcId },
+                select: { id: true },
+            })
+            const myCommentIds = myComments.map((c) => c.id)
+            if (myCommentIds.length > 0) {
+                await tx.feedComment.deleteMany({
+                    where: {
+                        OR: [
+                            { id: { in: myCommentIds } },                    // 내 댓글
+                            { high_comment_id: { in: myCommentIds } },       // 내 댓글에 달린 대댓글
+                        ],
+                    },
+                })
+            }
+
+            // 4) 내가 남의 피드에 누른 하트 삭제
+            await tx.feedHeart.deleteMany({ where: { service_id: svcId } })
+
+            // 5) 최근 해시태그
+            await tx.recentHashtag.deleteMany({ where: { service_id: svcId } })
+
+            // 6) 활동카드/키워드 삭제
+            const myCards = await tx.activityCard.findMany({
+                where: { service_id: svcId },
+                select: { id: true },
+            })
+            const myCardIds = myCards.map((c) => c.id)
+            if (myCardIds.length > 0) {
+                await tx.keyword.deleteMany({ where: { card_id: { in: myCardIds } } })
+                await tx.activityCard.deleteMany({ where: { id: { in: myCardIds } } })
+            }
+
+            // 7) 내가 속한 채팅방들 수집
+            const myChats = await tx.chat.findMany({
+                where: { service_id: svcId },
+                select: { chat_id: true },
+                distinct: ['chat_id'],
+            })
+            const myRoomIds = myChats.map((c) => c.chat_id)
+
+            if (myRoomIds.length > 0) {
+                // 7-1) 방의 메시지 삭제
+                await tx.message.deleteMany({ where: { chat_id: { in: myRoomIds } } })
+                // 7-2) 방의 커피챗 삭제
+                await tx.coffeeChat.deleteMany({ where: { chat_id: { in: myRoomIds } } })
+                // 7-3) 방의 모든 참여자 row 삭제(상대방 것도 함께 삭제 → 방 비워짐)
+                await tx.chat.deleteMany({ where: { chat_id: { in: myRoomIds } } })
+                // 7-4) 빈 채팅방 자체 삭제
+                await tx.chattingRoom.deleteMany({ where: { id: { in: myRoomIds } } })
+            }
+
+            // 8) 유저 활동지역
+            await tx.userArea.deleteMany({ where: { service_id: svcId } })
+
+            // 9) 차단/관심/네트워크/알림/구독
+            await tx.userBlock.deleteMany({
+                where: { OR: [{ blocker_id: svcId }, { blocked_id: svcId }] },
+            })
+            await tx.interest.deleteMany({
+                where: { OR: [{ sender_id: svcId }, { recipient_id: svcId }] },
+            })
+            await tx.network.deleteMany({
+                where: { OR: [{ sender_id: svcId }, { recipient_id: svcId }] },
+            })
+            await tx.notification.deleteMany({
+                where: { OR: [{ sender_id: svcId }, { receiver_id: svcId }] },
+            })
+            await tx.subscribedNotice.deleteMany({ where: { service_id: svcId } })
+
+            // 10) 내가 올린 공고 + 공고지역
+            const myNotices = await tx.recruitingNotice.findMany({
+                where: { service_id: svcId },
+                select: { id: true },
+            })
+            const myNoticeIds = myNotices.map((n) => n.id)
+            if (myNoticeIds.length > 0) {
+                await tx.recruitingArea.deleteMany({
+                    where: { recruiting_id: { in: myNoticeIds } },
+                })
+                await tx.recruitingNotice.deleteMany({
+                    where: { id: { in: myNoticeIds } },
+                })
+            }
+
+            // 11) 내 피드 삭제
+            if (myFeedIds.length > 0) {
+                await tx.feed.deleteMany({ where: { id: { in: myFeedIds } } })
+            }
+
+            // 12) UserDB 연결 삭제
+            await tx.userDB.deleteMany({ where: { service_id: svcId } })
+
+            // 13) Service 삭제
+            await tx.service.delete({ where: { id: svcId } })
+
+            // 14) 같은 User가 다른 Service를 더 갖고 있는지 확인
+            const rest = await tx.userDB.count({ where: { user_id: myUserId } })
+            if (rest === 0) {
+                await tx.user.delete({ where: { id: myUserId } })
+            }
+
+            return {
+                deleted_service_id: svcId.toString(),
+                user_deleted: rest === 0,
+            }
+        })
+    },
 }
 
 export default usersService
