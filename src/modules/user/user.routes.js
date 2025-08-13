@@ -265,6 +265,9 @@ router.post('/verify-code', usersController.verifyCode)
  *               password:
  *                 type: string
  *                 example: 123456
+ *               authCode:
+ *                 type: string
+ *                 example: 123456
  *     responses:
  *       200:
  *         description: 유효한 이메일과 비밀번호
@@ -348,6 +351,6 @@ router.post('/verify-code', usersController.verifyCode)
  *                   example: null
  */
 
-// 이메일+비밀번호 유효성 검사
+// 이메일+비밀번호+인증번호 유효성 검사
 router.post('/verify-user', usersController.verifyUser)
 export default router
