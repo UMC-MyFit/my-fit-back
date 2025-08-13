@@ -308,6 +308,133 @@ router.patch('/:feedId', isAuthenticated, feedController.updateFeed);
  */
 router.delete('/:feedId', isAuthenticated, feedController.deleteFeed);
 
+
+// PATCH /api/feeds/:feedId/hide - 피드 숨기기
+/**
+ * @swagger
+ * /api/feeds/{feedId}/hide:
+ *   patch:
+ *     summary: 피드 숨기기
+ *     description: 특정 피드를 숨깁니다.
+ *     tags:
+ *       - Feeds
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 숨길 피드의 ID
+ *         example: 27
+ *     responses:
+ *       200:
+ *         description: 피드가 성공적으로 숨겼습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "피드가 성공적으로 숨겼습니다."
+ *                 result:
+ *                   type: object
+ *                   description: 숨김 결과 정보
+ *       400:
+ *         description: 잘못된 요청 (유효하지 않은 피드 ID)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 field:
+ *                   type: string
+ *                   example: "feedId"
+ *                 message:
+ *                   type: string
+ *                   example: "유효한 피드 ID가 필요합니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ */
+router.patch('/:feedId/hide', isAuthenticated, feedController.hideFeed);
+
+// PATCH /api/feeds/:feedId/open - 피드 다시 보여주기
+/**
+ * @swagger
+ * /api/feeds/{feedId}/open:
+ *   patch:
+ *     summary: 피드 다시 보여주기
+ *     description: 숨겨진 특정 피드를 다시 보여줍니다.
+ *     tags:
+ *       - Feeds
+ *     parameters:
+ *       - in: path
+ *         name: feedId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 다시 보여줄 피드의 ID
+ *         example: 27
+ *     responses:
+ *       200:
+ *         description: 피드가 성공적으로 다시 보여졌습니다.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isSuccess:
+ *                   type: boolean
+ *                   example: true
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "피드가 성공적으로 다시 보여졌습니다."
+ *                 result:
+ *                   type: object
+ *                   description: 결과 정보
+ *       400:
+ *         description: 잘못된 요청 (유효하지 않은 피드 ID)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 field:
+ *                   type: string
+ *                   example: "feedId"
+ *                 message:
+ *                   type: string
+ *                   example: "유효한 피드 ID가 필요합니다."
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "서버에 오류가 발생했습니다."
+ */
+router.patch('/:feedId/open', isAuthenticated, feedController.openFeed);
+
 // POST /api/feeds/:feedId/comment - 댓글 생성
 /**
  * @swagger

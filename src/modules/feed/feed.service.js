@@ -1,7 +1,7 @@
 // services/feedService.js
 
 import Feed from './feed.model.js';
-import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError } from '../../middlewares/error.js';
+import { InternalServerError, BadRequestError, NotFoundError, ConflictError, CustomError, ForbiddenError } from '../../middlewares/error.js';
 import { listToString, stringToList } from '../../libs/dataTransformer.js';
 
 class FeedService {
@@ -98,13 +98,52 @@ class FeedService {
         }
     }
 
-    async deleteFeed(feedId) {
+    async hideFeed(feedId, serviceId) {
         try {
-            const deletedFeed = await Feed.hide(feedId);
+            if (Feed.isFeedOwner(feedId, serviceId) === false) {
+                throw new ForbiddenError({ message: '피드 소유자가 아닙니다.' });
+            }
+            const hideFeed = await Feed.updateVisibility(feedId, false);
 
             return {
-                feed_id: deletedFeed.id,
-                deleted_at: deletedFeed.updated_at
+                feed_id: hideFeed.id,
+                updated_at: hideFeed.updated_at
+            };
+        } catch (error) {
+            console.error('피드 숨기기 중 오류:', error);
+
+            if (error.code === 'P2025') {
+                throw new NotFoundError({ message: '숨길할 피드를 찾을 수 없습니다.' });
+            }
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new InternalServerError({ originalError: error.message });
+        }
+    }
+
+    async openFeed(feedId, serviceId) {
+        try {
+            if (Feed.isFeedOwner(feedId, serviceId) === false) {
+                throw new ForbiddenError({ message: '피드 소유자가 아닙니다.' });
+            }
+            const openFeed = await Feed.updateVisibility(feedId, true);
+            return {
+                feed_id: openFeed.id,
+                updated_at: openFeed.updated_at
+            };
+        } catch (error) {
+            console.error('피드 보여주기 중 오류:', error);
+            throw error;
+        }
+    }
+
+    async deleteFeed(feedId, serviceId) {
+        try {
+            const deletedFeed = await Feed.delete(feedId, serviceId);
+            return {
+                feed_id: deletedFeed.feed_id,
+                deleted_at: deletedFeed.deleted_at
             };
         } catch (error) {
             console.error('피드 삭제 중 오류:', error);

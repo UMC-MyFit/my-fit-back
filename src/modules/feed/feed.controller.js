@@ -117,21 +117,70 @@ class FeedController {
         }
     }
 
+    async hideFeed(req, res, next) {
+        try {
+            const { feedId } = req.params;
+            const serviceId = req.user.service_id;
+            if (!feedId || isNaN(feedId)) {
+                throw new BadRequestError({ field: 'feedId', message: '유효한 피드 ID가 필요합니다.' });
+            }
+
+            const result = await feedService.hideFeed(parseInt(feedId), serviceId);
+
+            return res.success({
+                code: 200,
+                message: '피드가 성공적으로 숨겼습니다.',
+                result
+            });
+        } catch (error) {
+            console.error('피드 숨기기 중 오류:', error);
+            next(error);
+        }
+    }
+
+    async openFeed(req, res, next) {
+        try {
+            const { feedId } = req.params;
+            const serviceId = req.user.service_id;
+            if (!feedId || isNaN(feedId)) {
+                throw new BadRequestError({ field: 'feedId', message: '유효한 피드 ID가 필요합니다.' });
+            }
+            const result = await feedService.openFeed(parseInt(feedId), serviceId);
+            return res.success({
+                code: 200,
+                message: '피드가 성공적으로 다시 보여졌습니다.',
+                result
+            });
+        } catch (error) {
+            console.error('피드 다시 보여주기 중 오류:', error);
+            if (error instanceof NotFoundError) {
+                return res.error({
+                    code: 404,
+                    message: '피드를 찾을 수 없습니다.',
+                    error: error.message
+                });
+            }
+            next(error);
+        }
+    }
+
     async deleteFeed(req, res, next) {
         try {
             const { feedId } = req.params;
+            const serviceId = req.user.service_id;
 
             if (!feedId || isNaN(feedId)) {
                 throw new BadRequestError({ field: 'feedId', message: '유효한 피드 ID가 필요합니다.' });
             }
 
-            const result = await feedService.deleteFeed(parseInt(feedId));
+            const result = await feedService.deleteFeed(parseInt(feedId), serviceId);
 
             return res.success({
                 code: 200,
                 message: '피드가 성공적으로 삭제되었습니다.',
                 result
             });
+
         } catch (error) {
             console.error('피드 삭제 중 오류:', error);
             next(error);

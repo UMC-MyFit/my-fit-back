@@ -7,7 +7,7 @@ TODO
 
 import { PrismaClient } from '@prisma/client';
 import { convertBigIntsToNumbers, stringToList } from '../../libs/dataTransformer.js';
-import { ForbiddenError } from '../../middlewares/error.js';
+import { ForbiddenError, NotFoundError } from '../../middlewares/error.js';
 const prisma = new PrismaClient();
 
 class Feed {
@@ -229,14 +229,14 @@ class Feed {
         }
     }
     // 피드 삭제 -> 소프트 삭제(숨김처리)
-    static async hide(id) {
+    static async updateVisibility(feedId, isVisible) {
         try {
             const hidedFeed = await prisma.feed.update({
                 where: {
-                    id: BigInt(id)
+                    id: BigInt(feedId)
                 },
                 data: {
-                    is_visible: false,
+                    is_visible: isVisible,
                     updated_at: new Date()
                 }
             });
@@ -253,7 +253,10 @@ class Feed {
         try {
             const whereClause = {
                 service_id: serviceId,
-                is_visible: true
+            }
+            if (serviceId !== BigInt(authenticatedUserId)) {
+                console.log('다른 사용자의 피드 조회');
+                whereClause.is_visible = true; // 다른 사용자의 피드는 공개된 것만 조회
             }
 
             if (cursor) {
@@ -295,7 +298,7 @@ class Feed {
                 const is_liked = feed.feedHearts.some(
                     (heart) => heart.service_id === BigInt(authenticatedUserId)
                 );
-                return {
+                const returnData = {
                     feed_id: feed.id,
                     user: {
                         id: feed.service.id,
@@ -311,8 +314,12 @@ class Feed {
                     is_liked: is_liked,
                     comment_count: feed._count.FeedComment,
                 }
+                // 피드 소유자만 is_visible 필드 추가
+                if (feed.service_id === BigInt(authenticatedUserId)) {
+                    returnData.is_visible = feed.is_visible;
+                }
+                return returnData;
             })
-
             return convertBigIntsToNumbers(processedFeeds)
         } catch (error) {
             console.error('사용자 피드 조회 중 오류:', error)
@@ -339,6 +346,78 @@ class Feed {
             await Promise.all(hashtagPromises);
         } catch (error) {
             console.error('최근 해시태그 생성 중 오류:', error);
+            throw error;
+        }
+    }
+    static async delete(feedId, serviceId) {
+        try {
+            const feed = await prisma.feed.findUnique({
+                where: {
+                    id: BigInt(feedId)
+                },
+                select: {
+                    id: true,
+                    service_id: true
+                }
+            });
+            if (!feed) {
+                throw new NotFoundError({ message: '피드를 찾을 수 없습니다.' });
+            }
+            if (feed.service_id !== BigInt(serviceId)) {
+                throw new ForbiddenError({ message: '해당 피드를 삭제할 권한이 없습니다.' });
+            }
+
+            const result = await prisma.$transaction(async (prisma) => {
+                // 1. FeedHeart 삭제
+                await prisma.feedHeart.deleteMany({
+                    where: { feed_id: feedId }
+                });
+
+                // 2. FeedComment 삭제
+                await prisma.feedComment.deleteMany({
+                    where: { feed_id: feedId }
+                });
+
+                // 3. FeedImage 삭제
+                await prisma.feedImage.deleteMany({
+                    where: { feed_id: feedId }
+                });
+
+                // 4. Feed 삭제
+                const deletedFeed = await prisma.feed.delete({
+                    where: { id: feedId }
+                });
+
+                // 5. 최근에 사용한 해시태그 삭제
+
+                return deletedFeed;
+            });
+            return convertBigIntsToNumbers({
+                feed_id: feed.id,
+                deleted_at: new Date()
+            })
+        } catch (error) {
+            console.error('피드 삭제 중 오류:', error);
+            throw error;
+        }
+    }
+
+    static async isFeedOwner(feedId, serviceId) {
+        try {
+            const feed = await prisma.feed.findUnique({
+                where: {
+                    id: BigInt(feedId)
+                },
+                select: {
+                    service_id: true
+                }
+            });
+            if (!feed) {
+                throw new NotFoundError({ message: '피드를 찾을 수 없습니다.' });
+            }
+            return feed.service_id === BigInt(serviceId);
+        } catch (error) {
+            console.error('피드 소유자 확인 중 오류:', error);
             throw error;
         }
     }
