@@ -142,7 +142,7 @@ model RecruitingNotice {
   work_type      String   @db.VarChar(255) // 근무 형태
   area           String   @default("") @db.VarChar(255) // 근무 지역
   dead_line      DateTime // 마감일자
-  recruiting_img String   @db.VarChar(255) // 공고 이미지
+  recruiting_img String   @db.VarChar(500) // 공고 이미지
   created_at     DateTime @default(now()) // 생성일자
   updated_at     DateTime @updatedAt // 수정일자
   service_id     BigInt // 서비스 번호 (FK)
@@ -213,7 +213,7 @@ model FeedComment {
 
 model FeedImage {
   id         BigInt   @id @default(autoincrement()) // 피드 이미지 번호 (PK)
-  image_url  String   @db.VarChar(255) // 이미지 URL
+  image_url  String   @db.VarChar(500) // 이미지 URL
   feed_id    BigInt // 피드 번호 (FK)
   created_at DateTime @default(now()) // 생성일자
 
@@ -236,7 +236,7 @@ model ActivityCard {
   one_line_profile String   @db.VarChar(255) // 소개글
   detailed_profile String   @db.Text // 상세설명
   link             String   @db.VarChar(100) // 링크
-  card_img         String   @db.VarChar(100) // 카드 이미지
+  card_img         String   @db.VarChar(500) // 카드 이미지
   created_at       DateTime @default(now()) // 생성일자
   updated_at       DateTime @updatedAt // 수정일자
   service_id       BigInt // 서비스 번호 (FK)
