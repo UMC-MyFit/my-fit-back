@@ -353,4 +353,44 @@ router.post('/verify-code', usersController.verifyCode)
 
 // 이메일+비밀번호+인증번호 유효성 검사
 router.post('/verify-user', usersController.verifyUser)
+
+/**
+ * @swagger
+ * /api/users:
+ *   delete:
+ *     summary: 회원 탈퇴
+ *     description: 회원 탈퇴 시 해당 회원과 연관된 모든 데이터를 삭제합니다.
+ *     tags:
+ *       - Users
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: 회원 탈퇴 및 연관 데이터 삭제 완료
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: true
+ *                 code: 200
+ *                 message: "회원 탈퇴 및 연관 데이터 삭제 완료"
+ *                 result: null
+ *       500:
+ *         description: 서버 에러
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 isSuccess: false
+ *                 code: 500
+ *                 message: "서버에 오류가 발생하였습니다."
+ *                 result: null
+ */
+
+// 회원 탈퇴
+router.delete('/', isAuthenticated, usersController.deleteUser)
 export default router

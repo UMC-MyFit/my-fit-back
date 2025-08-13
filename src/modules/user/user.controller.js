@@ -105,6 +105,20 @@ const usersController = {
         } catch (error) {
             next(error)
         }
+    },
+    deleteUser: async (req, res, next) => {
+        try {
+            const myServiceId = req.user.service_id
+            const result = await usersService.deleteUser(BigInt(myServiceId))
+
+            res.success({
+                code: 200,
+                message: '회원 탈퇴 및 연관 데이터 삭제 완료',
+                data: result
+            })
+        } catch (error) {
+            next(error)
+        }
     }
 }
 
