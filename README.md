@@ -13,26 +13,20 @@ MyFit은 인스타그램 피드처럼 직관적이고 가벼운 UI를 활용하�
 - 네트워킹 기능: 나와 핏이 맞는 동료, 협업자를 쉽게 찾을 수 있는 구조
 
 ## 📌 기술 스택 (Backend)
-### Server
-- Node.js, Express.js
-### Database
-- MySQL
-### ORM
-- Prisma ORM
-### Cache / In-Memory
-- Redis
-### Real-time
-- Socket.IO
-### NLP/토크나이저
-- mecab-ya
-### Cloud(AWS)
-- EC2
-- RDS
-- S3
-### CI/CD
-- GitHub Actions
-### Process / Monitoring
-- PM2
+
+| 구분 | 기술 스택 |
+|------|-----------|
+| **Server** | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white) ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white) |
+| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) |
+| **ORM** | ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white) |
+| **Cache / In-Memory** | ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white) |
+| **Real-time** | ![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?style=for-the-badge&logo=socket.io&logoColor=white) |
+| **NLP / Tokenizer** | ![MeCab](https://img.shields.io/badge/MeCab--ya-006400?style=for-the-badge) |
+| **Cloud (AWS)** | ![EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white) ![RDS](https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazon-rds&logoColor=white) ![S3](https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white) |
+| **CI/CD** | ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white) |
+| **Process / Monitoring** | ![PM2](https://img.shields.io/badge/PM2-2B037A?style=for-the-badge&logo=pm2&logoColor=white) |
+
+## 💻시스템 아키텍처
 
 ## 📚브랜치 전략 (GitLab-flow 방식)
 - main/master
@@ -58,7 +52,13 @@ MyFit은 인스타그램 피드처럼 직관적이고 가벼운 UI를 활용하�
   - Models: 쿼리(ORM)을 통해 DB 접근
 
 ## 🙋‍♂️팀원 정보
-### 라트로/채민수(팀장)
+### 🐶라트로/채민수(팀장)
+<img width="250" height="410" alt="Image" src="https://github.com/user-attachments/assets/033dd1f7-7cee-4132-86d9-df5fa562db4f" /><br/>
+- 소속: 한성대학교 웹공학트랙 3학년
+- 생년월일: 2000/09/11
+- 연락처: 010-3930-7593
+- 이메일: ms1226f@gmail.com
+
 ### 🐣미뇽/이용민
 <img width="360" height="200" alt="Image" src="https://github.com/user-attachments/assets/d18a8990-a017-41dc-83db-f757ad45a8ee" /><br>
 - 생년월일: 2002/03/09
@@ -69,16 +69,11 @@ MyFit은 인스타그램 피드처럼 직관적이고 가벼운 UI를 활용하�
   - 전화번호: 010-7600-5440
   - 이메일: bacaren21@naver.com
   - Github: https://github.com/turegold
-### 단비/이주아
+### 🐹단비/이주아
+<img width="360" height="270" alt="Image" src="https://github.com/user-attachments/assets/074e597d-473e-4b65-99cc-35029a3137e8" /><br/>
+- 소속: 서울여대 소프트웨어융합학과 3학년
+- 생년월일: 2003/01/24
+- 연락처: 010-8735-9492
+- 이메일: faith.lee2@gamil.com
 
 
-## PR 규칙
-1. 이슈 생성 -> feature 또는 bug 이슈
-2. 새로운 브랜치 생성 후 작업
-3. 작업 완료 후 PR 올리기
-4. 리뷰 후, main 브랜치에 merge
-
-## 코드 컨벤션
-node.js(javascript)  
-- 카멜 표기법
-- 들여쓰기: tap
