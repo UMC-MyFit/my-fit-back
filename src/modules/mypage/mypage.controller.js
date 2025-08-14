@@ -134,7 +134,7 @@ class MypageController {
             return res.success({
                 code: 200,
                 message: '사용자 이력/활동 카드 목록을 성공적으로 조회했습니다.',
-                result: { 
+                result: {
                     cards,
                     pagination: {
                         next_cursor,

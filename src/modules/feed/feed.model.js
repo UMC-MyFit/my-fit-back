@@ -158,18 +158,19 @@ class Feed {
 
 
             const feeds = await prisma.feed.findMany(queryOptions);
-            const processedFeeds = feeds.map(feed => {
+            const processedFeeds = feeds.map(async feed => {
                 const imageUrls = feed.FeedImage.map(image => image.image_url)
                 const is_liked = feed.feedHearts.some(
                     (heart) => heart.service_id === BigInt(serviceId)
                 );
                 const hashtags = stringToList(feed.hashtag);
-                return {
+                const teamDivision = await Feed.getUserTeamDivision(serviceId);
+                let returnData = {
                     "feed_id": feed.id,
                     "user": {
                         "id": feed.service.id,
                         "name": feed.service.name,
-                        "sector": feed.service.low_sector,
+                        "sector": teamDivision || feed.service.low_sector,
                         "profile_img": feed.service.profile_img
                     },
                     "created_at": feed.created_at,
@@ -179,10 +180,11 @@ class Feed {
                     "heart": feed._count.feedHearts,
                     "is_liked": is_liked,
                     "comment_count": feed._count.FeedComment
-                };
+                }
+                return returnData;
             });
-
-            return convertBigIntsToNumbers(processedFeeds);
+            const resultFeeds = await Promise.all(processedFeeds);
+            return convertBigIntsToNumbers(resultFeeds);
         } catch (error) {
             console.error('전체 피드 목록 조회 중 오류:', error);
             throw error;
@@ -293,17 +295,18 @@ class Feed {
             // 현재 사용자가 해당 피드에 '좋아요'를 눌렀는지 여부 판단 (추가 기능이라면)
             // 현재 로그인한 사용자의 serviceId를 받아와서 is_liked 필드를 추가할 수 있습니다.
             // 여기서는 일반 조회이므로 is_liked 로직은 빼거나, MypageService에서 처리하도록 합니다.
-            const processedFeeds = feeds.map((feed) => {
+            const processedFeedsPromise = feeds.map(async (feed) => {
                 const imageUrls = feed.FeedImage.map((img) => img.image_url)
-                const is_liked = feed.feedHearts.some(
+                const is_liked = await feed.feedHearts.some(
                     (heart) => heart.service_id === BigInt(authenticatedUserId)
                 );
+                const teamDivision = await Feed.getUserTeamDivision(feed.service.id);
                 const returnData = {
                     feed_id: feed.id,
                     user: {
                         id: feed.service.id,
                         name: feed.service.name,
-                        sector: feed.service.sector,
+                        sector: teamDivision || feed.service.low_sector,
                         profile_img: feed.service.profile_img,
                     },
                     created_at: feed.created_at,
@@ -320,6 +323,7 @@ class Feed {
                 }
                 return returnData;
             })
+            const processedFeeds = await Promise.all(processedFeedsPromise);
             return convertBigIntsToNumbers(processedFeeds)
         } catch (error) {
             console.error('사용자 피드 조회 중 오류:', error)
@@ -418,6 +422,32 @@ class Feed {
             return feed.service_id === BigInt(serviceId);
         } catch (error) {
             console.error('피드 소유자 확인 중 오류:', error);
+            throw error;
+        }
+    }
+
+    static async getUserTeamDivision(serviceId) {
+        try {
+            const service = await prisma.service.findFirst({
+                where: {
+                    id: BigInt(serviceId)
+                },
+                select: {
+                    userDBs: {
+                        select: {
+                            user: {
+                                select: {
+                                    team_division: true
+                                }
+                            }
+                        }
+                    },
+                }
+            });
+
+            return service?.userDBs?.[0]?.user?.team_division || null;
+        } catch (error) {
+            console.error('사용자 division 조회 중 오류:', error);
             throw error;
         }
     }

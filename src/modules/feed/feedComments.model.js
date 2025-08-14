@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { convertBigIntsToNumbers } from '../../libs/dataTransformer.js';
 import { ForbiddenError, NotFoundError } from '../../middlewares/error.js'
+import Feed from './feed.model.js';
 
 const prisma = new PrismaClient();
 
@@ -55,10 +56,10 @@ class Comment {
                 baseCommentQueryOptions.skip = 1;
             }
 
-            const baseComments = await prisma.feedComment.findMany(baseCommentQueryOptions);
+            let baseComments = await prisma.feedComment.findMany(baseCommentQueryOptions);
             const processedComments = [];
             for (const baseComment of baseComments) {
-                const repliesComments = await prisma.feedComment.findMany({
+                let repliesComments = await prisma.feedComment.findMany({
                     where: {
                         high_comment_id: baseComment.id,
                     },
@@ -80,6 +81,18 @@ class Comment {
                         { id: 'asc' }
                     ]
                 });
+                const baseCommentTeamDivision = await Feed.getUserTeamDivision(baseComment.service.id);
+                if (baseCommentTeamDivision) {
+                    baseComment.service.low_sector = baseCommentTeamDivision;
+                }
+                repliesComments.map(async reply => {
+                    const teamDivision = await Feed.getUserTeamDivision(reply.service.id);
+                    if (teamDivision) {
+                        reply.service.low_sector = teamDivision;
+                    }
+                });
+
+                await Promise.all(repliesComments);
 
                 processedComments.push({
                     ...baseComment,
