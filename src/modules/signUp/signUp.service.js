@@ -30,7 +30,6 @@ const usersService = {
         Highest_grade,
         grade_status,
     }) => {
-        console.log('service 진입')
 
         // 0. 이전에 is_profile_completed: false로 가입한 유저가 있다면 삭제
         try {
@@ -76,10 +75,9 @@ const usersService = {
         if (existingUser)
             throw new ConflictError({ message: '이미 존재하는 이메일입니다.' })
 
-        console.log('이메일 중복 검사 완료')
         // 2. User 생성
 
-        const hashedPassword = await bcrypt(password, 12)
+        const hashedPassword = await bcrypt.hash(password, 12)
 
         const newUser = await prisma.user.create({
             data: {
@@ -93,7 +91,6 @@ const usersService = {
                 grade_status,
             },
         })
-        console.log('User 생성 완료')
 
         // 3. Service 생성
         const newService = await prisma.service.create({
@@ -105,7 +102,6 @@ const usersService = {
                 profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_prifile4.svg',
             },
         })
-        console.log('Service 생성 완료')
 
         // 4. UserDB 생성 (User와 Service 연결)
 
