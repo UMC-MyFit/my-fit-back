@@ -27,6 +27,7 @@ MyFit은 인스타그램 피드처럼 직관적이고 가벼운 UI를 활용하�
 | **Process / Monitoring** | ![PM2](https://img.shields.io/badge/PM2-2B037A?style=for-the-badge&logo=pm2&logoColor=white) |
 
 ## 💻시스템 아키텍처
+<img width="3223" height="1956" alt="Image" src="https://github.com/user-attachments/assets/5f789e72-9517-47d7-bbf5-276cf02e5321" />
 
 ## 🚗ERD
 <img width="5160" height="3487" alt="Image" src="https://github.com/user-attachments/assets/c1498b44-c924-4593-9e4f-317e55c250ac" />
