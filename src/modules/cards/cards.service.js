@@ -555,8 +555,70 @@ const cardsService = {
         return convertBigIntsToNumbers({
             deleted_card_id: cardId,
         })
+    },
+    updateCard: async (cardId, myServiceId, payload) => {
+        // 1) 카드 존재 + 소유자 확인
+        const card = await prisma.activityCard.findUnique({
+            where: { id: cardId },
+            select: { id: true, service_id: true },
+        })
+        if (!card) throw new NotFoundError('존재하지 않는 활동 카드입니다.')
+        if (card.service_id !== myServiceId)
+            throw new ForbiddenError('해당 이력/활동 카드를 수정할 권한이 없습니다.')
 
-    }
+        // 2) 부분 수정 데이터 매핑
+        const updateData = {}
+        if (payload.card_one_line_profile !== undefined) {
+            updateData.one_line_profile = payload.card_one_line_profile
+        }
+        if (payload.detailed_profile !== undefined) {
+            updateData.detailed_profile = payload.detailed_profile
+        }
+        if (payload.link !== undefined) {
+            updateData.link = payload.link
+        }
+        if (payload.card_img !== undefined) {
+            updateData.card_img = payload.card_img
+        }
+
+        const willReplaceKeywords = Array.isArray(payload.keyword_text)
+
+        // 3) 트랜잭션: 카드 업데이트 + 키워드 교체
+        const updated = await prisma.$transaction(async (tx) => {
+            if (Object.keys(updateData).length > 0) {
+                await tx.activityCard.update({
+                    where: { id: cardId },
+                    data: updateData,
+                })
+            }
+
+            if (willReplaceKeywords) {
+                await tx.keyword.deleteMany({ where: { card_id: cardId } })
+
+                const rows = payload.keyword_text
+                    .filter((k) => typeof k === 'string' && k.trim() !== '')
+                    .map((k) => ({ keyword_text: k.trim(), card_id: cardId }))
+
+                if (rows.length) await tx.keyword.createMany({ data: rows })
+            }
+
+            return tx.activityCard.findUnique({
+                where: { id: cardId },
+                include: { keywords: { select: { keyword_text: true } } },
+            })
+        })
+
+        // 4) 응답
+        return convertBigIntsToNumbers({
+            card_id: updated.id,
+            service_id: card.service_id,
+            card_img: updated.card_img,
+            card_one_line_profile: updated.one_line_profile,
+            detailed_profile: updated.detailed_profile,
+            link: updated.link,
+            keyword_text: updated.keywords.map((k) => k.keyword_text),
+        })
+    },
 }
 
 export default cardsService

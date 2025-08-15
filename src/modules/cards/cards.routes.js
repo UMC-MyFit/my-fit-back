@@ -604,4 +604,60 @@ router.get('/:card_id', isAuthenticated, cardsController.getCardById)
 
 // 이력/활동 카드 삭제
 router.delete('/:card_id', isAuthenticated, cardsController.deleteCard)
+
+/**
+ * @swagger
+ * /api/cards/{card_id}:
+ *   patch:
+ *     summary: 이력/활동 카드 수정
+ *     description: 기존에 등록된 이력/활동 카드를 수정합니다.
+ *     tags: [Cards]
+ *     parameters:
+ *       - in: path
+ *         name: card_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 수정할 카드의 ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               card_img:
+ *                 type: string
+ *                 example: "https://cdn.example.com/cards/card_img01.png"
+ *               card_one_line_profile:
+ *                 type: string
+ *                 example: "사이드 프로젝트 매니아"
+ *               detailed_profile:
+ *                 type: string
+ *                 example: "Vue, React 기반 프로젝트 경험 다수. UI/UX에 관심이 많습니다."
+ *               link:
+ *                 type: string
+ *                 example: "https://github.com/chulsoo123"
+ *               keyword_text:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["React", "사이드 프로젝트", "UI/UX"]
+ *     responses:
+ *       200:
+ *         description: 수정 성공
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "이력/활동 카드 수정이 완료되었습니다."
+ *       500:
+ *         description: 서버 내부 오류
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "서버에 문제가 생겼습니다."
+ */
+
+// 이력/활동 카드 수정
+router.patch('/:card_id', isAuthenticated, cardsController.updateCard)
 export default router

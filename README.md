@@ -28,6 +28,9 @@ MyFit은 인스타그램 피드처럼 직관적이고 가벼운 UI를 활용하�
 
 ## 💻시스템 아키텍처
 
+## 🚗ERD
+<img width="5160" height="3487" alt="Image" src="https://github.com/user-attachments/assets/c1498b44-c924-4593-9e4f-317e55c250ac" />
+
 ## 📚브랜치 전략 (GitLab-flow 방식)
 - main/master
   - feature에서 합쳐진 기능 통합 테스트용

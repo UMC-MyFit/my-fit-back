@@ -222,6 +222,35 @@ const cardsController = {
         } catch (error) {
             next(error)
         }
+    },
+    updateCard: async (req, res, next) => {
+        try {
+            const { card_id } = req.params
+            const myServiceId = req.user?.service_id
+            const {
+                card_img,
+                card_one_line_profile,
+                detailed_profile,
+                link,
+                keyword_text
+            } = req.body
+
+            const result = await cardsService.updateCard(BigInt(card_id), BigInt(myServiceId),
+                {
+                    card_img,
+                    card_one_line_profile,
+                    detailed_profile,
+                    link,
+                    keyword_text,
+                })
+            res.success({
+                code: 200,
+                message: '이력/활동 카드 수정 성공',
+                result,
+            })
+        } catch (error) {
+
+        }
     }
 }
 
