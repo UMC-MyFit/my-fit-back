@@ -164,7 +164,7 @@ class Feed {
                     (heart) => heart.service_id === BigInt(serviceId)
                 );
                 const hashtags = stringToList(feed.hashtag);
-                const teamDivision = await Feed.getUserTeamDivision(serviceId);
+                const teamDivision = await Feed.getUserTeamDivision(feed.service.id);
                 let returnData = {
                     "feed_id": feed.id,
                     "user": {
@@ -230,7 +230,7 @@ class Feed {
             throw error;
         }
     }
-    // 피드 삭제 -> 소프트 삭제(숨김처리)
+    // 피드 숨김 여부 변경
     static async updateVisibility(feedId, isVisible) {
         try {
             const hidedFeed = await prisma.feed.update({
