@@ -99,7 +99,7 @@ const usersService = {
                 high_sector,
                 low_sector,
                 recruiting_status,
-                profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_prifile4.svg',
+                profile_img: process.env.DEFAULT_IMG_URL,
             },
         })
 
@@ -213,7 +213,7 @@ const usersService = {
                 high_sector: '',
                 low_sector: '',
                 recruiting_status,
-                profile_img: 'https://myfit-bucket-mhfd.s3.ap-northeast-2.amazonaws.com/userProfile/base_prifile4.svg',
+                profile_img: process.env.DEFAULT_IMG_URL,
             }
         })
 
